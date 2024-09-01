@@ -1,0 +1,207 @@
+[05-Aug-2024 23:52:37 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'c2650924_db'@'%' to database 'c2650924_db' in /home/c2650924/public_html/login.php:10
+Stack trace:
+#0 /home/c2650924/public_html/login.php(10): mysqli->__construct('localhost', 'c2650924_db', Object(SensitiveParameterValue), 'c2650924_db')
+#1 {main}
+  thrown in /home/c2650924/public_html/login.php on line 10
+[06-Aug-2024 00:21:16 America/Argentina/Buenos_Aires] PHP Warning:  include(db_config.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/gestionequipos/api/login.php on line 5
+[06-Aug-2024 00:21:16 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening 'db_config.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/gestionequipos/api/login.php on line 5
+[06-Aug-2024 00:21:16 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $servername in /home/c2650924/public_html/gestionequipos/api/login.php on line 7
+[06-Aug-2024 00:21:16 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $username in /home/c2650924/public_html/gestionequipos/api/login.php on line 7
+[06-Aug-2024 00:21:16 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $password in /home/c2650924/public_html/gestionequipos/api/login.php on line 7
+[06-Aug-2024 00:21:16 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $dbname in /home/c2650924/public_html/gestionequipos/api/login.php on line 7
+[06-Aug-2024 00:21:16 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/gestionequipos/api/login.php:7
+Stack trace:
+#0 /home/c2650924/public_html/gestionequipos/api/login.php(7): mysqli->__construct(NULL, NULL, Object(SensitiveParameterValue), NULL)
+#1 {main}
+  thrown in /home/c2650924/public_html/gestionequipos/api/login.php on line 7
+[06-Aug-2024 01:06:21 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_equipos.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:06:33 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_equipos.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:06:46 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_partes_diarios.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:07:12 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_partes_diarios.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:07:12 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_partes_diarios.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:07:12 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_partes_diarios.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:07:18 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_equipos.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:07:47 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_equipos.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:09:56 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_equipos.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:09:57 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_equipos.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:12:45 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_partes_diarios.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:14:33 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_partes_diarios.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[06-Aug-2024 01:14:37 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/db_config.php:9
+Stack trace:
+#0 /home/c2650924/public_html/db_config.php(9): mysqli_connect('localhost', '', Object(SensitiveParameterValue))
+#1 /home/c2650924/public_html/get_partes_diarios.php(3): include('/home/c2650924/...')
+#2 {main}
+  thrown in /home/c2650924/public_html/db_config.php on line 9
+[07-Aug-2024 00:57:47 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'id22329069_adminobr'@'172.17.151.30' (using password: YES) in /home/c2650924/public_html/listar_registros.php:96
+Stack trace:
+#0 /home/c2650924/public_html/listar_registros.php(96): mysqli->__construct('localhost', 'id22329069_admi...', Object(SensitiveParameterValue), 'id22329069_gest...')
+#1 {main}
+  thrown in /home/c2650924/public_html/listar_registros.php on line 96
+[07-Aug-2024 00:59:27 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'id22329069_adminobr'@'172.17.151.30' (using password: YES) in /home/c2650924/public_html/listar_registros.php:96
+Stack trace:
+#0 /home/c2650924/public_html/listar_registros.php(96): mysqli->__construct('localhost', 'id22329069_admi...', Object(SensitiveParameterValue), 'id22329069_gest...')
+#1 {main}
+  thrown in /home/c2650924/public_html/listar_registros.php on line 96
+[07-Aug-2024 13:51:57 America/Argentina/Buenos_Aires] PHP Warning:  include(db_config.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 13:51:57 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening 'db_config.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 13:51:57 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $servername in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:51:57 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $username in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:51:57 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $password in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:51:57 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $dbname in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:51:57 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/auth/login.php:7
+Stack trace:
+#0 /home/c2650924/public_html/auth/login.php(7): mysqli->__construct(NULL, NULL, Object(SensitiveParameterValue), NULL)
+#1 {main}
+  thrown in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:52:03 America/Argentina/Buenos_Aires] PHP Warning:  include(db_config.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 13:52:03 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening 'db_config.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 13:52:03 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $servername in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:52:03 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $username in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:52:03 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $password in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:52:03 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $dbname in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:52:03 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/auth/login.php:7
+Stack trace:
+#0 /home/c2650924/public_html/auth/login.php(7): mysqli->__construct(NULL, NULL, Object(SensitiveParameterValue), NULL)
+#1 {main}
+  thrown in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:53:09 America/Argentina/Buenos_Aires] PHP Warning:  include(db_config.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 13:53:09 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening 'db_config.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 13:53:09 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $servername in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:53:09 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $username in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:53:09 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $password in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:53:09 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $dbname in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:53:09 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/auth/login.php:7
+Stack trace:
+#0 /home/c2650924/public_html/auth/login.php(7): mysqli->__construct(NULL, NULL, Object(SensitiveParameterValue), NULL)
+#1 {main}
+  thrown in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:54:05 America/Argentina/Buenos_Aires] PHP Warning:  include(db_config.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 13:54:05 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening 'db_config.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 13:54:05 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $servername in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:54:05 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $username in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:54:05 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $password in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:54:05 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $dbname in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 13:54:05 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/auth/login.php:7
+Stack trace:
+#0 /home/c2650924/public_html/auth/login.php(7): mysqli->__construct(NULL, NULL, Object(SensitiveParameterValue), NULL)
+#1 {main}
+  thrown in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 14:09:01 America/Argentina/Buenos_Aires] PHP Warning:  include(../db_config.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 14:09:01 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening '../db_config.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 14:09:01 America/Argentina/Buenos_Aires] PHP Warning:  http_response_code(): Cannot set response code - headers already sent (output started at /home/c2650924/public_html/auth/login.php:5) in /home/c2650924/public_html/auth/login.php on line 9
+[07-Aug-2024 14:09:23 America/Argentina/Buenos_Aires] PHP Warning:  include(../db_config.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 14:09:23 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening '../db_config.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/auth/login.php on line 5
+[07-Aug-2024 14:09:23 America/Argentina/Buenos_Aires] PHP Warning:  http_response_code(): Cannot set response code - headers already sent (output started at /home/c2650924/public_html/auth/login.php:5) in /home/c2650924/public_html/auth/login.php on line 9
+[07-Aug-2024 14:10:31 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $servername in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 14:10:31 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $username in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 14:10:31 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $password in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 14:10:31 America/Argentina/Buenos_Aires] PHP Warning:  Undefined variable $dbname in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 14:10:31 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user ''@'172.17.151.30' (using password: NO) in /home/c2650924/public_html/auth/login.php:7
+Stack trace:
+#0 /home/c2650924/public_html/auth/login.php(7): mysqli->__construct(NULL, NULL, Object(SensitiveParameterValue), NULL)
+#1 {main}
+  thrown in /home/c2650924/public_html/auth/login.php on line 7
+[07-Aug-2024 18:19:34 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Incorrect DATE value: '""' in /home/c2650924/public_html/gestionequipos/get_partes_diarios.php:74
+Stack trace:
+#0 /home/c2650924/public_html/gestionequipos/get_partes_diarios.php(74): mysqli->query('SELECT\n        ...')
+#1 {main}
+  thrown in /home/c2650924/public_html/gestionequipos/get_partes_diarios.php on line 74
+[13-Aug-2024 00:50:52 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`c2650924_db`.`partes_diarios`, CONSTRAINT `partes_diarios_ibfk_1` FOREIGN KEY (`equipo_id`) REFERENCES `equipos` (`id_equipo`)) in /home/c2650924/public_html/gestionequipos/guardar_parte_diario.php:31
+Stack trace:
+#0 /home/c2650924/public_html/gestionequipos/guardar_parte_diario.php(31): mysqli->query('INSERT INTO par...')
+#1 {main}
+  thrown in /home/c2650924/public_html/gestionequipos/guardar_parte_diario.php on line 31
+[13-Aug-2024 16:59:07 America/Argentina/Buenos_Aires] PHP Warning:  include(auth_check.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/index.php on line 2
+[13-Aug-2024 16:59:07 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening 'auth_check.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/index.php on line 2
+[13-Aug-2024 16:59:11 America/Argentina/Buenos_Aires] PHP Warning:  include(auth_check.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/index.php on line 2
+[13-Aug-2024 16:59:11 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening 'auth_check.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/index.php on line 2
+[13-Aug-2024 16:59:13 America/Argentina/Buenos_Aires] PHP Warning:  include(auth_check.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/index.php on line 2
+[13-Aug-2024 16:59:13 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening 'auth_check.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/index.php on line 2
+[13-Aug-2024 17:00:16 America/Argentina/Buenos_Aires] PHP Warning:  include(): open_basedir restriction in effect. File(/auth/auth_check.php) is not within the allowed path(s): (/home/c2650924/storagedir:/home/c2650924/public_html:/tmp:/home/c2650924/tmpsite:/opt/php8-3/lib/php:/opt/ferozo/etc/suspen:/opt/ferozo/suspended.page) in /home/c2650924/public_html/index.php on line 2
+[13-Aug-2024 17:00:16 America/Argentina/Buenos_Aires] PHP Warning:  include(/auth/auth_check.php): Failed to open stream: Operation not permitted in /home/c2650924/public_html/index.php on line 2
+[13-Aug-2024 17:00:16 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening '/auth/auth_check.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/index.php on line 2
+[13-Aug-2024 21:46:59 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`c2650924_db`.`partes_diarios`, CONSTRAINT `partes_diarios_ibfk_1` FOREIGN KEY (`equipo_id`) REFERENCES `equipos` (`id_equipo`)) in /home/c2650924/public_html/gestionequipos/guardar_parte_diario.php:31
+Stack trace:
+#0 /home/c2650924/public_html/gestionequipos/guardar_parte_diario.php(31): mysqli->query('INSERT INTO par...')
+#1 {main}
+  thrown in /home/c2650924/public_html/gestionequipos/guardar_parte_diario.php on line 31
+[13-Aug-2024 21:47:05 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Cannot add or update a child row: a foreign key constraint fails (`c2650924_db`.`partes_diarios`, CONSTRAINT `partes_diarios_ibfk_1` FOREIGN KEY (`equipo_id`) REFERENCES `equipos` (`id_equipo`)) in /home/c2650924/public_html/gestionequipos/guardar_parte_diario.php:31
+Stack trace:
+#0 /home/c2650924/public_html/gestionequipos/guardar_parte_diario.php(31): mysqli->query('INSERT INTO par...')
+#1 {main}
+  thrown in /home/c2650924/public_html/gestionequipos/guardar_parte_diario.php on line 31
+[13-Aug-2024 23:19:45 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Access denied for user 'id22329069_adminobr'@'172.17.151.30' (using password: YES) in /home/c2650924/public_html/gestionequipos/listar_registros.php:196
+Stack trace:
+#0 /home/c2650924/public_html/gestionequipos/listar_registros.php(196): mysqli->__construct('localhost', 'id22329069_admi...', Object(SensitiveParameterValue), 'id22329069_gest...')
+#1 {main}
+  thrown in /home/c2650924/public_html/gestionequipos/listar_registros.php on line 196
+[13-Aug-2024 23:29:20 America/Argentina/Buenos_Aires] PHP Warning:  include(auth/auth_check.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/gestionequipos/listar_registros.php on line 2
+[13-Aug-2024 23:29:20 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening 'auth/auth_check.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/gestionequipos/listar_registros.php on line 2
+[13-Aug-2024 23:30:09 America/Argentina/Buenos_Aires] PHP Warning:  include(./auth/auth_check.php): Failed to open stream: No such file or directory in /home/c2650924/public_html/gestionequipos/listar_registros.php on line 2
+[13-Aug-2024 23:30:09 America/Argentina/Buenos_Aires] PHP Warning:  include(): Failed opening './auth/auth_check.php' for inclusion (include_path='.:/opt/php8-3/lib/php') in /home/c2650924/public_html/gestionequipos/listar_registros.php on line 2
+[14-Aug-2024 00:37:38 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "loggedin" in /home/c2650924/public_html/login.php on line 5
+[23-Aug-2024 00:50:14 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: Unknown column 'estado' in 'field list' in /home/c2650924/public_html/api/roles/get_roles.php:14
+Stack trace:
+#0 /home/c2650924/public_html/api/roles/get_roles.php(14): mysqli->query('SELECT id_rol, ...')
+#1 {main}
+  thrown in /home/c2650924/public_html/api/roles/get_roles.php on line 14

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_menu_home"
+            android:title="@string/menu_home" />
+
+        <item
+            android:id="@+id/nav_partediario"
+            android:icon="@drawable/ic_article"
+            android:title="@string/menu_partediario" />
+
+        <item
+            android:id="@+id/nav_check_update"
+            android:icon="@drawable/ic_update"
+            android:title="Buscar Actualizaciones" />
+
+        <item
+            android:id="@+id/nav_gestion_usuarios"
+            android:icon="@drawable/ic_manage_users"
+            android:title="Gestionar Usuarios" />
+
+    </group>
+
+    <group android:id="@+id/grupo_final">
+
+        <item
+            android:id="@+id/nav_cerrar_sesion"
+            android:icon="@drawable/ic_menu_logout"
+            android:title="Cerrar sesion" />
+    </group>
+</menu>

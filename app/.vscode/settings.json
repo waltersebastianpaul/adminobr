@@ -1,0 +1,5 @@
+{
+    "sftp.downloadWhenOpenInRemoteExplorer": true,
+    "sftp.groupByHost": true,
+    "sftp.printDebugLog": true
+}

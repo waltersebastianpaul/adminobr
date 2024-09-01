@@ -1,0 +1,94 @@
+package com.example.adminobr.utils
+
+import android.content.Context
+import android.content.SharedPreferences
+import com.example.adminobr.data.Empresa
+import com.google.gson.Gson
+
+class SessionManager(context: Context) {
+    private val prefs: SharedPreferences = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+    private val gson = Gson()
+
+    companion object {
+        private const val KEY_EMPRESA = "empresa"
+        private const val KEY_USER_ID = "user_id"
+        private const val KEY_USER_NOMBRE = "user_nombre"
+        private const val KEY_USER_APELLIDO = "user_apellido"
+        private const val KEY_USER_EMAIL = "user_email"
+        private const val KEY_USER_ROL = "user_rol"
+        private const val KEY_USER_PERMISOS = "user_permisos"
+
+        private const val KEY_DEBUGUEABLE = "false"
+    }
+
+    // Métodos para guardar y obtener los datos de la empresa como objeto `Empresa`
+    fun saveDebugueble(debuggable: Boolean) {
+        val editor = prefs.edit()
+        editor.putBoolean(KEY_DEBUGUEABLE, debuggable)
+        editor.apply()
+    }
+
+    fun getDebugueble(): Boolean {
+        return prefs.getBoolean(KEY_DEBUGUEABLE, false)
+    }
+
+    // Métodos para guardar y obtener los datos de la empresa como objeto `Empresa`
+    fun saveEmpresaData(empresa: Empresa) {
+        val editor = prefs.edit()
+        val empresaJson = gson.toJson(empresa)
+        editor.putString(KEY_EMPRESA, empresaJson)
+        editor.apply()
+    }
+
+    fun getEmpresaData(): Empresa? {
+        val empresaJson = prefs.getString(KEY_EMPRESA, null)
+        return if (empresaJson != null) {
+            gson.fromJson(empresaJson, Empresa::class.java)
+        } else {
+            null
+        }
+    }
+
+    // Métodos para guardar y obtener los datos del usuario
+    fun saveUserData(id: Int, nombre: String, apellido: String, email: String, rol: List<String>, permisos: List<String>) {
+        val editor = prefs.edit()
+        editor.putInt(KEY_USER_ID, id)
+        editor.putString(KEY_USER_NOMBRE, nombre)
+        editor.putString(KEY_USER_APELLIDO, apellido)
+        editor.putString(KEY_USER_EMAIL, email)
+        editor.putStringSet(KEY_USER_ROL, rol.toSet())
+        editor.putStringSet(KEY_USER_PERMISOS, permisos.toSet())
+        editor.apply()
+    }
+
+    fun getUserId(): Int {
+        return prefs.getInt(KEY_USER_ID, -1)
+    }
+
+    fun getUserNombre(): String? {
+        return prefs.getString(KEY_USER_NOMBRE, null)
+    }
+
+    fun getUserApellido(): String? {
+        return prefs.getString(KEY_USER_APELLIDO, null)
+    }
+
+    fun getUserEmail(): String? {
+        return prefs.getString(KEY_USER_EMAIL, null)
+    }
+
+    fun getUserRol(): List<String>? {
+        return prefs.getStringSet(KEY_USER_ROL, null)?.toList()
+    }
+
+    fun getUserPermisos(): List<String>? {
+        return prefs.getStringSet(KEY_USER_PERMISOS, null)?.toList()
+    }
+
+    fun clearSession() {
+        val editor = prefs.edit()
+        editor.clear()
+        editor.apply()
+    }
+}
+

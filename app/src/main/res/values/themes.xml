@@ -1,0 +1,51 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.GestionEquipos" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
+        <item name="colorOnPrimary">@color/white</item>
+
+        <item name="colorSecondary">@color/colorGreen</item>
+        <item name="colorSecondaryVariant">@color/colorGray</item>
+        <item name="colorOnSecondary">@color/white</item>
+
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+
+        <!-- Agrega esta línea -->
+        <item name="android:datePickerDialogTheme">@style/MyDatePickerDialogTheme</item>
+    </style>
+
+    <style name="Theme.GestionEquipos.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.GestionEquipos.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.GestionEquipos.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+    <!-- Estilo para el ProgressBar -->
+    <style name="TransparentProgressBar" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminateDrawable">@drawable/circular_progress_bar</item>
+        <item name="android:background">@color/transparent</item>
+    </style>
+
+    <!-- Define el tema para el DatePickerDialog -->
+    <style name="MyDatePickerDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog">
+        <item name="colorAccent">@color/colorPrimary</item>
+        <!-- Cambia el color de acento -->
+        <item name="android:headerBackground">@color/colorPrimary</item>
+        <!-- Cambia el color del encabezado -->
+        <!-- Puedes agregar más atributos para personalizar la apariencia -->
+    </style>
+
+    <style name="ProgressDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
+</resources>

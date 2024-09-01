@@ -1,0 +1,50 @@
+<resources>
+<!--    <string name="app_name">adminObr</string>-->
+    <string name="app_name">AdminObr</string>
+    <string name="app_name_logo">AdminObr</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">NOMBRE DE LA EMPRESA</string>
+    <string name="nav_header_subtitle">Nombre del Usuario</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Ajustes</string>
+    <string name="action_logout">Cerrar sesión</string>
+
+    <string name="menu_home">Inicio</string>
+
+    <string name="hint_fecha">Fecha</string>
+    <string name="hint_equipo">Equipo</string>
+    <string name="hint_horas_inicio">Hora inicial</string>
+    <string name="hint_horas_fin">Hora final</string>
+    <string name="hint_horas_trabajadas">Total</string>
+    <string name="hint_observaciones">Observaciones</string>
+    <string name="hint_obra">Obra</string>
+
+<!--  Buttons  -->
+    <string name="button_guardar">Guardar</string>
+    <string name="button_guardar_parte">Guardar Parte</string>
+    <string name="button_listar_registros">Listar Registros</string>
+    <string name="button_login">Iniciar Sesion</string>
+    <string name="button_filtrar_descripcion">Botón para aplicar filtros</string>
+    <string name="button_listar_partes">Listar Partes</string>
+    <string name="button_clear_filters">Limpiar Filtros</string>
+    <string name="button_filtrar">Filtrar Datos</string>
+
+
+    <string name="regresar">Regresar</string>
+    <string name="menu_partediario">Parte Diario</string>
+
+    <string name="recuperar_contrasena">¿Olvidaste tu contraseña?</string>
+    <string name="menu_login">Login</string>
+    <string name="etiqueta_fab">Nuevo</string>
+
+    <string name="content_description_equipo">Seleccionar equipo</string>
+    <string name="nuevo_parte_diario">Nuevo Parte Diario</string>
+    <string name="nuevo_parte_simple">Nuevo Parte Simple</string>
+    <string name="logo_app">Logo de la aplicación</string>
+    <string name="user">Usuario</string>
+    <string name="pass">Contraseña</string>
+    <string name="hint_legajo">Legajo</string>
+
+
+</resources>

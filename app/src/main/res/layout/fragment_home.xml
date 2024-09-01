@@ -1,0 +1,487 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.home.HomeFragment"
+    android:padding="16dp">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Título entre grupos de botones -->
+            <TextView
+                android:id="@+id/secondTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Gestion de Equipos - PARTES"
+                android:textSize="16sp"
+                android:textStyle="normal"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
+                android:gravity="start" />
+
+            <androidx.gridlayout.widget.GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                app:columnCount="2"
+                app:orientation="horizontal">
+
+                <!-- Primer CardView en la cuadrícula -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/parteDiarioCardView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp"
+                    app:layout_columnWeight="1"
+                    android:clickable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:padding="0dp">
+
+                        <!-- Barra superior -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="4dp"
+                            android:background="@color/colorButtonPrimary"/>
+
+                        <!-- Contenido de la Card -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@color/colorBlueLite"
+                            android:padding="10dp">
+
+                            <ImageView
+                                android:layout_width="58dp"
+                                android:layout_height="58dp"
+                                android:layout_centerHorizontal="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginTop="16dp"
+                                android:src="@drawable/ic_assignment" />
+
+                            <!-- Menú de tres puntos -->
+                            <ImageView
+                                android:id="@+id/parteDiarioMenuIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentTop="true"
+                                android:src="@drawable/ic_more_vert"
+                                android:focusable="true"
+                                android:clickable="true"
+                                android:foreground="?attr/selectableItemBackground"/>
+
+                        </RelativeLayout>
+
+                        <!-- Descripción u otro contenido -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="16dp"
+                            android:text="Parte Diario"
+                            android:textColor="@color/gray_900"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Segundo CardView en la cuadrícula -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/listarPartesCardView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp"
+                    app:layout_columnWeight="1"
+                    android:clickable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <!-- Barra superior -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="4dp"
+                            android:background="@color/gray_800" />
+
+                        <!-- Contenido de la Card -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@color/colorBlueLite"
+                            android:padding="10dp">
+
+                            <ImageView
+                                android:layout_width="58dp"
+                                android:layout_height="58dp"
+                                android:layout_centerHorizontal="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginTop="16dp"
+                                android:src="@drawable/ic_subject" />
+
+                            <!-- Menú de tres puntos -->
+                            <ImageView
+                                android:id="@+id/listarPartesMenuIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentTop="true"
+                                android:src="@drawable/ic_more_vert"
+                                android:clickable="true"
+                                android:focusable="true" />
+                        </RelativeLayout>
+
+                        <!-- Descripción u otro contenido -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:layout_marginBottom="16dp"
+                            android:text="Listar Partes"
+                            android:textColor="@color/gray_900"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Tercer CardView en la cuadrícula -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/parteSimpleCardView"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="4dp"
+                    app:layout_columnWeight="1"
+                    android:clickable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center">
+
+                        <!-- Barra superior -->
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="4dp"
+                            android:background="@color/gray_800" />
+
+                        <!-- Contenido de la Card -->
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@color/colorBlueLite"
+                            android:padding="10dp">
+
+                            <ImageView
+                                android:layout_width="58dp"
+                                android:layout_height="58dp"
+                                android:layout_centerHorizontal="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginTop="16dp"
+                                android:src="@drawable/ic_content_paste" />
+
+                            <!-- Menú de tres puntos -->
+                            <ImageView
+                                android:id="@+id/parteSimpleMenuIcon"
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:layout_alignParentEnd="true"
+                                android:layout_alignParentTop="true"
+                                android:src="@drawable/ic_more_vert"
+                                android:clickable="true"
+                                android:focusable="true" />
+                        </RelativeLayout>
+
+                        <!-- Descripción u otro contenido -->
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:layout_marginBottom="16dp"
+                            android:text="Parte Simple"
+                            android:textColor="@color/gray_900"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Cuarto CardView en la cuadrícula -->
+
+
+
+            </androidx.gridlayout.widget.GridLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<androidx.constraintlayout.widget.ConstraintLayout-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    tools:context=".ui.home.HomeFragment"-->
+<!--    android:padding="16dp">-->
+
+<!--    <ScrollView-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent">-->
+
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:orientation="vertical">-->
+
+<!--            <androidx.cardview.widget.CardView-->
+<!--                android:id="@+id/parteDiarioCardView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="16dp"-->
+<!--                android:layout_marginEnd="16dp"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:layout_marginBottom="8dp"-->
+<!--                app:cardCornerRadius="12dp"-->
+<!--                app:cardElevation="6dp"-->
+<!--                android:clickable="true"-->
+<!--                android:foreground="?attr/selectableItemBackground">-->
+
+<!--                <LinearLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="vertical">-->
+
+<!--                    &lt;!&ndash; Barra superior &ndash;&gt;-->
+<!--                    <View-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="4dp"-->
+<!--                        android:background="@color/colorPrimary"/>-->
+
+<!--                    &lt;!&ndash; Contenido de la Card &ndash;&gt;-->
+<!--                    <RelativeLayout-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:background="@color/colorAzureLite"-->
+<!--                        android:padding="12dp">-->
+
+<!--                        &lt;!&ndash; Título o contenido principal &ndash;&gt;-->
+<!--                        <TextView-->
+<!--                            android:id="@+id/parteDiarioTitleTextView"-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:text="Parte Diario"-->
+<!--                            android:textSize="18sp"-->
+<!--                            android:textColor="@color/black"-->
+<!--                            android:fontFamily="sans-serif-medium"/>-->
+
+<!--                        &lt;!&ndash; Menú de tres puntos &ndash;&gt;-->
+<!--                        <ImageView-->
+<!--                            android:id="@+id/menuIconParteDiarioCardView"-->
+<!--                            android:layout_width="24dp"-->
+<!--                            android:layout_height="24dp"-->
+<!--                            android:layout_alignParentEnd="true"-->
+<!--                            android:layout_alignParentRight="true"-->
+<!--                            android:layout_centerVertical="true"-->
+<!--                            android:contentDescription="Menu Icon"-->
+<!--                            android:src="@drawable/ic_more_vert"-->
+<!--                            android:visibility="gone"-->
+<!--                            android:clickable="true"/>-->
+<!--                    </RelativeLayout>-->
+
+<!--                    &lt;!&ndash; Descripción u otro contenido &ndash;&gt;-->
+<!--                    <TextView-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_marginTop="4dp"-->
+<!--                        android:layout_marginBottom="16dp"-->
+<!--                        android:layout_marginEnd="12dp"-->
+<!--                        android:layout_marginStart="12dp"-->
+<!--                        android:text="Cargar PARTES DIARIOS de equipos.\nDestinado a Maquinistas/Operarios."-->
+<!--                        android:justificationMode="inter_word"-->
+<!--                        android:textSize="14sp"-->
+<!--                        android:textColor="@color/gray_900"/>-->
+<!--                </LinearLayout>-->
+<!--            </androidx.cardview.widget.CardView>-->
+
+<!--            <androidx.cardview.widget.CardView-->
+<!--                android:id="@+id/parteSimpleCardView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="16dp"-->
+<!--                android:layout_marginEnd="16dp"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:layout_marginBottom="8dp"-->
+<!--                app:cardCornerRadius="12dp"-->
+<!--                app:cardElevation="6dp"-->
+<!--                android:clickable="true"-->
+<!--                android:foreground="?attr/selectableItemBackground">-->
+
+<!--                <LinearLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="vertical">-->
+
+<!--                    &lt;!&ndash; Barra superior &ndash;&gt;-->
+<!--                    <View-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="4dp"-->
+<!--                        android:background="@color/colorAccent"/>-->
+
+<!--                    &lt;!&ndash; Contenido de la Card &ndash;&gt;-->
+<!--                    <RelativeLayout-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:background="@color/colorGreenLite"-->
+<!--                        android:padding="12dp">-->
+
+<!--                        &lt;!&ndash; Título o contenido principal &ndash;&gt;-->
+<!--                        <TextView-->
+<!--                            android:id="@+id/parteSimpleTitleTextView"-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:text="Parte Simple"-->
+<!--                            android:textSize="18sp"-->
+<!--                            android:textColor="@color/black"-->
+<!--                            android:fontFamily="sans-serif-medium"/>-->
+
+<!--                        &lt;!&ndash; Menú de tres puntos &ndash;&gt;-->
+<!--                        <ImageView-->
+<!--                            android:id="@+id/menuIcon"-->
+<!--                            android:layout_width="24dp"-->
+<!--                            android:layout_height="24dp"-->
+<!--                            android:layout_alignParentEnd="true"-->
+<!--                            android:layout_alignParentRight="true"-->
+<!--                            android:layout_centerVertical="true"-->
+<!--                            android:contentDescription="Menu Icon"-->
+<!--                            android:src="@drawable/ic_more_vert"-->
+<!--                            android:visibility="gone"-->
+<!--                            android:clickable="true"/>-->
+<!--                    </RelativeLayout>-->
+
+<!--                    &lt;!&ndash; Descripción u otro contenido &ndash;&gt;-->
+<!--                    <TextView-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_marginTop="4dp"-->
+<!--                        android:layout_marginBottom="16dp"-->
+<!--                        android:layout_marginEnd="12dp"-->
+<!--                        android:layout_marginStart="12dp"-->
+<!--                        android:text="Cargar PARTES SIMPLES de equipos.\nDestinado a Administrativos de obra, para registrar multiples equipos."-->
+<!--                        android:textSize="14sp"-->
+<!--                        android:textColor="@color/gray_900"/>-->
+<!--                </LinearLayout>-->
+<!--            </androidx.cardview.widget.CardView>-->
+
+<!--            <androidx.cardview.widget.CardView-->
+<!--                android:id="@+id/listarPartesCardView"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="16dp"-->
+<!--                android:layout_marginEnd="16dp"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:layout_marginBottom="8dp"-->
+<!--                app:cardCornerRadius="12dp"-->
+<!--                app:cardElevation="6dp"-->
+<!--                android:clickable="true"-->
+<!--                android:foreground="?attr/selectableItemBackground">-->
+
+<!--                <LinearLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="vertical">-->
+
+<!--                    &lt;!&ndash; Barra superior &ndash;&gt;-->
+<!--                    <View-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="4dp"-->
+<!--                        android:background="@color/gray_900"/>-->
+
+<!--                    &lt;!&ndash; Contenido de la Card &ndash;&gt;-->
+<!--                    <RelativeLayout-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:background="@color/gray_100"-->
+<!--                        android:padding="12dp">-->
+
+<!--                        &lt;!&ndash; Título o contenido principal &ndash;&gt;-->
+<!--                        <TextView-->
+<!--                            android:id="@+id/listarPartesTitleTextView"-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:text="Listar Partes"-->
+<!--                            android:textSize="18sp"-->
+<!--                            android:textColor="@color/black"-->
+<!--                            android:fontFamily="sans-serif-medium"/>-->
+
+<!--                        &lt;!&ndash; Menú de tres puntos &ndash;&gt;-->
+<!--                        <ImageView-->
+<!--                            android:id="@+id/listarPartesMenuIcon"-->
+<!--                            android:layout_width="24dp"-->
+<!--                            android:layout_height="24dp"-->
+<!--                            android:layout_alignParentEnd="true"-->
+<!--                            android:layout_alignParentRight="true"-->
+<!--                            android:layout_centerVertical="true"-->
+<!--                            android:contentDescription="Menu Icon"-->
+<!--                            android:src="@drawable/ic_more_vert"-->
+<!--                            android:visibility="gone"-->
+<!--                            android:clickable="true"/>-->
+<!--                    </RelativeLayout>-->
+
+<!--                    &lt;!&ndash; Descripción u otro contenido &ndash;&gt;-->
+<!--                    <TextView-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_marginTop="4dp"-->
+<!--                        android:layout_marginBottom="16dp"-->
+<!--                        android:layout_marginEnd="12dp"-->
+<!--                        android:layout_marginStart="12dp"-->
+<!--                        android:text="LISTAR partes, filtrando por fecha y/o equipo.\nDestinado a usuarios en general."-->
+<!--                        android:textSize="14sp"-->
+<!--                        android:textColor="@color/gray_900"/>-->
+<!--                </LinearLayout>-->
+<!--            </androidx.cardview.widget.CardView>-->
+
+<!--        </LinearLayout>-->
+<!--    </ScrollView>-->
+<!--</androidx.constraintlayout.widget.ConstraintLayout>-->
+
+
