@@ -18,8 +18,8 @@
 local.properties
 /app/hosting/
 /app_
-/updates
-/keystore
+/updates/
+/keystore/
 
 /app/public_html/.vscode/ftp-sync.json
 
