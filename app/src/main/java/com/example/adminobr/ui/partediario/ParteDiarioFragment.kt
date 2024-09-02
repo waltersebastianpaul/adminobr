@@ -45,7 +45,6 @@ import java.util.Locale
 
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-//import com.example.gestionequipos.ui.adapter.CustomArrayAdapter
 import com.example.adminobr.ui.adapter.ParteDiarioAdapter
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.utils.SessionManager

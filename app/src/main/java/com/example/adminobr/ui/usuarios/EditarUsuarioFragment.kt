@@ -15,7 +15,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.adminobr.R
 import com.example.adminobr.data.Usuario
-//import com.example.gestionequipos.data.Usuario
 import com.example.adminobr.databinding.FragmentNuevoUsuarioBinding
 import com.example.adminobr.ui.common.ProgressDialogFragment
 import com.example.adminobr.utils.SessionManager

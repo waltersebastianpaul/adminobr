@@ -36,7 +36,6 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import androidx.core.content.ContextCompat
-//import com.example.gestionequipos.ui.adapter.CustomArrayAdapter
 import com.example.adminobr.ui.adapter.ParteSimpleAdapter
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.viewmodel.ParteSimpleViewModel
@@ -348,23 +347,18 @@ class ParteSimpleFragment : Fragment() {
                 val iconMargin = (itemView.height - icon!!.intrinsicHeight) / 2
                 val iconTop = itemView.top + (itemView.height - icon.intrinsicHeight) / 2
                 val iconBottom = iconTop + icon.intrinsicHeight
-// Fondo rojo
-                val redColor = ContextCompat.getColor(requireContext(), R.color.colorAlert)
+                // Fondo rojo
+                val redColor = ContextCompat.getColor(requireContext(), R.color.colorRedLite)
 
                 when {
                     dX < 0 -> { // Deslizar hacia la izquierda
-//                        val iconLeft = itemView.right - iconMargin - icon.intrinsicWidth
-//                        val iconRight = itemView.right - iconMargin
-//                        icon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
                         val iconLeft = itemView.right + dX.toInt() + iconMargin
                         val iconRight = itemView.right + dX.toInt() + iconMargin + icon.intrinsicWidth
 
-
-//                        val iconLeft = itemView.right + dX.toInt() - recyclerViewPadding + iconMargin
-//                        val iconRight = iconLeft + deleteIcon.intrinsicWidth
+                        // Aplicar tinte al ícono
+                        icon.setTint(ContextCompat.getColor(recyclerView.context, R.color.white))
 
                         icon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
-
 
                         val background = ColorDrawable(redColor)
                         background.setBounds(

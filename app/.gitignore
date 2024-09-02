@@ -1,8 +1,8 @@
-/build
-/gestionequipos/
-/debug/
-/auth/
-/public_html/
-/release/
-/updates/
+build/
+gestionequipos/
+debug/
+auth/
+public_html/
+release/
+updates/
 

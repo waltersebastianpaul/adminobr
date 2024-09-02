@@ -45,19 +45,6 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
     private val _filterFechaInicio = MutableLiveData<String>()
     private val _filterFechaFin = MutableLiveData<String>()
 
-//    val partesDiarios: Flow<PagingData<ListarPartesDiarios>> = combine(
-//        _filterEquipo.asFlow(),
-//        _filterFechaInicio.asFlow(),
-//        _filterFechaFin.asFlow()
-//    ) { equipo, fechaInicio, fechaFin ->
-//        Triple(equipo, fechaInicio, fechaFin)
-//    }.flatMapLatest { (equipo, fechaInicio, fechaFin) ->
-//        Log.d("ParteDiarioViewModel", "Fetching data with filter - Equipo: $equipo, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
-//        Pager(PagingConfig(pageSize = 20)) {
-//            ParteDiarioPagingSource(client, baseUrl, equipo ?: "", fechaInicio ?: "", fechaFin ?: "")
-//        }.flow.cachedIn(viewModelScope)
-//    }
-
     val partesDiarios: Flow<PagingData<ListarPartesDiarios>> = combine(
         _filterEquipo.asFlow(),
         _filterFechaInicio.asFlow(),

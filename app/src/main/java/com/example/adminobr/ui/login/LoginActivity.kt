@@ -63,7 +63,7 @@ class LoginActivity : AppCompatActivity() {
         // Asignar valores por defecto en modo Debug
         val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         // Guardar el valor de isDebuggable en SessionManager
-        sessionManager.saveDebugueble(isDebuggable)
+        sessionManager.saveDebuggable(isDebuggable)
         Log.d("LoginActivity", "Debuggable: $isDebuggable")
 
         if (isDebuggable) {

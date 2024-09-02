@@ -27,18 +27,18 @@
 //class UpdateManager(private val context: Context) {
 //
 //    private val sessionManager = SessionManager(context)
-//    private val isDebugueble = sessionManager.getDebugueble()
+//    private val isDebuggable = sessionManager.isDebuggable()
 //
 //    //
 //    private var updateUrl = Constants.Update.RELEASE_DIR
 //
 //    suspend fun checkForUpdates(): Boolean {
-//        if(isDebugueble){
+//        if(isDebuggable){
 //            updateUrl = Constants.Update.DEBUG_DIR
 //        }
 //        Log.d("UpdateManager", "Iniciando checkForUpdates()")
 //        Log.d("UpdateManager", "updateUrl $updateUrl")
-//        Log.d("UpdateManager", "isDebugueble $isDebugueble")
+//        Log.d("UpdateManager", "isDebuggable $isDebuggable")
 //        return try {
 //            val updateService = Retrofit.Builder()
 //                .baseUrl(updateUrl)
@@ -106,7 +106,7 @@
 //    }
 //
 //    suspend fun getLatestVersion(): VersionInfo {
-//        if(isDebugueble){
+//        if(isDebuggable){
 //            updateUrl = Constants.Update.DEBUG_DIR
 //        }
 //        val updateService = Retrofit.Builder()
@@ -392,19 +392,25 @@ import com.example.adminobr.utils.SessionManager
 class UpdateManager(private val context: Context) {
 
     private val downloadScope = CoroutineScope(Dispatchers.IO + Job())
-private val sessionManager = SessionManager(context)
-private val isDebugueble = sessionManager.getDebugueble()
+    private val sessionManager = SessionManager(context)
+    private val isDebuggable = sessionManager.getDebuggable()
 
 
-private var updateUrl = Constants.Update.RELEASE_DIR
+    private var updateUrl = if (isDebuggable) {
+        Constants.Update.DEBUG_DIR
+    } else {
+        Constants.Update.RELEASE_DIR
+    }
 
     suspend fun checkForUpdates(): Boolean {
-        if(isDebugueble){
-            updateUrl = Constants.Update.DEBUG_DIR
-        }
+//        if(isDebuggable){
+//            updateUrl = Constants.Update.DEBUG_DIR
+//        } else {
+//            updateUrl = Constants.Update.RELEASE_DIR
+//        }
         Log.d("UpdateManager", "Iniciando checkForUpdates()")
         Log.d("UpdateManager", "updateUrl $updateUrl")
-        Log.d("UpdateManager", "isDebugueble $isDebugueble")
+        Log.d("UpdateManager", "isDebuggable $isDebuggable")
         return try {
             val updateService = Retrofit.Builder()
                 .baseUrl(updateUrl)
@@ -472,8 +478,13 @@ private var updateUrl = Constants.Update.RELEASE_DIR
     }
 
     suspend fun getLatestVersion(): VersionInfo {
+//        if(isDebuggable){
+//            updateUrl = Constants.Update.DEBUG_DIR
+//        } else {
+//            updateUrl = Constants.Update.RELEASE_DIR
+//        }
         val updateService = Retrofit.Builder()
-            .baseUrl("http://adminobr.site/updates/apk/").addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(updateUrl).addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(UpdateService::class.java)
 

@@ -142,6 +142,22 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         binding.navView.setupWithNavController(navController)
 
+
+
+        // Obtener roles del usuario
+        val userRoles = sessionManager.getUserRol()
+
+        // Obtener el menú de la NavigationView
+        val navMenu = binding.navView.menu
+
+        // Obtener el elemento del menú específico
+        val gestionUsuariosItem = navMenu.findItem(R.id.nav_gestion_usuarios)
+
+        // Controlar la visibilidad del elemento según los roles del usuario
+        if (userRoles?.contains("supervisor"()) == true || userRoles?.contains("administrador") == true) {
+            gestionUsuariosItem.isVisible = true
+        }
+
         binding.navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_cerrar_sesion -> {

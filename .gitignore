@@ -9,18 +9,15 @@
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
 .DS_Store
-/build
-/api
-/Documentacion
-/captures
+build/
+api/
+Documentacion/
+captures/
 .externalNativeBuild
 .cxx
 local.properties
-/app/hosting/
-/app_
+app/hosting/
 updates/
-/keystore/
-keystore
-keystore/
+keystore/pass.txt
 /app/public_html/.vscode/ftp-sync.json
 

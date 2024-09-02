@@ -18,18 +18,18 @@ class SessionManager(context: Context) {
         private const val KEY_USER_ROL = "user_rol"
         private const val KEY_USER_PERMISOS = "user_permisos"
 
-        private const val KEY_DEBUGUEABLE = "false"
+        private const val KEY_DEBUGGABLE = "false"
     }
 
     // Métodos para guardar y obtener los datos de la empresa como objeto `Empresa`
-    fun saveDebugueble(debuggable: Boolean) {
+    fun saveDebuggable(debuggable: Boolean) {
         val editor = prefs.edit()
-        editor.putBoolean(KEY_DEBUGUEABLE, debuggable)
+        editor.putBoolean(KEY_DEBUGGABLE, debuggable)
         editor.apply()
     }
 
-    fun getDebugueble(): Boolean {
-        return prefs.getBoolean(KEY_DEBUGUEABLE, false)
+    fun getDebuggable(): Boolean {
+        return prefs.getBoolean(KEY_DEBUGGABLE, false)
     }
 
     // Métodos para guardar y obtener los datos de la empresa como objeto `Empresa`

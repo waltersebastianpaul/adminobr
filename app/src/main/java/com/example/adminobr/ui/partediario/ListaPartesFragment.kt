@@ -24,7 +24,6 @@ import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.adminobr.R
 import com.example.adminobr.databinding.FragmentListaPartesBinding
-//import com.example.gestionequipos.ui.adapter.CustomArrayAdapter
 import com.example.adminobr.ui.adapter.ListarPartesAdapter
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.viewmodel.AppDataViewModel

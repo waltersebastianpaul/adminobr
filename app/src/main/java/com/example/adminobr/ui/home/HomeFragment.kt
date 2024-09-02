@@ -13,7 +13,6 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -81,13 +80,10 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.nav_listapartes)
         }
 
-        // Rol del user, para manejar la visibilidad de elementos
-        //val rolUsuario = requireActivity().intent.getStringArrayListExtra("rol") ?: arrayListOf()
+        // Obtener roles del usuario
         val rolUsuario = sessionManager.getUserRol()
 
-        // Imprimir los roles en el Log
-        Log.d("RolesUsuario", "Roles del user: $rolUsuario")
-
+        // Constrol de visivilidad segun roles
         if (rolUsuario?.contains("administrador") == true) {
             binding.parteSimpleCardView.visibility = View.VISIBLE
         }
