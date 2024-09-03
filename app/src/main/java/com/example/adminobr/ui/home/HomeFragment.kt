@@ -81,10 +81,10 @@ class HomeFragment : Fragment() {
         }
 
         // Obtener roles del usuario
-        val rolUsuario = sessionManager.getUserRol()
+        val userRoles = sessionManager.getUserRol()
 
         // Constrol de visivilidad segun roles
-        if (rolUsuario?.contains("administrador") == true) {
+        if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
             binding.parteSimpleCardView.visibility = View.VISIBLE
         }
     }

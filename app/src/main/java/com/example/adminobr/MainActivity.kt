@@ -154,7 +154,7 @@ class MainActivity : AppCompatActivity() {
         val gestionUsuariosItem = navMenu.findItem(R.id.nav_gestion_usuarios)
 
         // Controlar la visibilidad del elemento según los roles del usuario
-        if (userRoles?.contains("supervisor"()) == true || userRoles?.contains("administrador") == true) {
+        if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
             gestionUsuariosItem.isVisible = true
         }
 
