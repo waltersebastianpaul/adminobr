@@ -94,6 +94,9 @@ class ListaPartesFragment : Fragment() {
         // Configurar los AutoCompleteTextView con AutocompleteManager
         autocompleteManager.loadEquipos(binding.equipoAutocomplete, viewLifecycleOwner)
 
+        // Otras configuraciones del fragmento
+        //setupTextWatchers()
+
         setEditTextToUppercase(equipoAutocomplete)
 
         // Observa los datos del ViewModel y configura el adaptador del RecyclerView
@@ -270,6 +273,44 @@ class ListaPartesFragment : Fragment() {
 //            binding.applyFiltersButton.requestFocusFromTouch()
         }
     }
+
+    private fun setupTextWatchers() {
+        // TextWatcher para calcular horas trabajadas
+        val horasTextWatcher = object: TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                //
+            }
+        }
+
+        // Otros TextWatchers para los campos requeridos
+        //addTextWatcher(binding.equipoTextInputLayout, "Campo requerido")
+    }
+
+    private fun addTextWatcher(textInputLayout: TextInputLayout, errorMessage: String) {
+        val editText = textInputLayout.editText
+        editText?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // Implementación vacía o tu código aquí
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Implementación vacía o tu código aquí
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                if (textInputLayout.isErrorEnabled) {
+                    if (s.isNullOrEmpty()) {
+                        textInputLayout.error = errorMessage
+                    } else {
+                        textInputLayout.isErrorEnabled = false
+                    }
+                }
+            }
+        })
+    }
+
 
     private fun setEditTextToUppercase(editText: AutoCompleteTextView) {
         editText.filters = arrayOf(InputFilter.AllCaps())

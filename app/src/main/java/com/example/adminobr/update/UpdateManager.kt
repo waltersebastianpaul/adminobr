@@ -27,7 +27,7 @@
 //class UpdateManager(private val context: Context) {
 //
 //    private val sessionManager = SessionManager(context)
-//    private val isDebuggable = sessionManager.isDebuggable()
+//    private val isDebuggable = sessionManager.getDebuggable()
 //
 //    //
 //    private var updateUrl = Constants.Update.RELEASE_DIR
@@ -352,8 +352,8 @@
 //    }
 //}
 
-
-
+//
+//
 package com.example.adminobr.update
 
 import android.app.ActivityManager
@@ -403,11 +403,7 @@ class UpdateManager(private val context: Context) {
     }
 
     suspend fun checkForUpdates(): Boolean {
-//        if(isDebuggable){
-//            updateUrl = Constants.Update.DEBUG_DIR
-//        } else {
-//            updateUrl = Constants.Update.RELEASE_DIR
-//        }
+
         Log.d("UpdateManager", "Iniciando checkForUpdates()")
         Log.d("UpdateManager", "updateUrl $updateUrl")
         Log.d("UpdateManager", "isDebuggable $isDebuggable")
@@ -437,7 +433,7 @@ class UpdateManager(private val context: Context) {
             try {
                 val resolver = context.applicationContext.contentResolver
                 val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, "app-release.apk")
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, if (isDebuggable) "app-debug.apk" else "app-release.apk")
                     put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.android.package-archive")
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                         put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)

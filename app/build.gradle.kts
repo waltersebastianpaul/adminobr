@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.adminobr"
         minSdk = 24
         targetSdk = 34
-        versionCode = 7
-        versionName = "1.0.7"
+        versionCode = 9
+        versionName = "1.0.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -43,61 +43,6 @@ android {
     }
 
 }
-
-//dependencies {
-//
-//    implementation(libs.androidx.core.ktx)
-//    implementation(libs.androidx.appcompat)
-//    implementation(libs.material)
-//    implementation(libs.androidx.constraintlayout)
-//    implementation(libs.androidx.lifecycle.livedata.ktx)
-//    implementation(libs.androidx.lifecycle.viewmodel.ktx)
-//    implementation(libs.androidx.navigation.fragment.ktx)
-//    implementation(libs.androidx.navigation.ui.ktx)
-//    implementation(libs.androidx.material3.android)
-//    implementation(libs.androidx.ui.text.android)
-//    implementation(libs.androidx.annotation)
-//    implementation(libs.protolite.well.known.types)
-//    implementation(libs.filament.android)
-//    implementation(libs.androidx.work.runtime)
-//    implementation(libs.androidx.core.i18n)
-//    implementation(libs.androidx.datastore.core.android)
-//    implementation(libs.firebase.crashlytics.buildtools)
-//    implementation(libs.androidx.media3.exoplayer)
-//    implementation(libs.androidthings)
-//    testImplementation(libs.junit)
-//    androidTestImplementation(libs.androidx.junit)
-//    androidTestImplementation(libs.androidx.espresso.core)
-//
-//    // ... otras dependencias
-//
-//    implementation(libs.androidx.core.ktx)
-//    implementation(libs.androidx.appcompat)
-//    implementation(libs.material)
-//    implementation(libs.material.v140)
-//
-//    implementation(libs.androidx.constraintlayout)
-//
-//    // Para solicitudes de red
-//    implementation(libs.retrofit)
-//    implementation(libs.converter.gson)
-//
-//    implementation(libs.androidx.navigation.fragment.ktx)
-//    implementation(libs.androidx.navigation.ui.ktx)
-//
-//    // Dependencias para Coroutines (para realizar solicitudes de red asíncronas)
-//    implementation(libs.kotlinx.coroutines.android)
-//    implementation(libs.okhttp)
-//    implementation(libs.logging.interceptor)
-//
-//    implementation ("androidx.paging:paging-runtime-ktx:3.3.2")
-//    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2") // Asegúrate de tener la última versión
-//
-//    implementation("androidx.work:work-runtime-ktx:2.9.1") // Versión actual
-//
-//    implementation("org.mindrot:jbcrypt:0.4")
-//
-//    implementation ("androidx.gridlayout:gridlayout:1.0.0")
 
 dependencies {
 

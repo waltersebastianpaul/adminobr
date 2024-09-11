@@ -14,6 +14,8 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.text
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -94,10 +96,18 @@ class LoginActivity : AppCompatActivity() {
             selectedEmpresa = empresa // Guardar empresa seleccionada
         }
 
+        // Configura el OnItemClickListener para equipoAutocomplete
+        binding.empresaAutocomplete.setOnItemClickListener { _, _, _, _ ->
+            // Si se selecciona un equipo, quita el foco del AutoCompleteTextView
+            binding.empresaAutocomplete.clearFocus()
+        }
+
         // Llamar a la función para convertir el texto a mayúsculas
         setEditTextToUppercase(binding.empresaAutocomplete)
 
         addTextWatcher(binding.empresaTextInputLayout, "Campo requerido")
+        addTextWatcher(binding.usuarioTextInputLayout, "Campo requerido")
+        addTextWatcher(binding.passwordTextInputLayout, "Campo requerido")
 
         // Listener para el botón de login
         binding.loginButton.setOnClickListener {
@@ -170,6 +180,10 @@ class LoginActivity : AppCompatActivity() {
             }
 
             override fun afterTextChanged(s: Editable?) {
+                if (editText == binding.empresaAutocomplete) {
+                    selectedEmpresa = null // Limpiar selectedEmpresa solo si es el AutoCompleteTextView de empresas
+                }
+
                 if (textInputLayout.isErrorEnabled) {
                     if (s.isNullOrEmpty()) {
                         textInputLayout.error = errorMessage
@@ -226,46 +240,6 @@ class LoginActivity : AppCompatActivity() {
             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
         }
     }
-//    private fun handleLoginResponse(response: Response<LoginResponse>) {
-//         if (response.isSuccessful) {
-//             val loginResponse = response.body()
-//             Log.d("LoginActivity", "Respuesta del servidor: $loginResponse")
-//
-//             if (loginResponse != null && loginResponse.success) {
-//                 Log.d("LoginActivity", "Inicio de sesión exitoso")
-//
-//                 // Guardar empresaDbName en SessionManager
-//                 val sessionManager = SessionManager(this)
-//                 sessionManager.saveEmpresaDbName(empresaDbName!!)
-//
-//                 // Inicia la actividad principal
-//                 val intent = Intent(this, MainActivity::class.java).apply {
-//                     putExtra("id", loginResponse.user.id)
-//                     putExtra("nombre", loginResponse.user.nombre)
-//                     putExtra("apellido", loginResponse.user.apellido)
-//                     putExtra("email", loginResponse.user.email)
-//                     putStringArrayListExtra("rol", ArrayList(loginResponse.user.rol))
-//                 }
-//                 startActivity(intent)
-//                 finish()
-//             } else {
-//                 val errorMessage = loginResponse?.message ?: "Error de autenticación desconocido"
-//                 Log.e("LoginActivity", "Error de autenticación: $errorMessage")
-//                 Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-//             }
-//         } else {
-//             val errorBody = response.errorBody()?.string()
-//             val errorMessage = when (response.code()) {
-//                 400 -> parseErrorMessage(errorBody)
-//                 401 -> "User o contraseña incorrectos"
-//                 404 -> "Página no encontrada"
-//                 500 -> "Error interno del servidor"
-//                 else -> "Error en la respuesta del servidor: ${response.code()}"
-//             }
-//             Log.e("LoginActivity", "Error en la respuesta del servidor: ${response.code()} - $errorMessage")
-//             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-//         }
-//     }
 
     private fun parseErrorMessage(errorBody: String?): String {
         return if (errorBody.isNullOrEmpty()) {
@@ -299,12 +273,30 @@ class LoginActivity : AppCompatActivity() {
             binding.passwordTextInputLayout.isErrorEnabled = false
         }
 
-        if (binding.empresaAutocomplete.text.isNullOrEmpty()) {
+//        if (binding.empresaAutocomplete.text.isNullOrEmpty()) {
+//            binding.empresaTextInputLayout.error = "Campo requerido"
+//            binding.empresaTextInputLayout.isErrorEnabled = true
+//            camposValidos = false
+//        } else {
+//            binding.empresaTextInputLayout.isErrorEnabled = false
+//        }
+
+        if (binding.empresaAutocomplete.text.isNotEmpty()) {
+            if (selectedEmpresa == null) {
+                val empresaName = binding.empresaAutocomplete.text.toString()
+                selectedEmpresa = autocompleteManager.getEmpresaByName(empresaName)
+                if (selectedEmpresa == null) {
+                    binding.empresaTextInputLayout.error = "Seleccione una empresa válida"
+                    binding.empresaTextInputLayout.isErrorEnabled = true
+                    camposValidos = false
+                } else {
+                    binding.empresaTextInputLayout.isErrorEnabled = false
+                }
+            }
+        } else {
             binding.empresaTextInputLayout.error = "Campo requerido"
             binding.empresaTextInputLayout.isErrorEnabled = true
             camposValidos = false
-        } else {
-            binding.empresaTextInputLayout.isErrorEnabled = false
         }
 
         if (!camposValidos) {

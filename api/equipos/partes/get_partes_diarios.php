@@ -1,24 +1,32 @@
 <?php
+// Verificar que los datos necesarios están presentes en la solicitud POST
+if (!$_POST || !isset($_POST['empresaDbName'])) {
+    http_response_code(400);
+    die(json_encode(['success' => false, 'message' => 'Datos de solicitud incompletos']));
+}
+
+// Obtener los valores desde el POST
+$empresaDbName = $_POST['empresaDbName'];
+$equipo = $_POST['equipo'];
+$fechaInicio = $_POST['fechaInicio'];
+$fechaFin = $_POST['fechaFin'];
+$page = intval($_POST['page']);
+$pageSize = intval($_POST['pageSize']);
+
 // Incluir el archivo de configuración
 include '../../db_config.php';
+$dbname = $empresaDbName; // Sobreescribir $dbname con empresaDbName 
 
+// Conectar a la base de datos usando el dbname obtenido
 $conn = new mysqli($servername, $username, $password, $dbname);
 
+// Verificar la conexión
 if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
 
-// Obtener los parámetros de paginación
-$page = isset($_GET['page']) ? intval($_GET['page']) : 1;
-$pageSize = isset($_GET['pageSize']) ? intval($_GET['pageSize']) : 20;
-
 // Calcular el offset
 $offset = ($page - 1) * $pageSize;
-
-// Obtener los parámetros de filtro
-$equipo = isset($_GET['equipo']) ? $conn->real_escape_string($_GET['equipo']) : '';
-$fechaInicio = isset($_GET['fechaInicio']) ? $conn->real_escape_string($_GET['fechaInicio']) : '';
-$fechaFin = isset($_GET['fechaFin']) ? $conn->real_escape_string($_GET['fechaFin']) : '';
 
 // Función para convertir fechas del formato dd/MM/yyyy al formato yyyy-MM-dd
 function convertirFecha($fecha) {
@@ -90,4 +98,5 @@ echo json_encode($partesDiarios);
 
 // Cerrar la conexión
 $conn->close();
+
 ?>

@@ -1,7 +1,18 @@
 <?php
-//Incluir el archivo de configuración
-include '../db_config.php';
+// Verificar que los datos necesarios están presentes en la solicitud POST
+if (!isset($_POST['empresaDbName']) ) {
+    http_response_code(400);
+    die(json_encode(['success' => false, 'message' => 'Datos de empresaDbName incompletos']));
+}
 
+// Obtener los valores desde el POST
+$empresaDbName = $_POST['empresaDbName'];
+
+// Incluir el archivo de configuración
+include '../db_config.php';
+$dbname = $empresaDbName; // Sobreescribir $dbname con empresaDbName 
+
+// Conectar a la base de datos usando el dbname obtenido
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Verificar la conexión
@@ -44,10 +55,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $response = array("success" => false, "message" => "El $duplicateField ya está en uso.");
     } else {
         // Insertar un nuevo usuario
+
+
+//        $sql = "INSERT INTO usuarios (legajo, email, dni, password, date_created, date_updated, user_created, user_updated, estado_id, nombre, apellido, telefono) 
+//        VALUES('$legajo', '$email', '$dni', '$password', '$current_date', '$current_date', '$user_id', '$user_id', '$estado_id', '$nombre', '$apellido', '$telefono')";
+
+//        if ($conn->query($sql) === TRUE) {
+
+        // Hashear la contraseña antes de guardarla
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+        // Insertar un nuevo usuario con la contraseña hasheada
         $sql = "INSERT INTO usuarios (legajo, email, dni, password, date_created, date_updated, user_created, user_updated, estado_id, nombre, apellido, telefono) 
-        VALUES('$legajo', '$email', '$dni', '$password', '$current_date', '$current_date', '$user_id', '$user_id', '$estado_id', '$nombre', '$apellido', '$telefono')";
+        VALUES('$legajo', '$email', '$dni', '$hashedPassword', '$current_date', '$current_date', '$user_id', '$user_id', '$estado_id', '$nombre', '$apellido', '$telefono')";
+
+
+
 
         if ($conn->query($sql) === TRUE) {
+
             $newId = $conn->insert_id;
             $response = array("success" => true, "message" => "Usuario guardado correctamente.", "id" => $newId);
         } else {

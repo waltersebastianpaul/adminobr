@@ -157,9 +157,15 @@ class MainActivity : AppCompatActivity() {
         if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
             gestionUsuariosItem.isVisible = true
         }
-
+        
         binding.navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
+                R.id.nav_home -> {
+                    // Acción para nav_gestion_usuarios
+                    findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_home) // Reemplaza R.id.nav_partediario con el ID del fragmento destino
+                    binding.drawerLayout.closeDrawers()
+                    true
+                }
                 R.id.nav_cerrar_sesion -> {
                     cerrarSesion()
                     true

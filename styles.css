@@ -1,84 +1,47 @@
-/* Copyright 2000-2022 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license. */
-html {
-    font-family: Helvetica Neue, Helvetica, Arial, Lucida Grande, sans-serif;
-}
-
 body {
-    color: #4C4C4C;
-    margin: 60px 60px 0 60px;
-}
-
-p {
-    font-size: 1em;
-    margin: 0 0 1em 0;
-}
-
-.grayout {
-    opacity: 0.6;
-}
-
-body, input, select, textarea, th, td {
-    font-size: 1em;
-}
-
-li {
-    position: relative;
-    list-style: none;
-}
-
-label:hover {
-    color: #0C479D;
-    text-decoration: underline;
-}
-
-li::before {
-    content: "\23FA";
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
     margin: 0;
 }
 
-li input {
-    position: absolute;
-    left: 0;
-    margin-left: 0;
-    background: none;
-    opacity: 0;
-    z-index: 2;
-    cursor: pointer;
-    height: 1em;
-    width: 1em;
-    top: 0;
+.login-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    text-align: center;
 }
 
-li input + ol {
-    margin: -15px 0 0 -44px;
-    height: 1em;
+.form-group {
+    margin-bottom: 15px;
 }
 
-li input + ol > li {
-    display: none;
-    margin-left: -14px !important;
-    padding-left: 1px;
-}
-
-li label {
-    padding-left: 5px;
-}
-
-li input:checked + ol {
-    margin: -20px 0 0 -44px;
-    padding: 25px 0 0 80px;
-    height: auto;
-}
-
-li input:checked + ol > li {
+label {
     display: block;
-    margin: 0 0 2px;
+    margin-bottom: 5px;
 }
 
-li input:checked + ol > li:last-child {
-    margin: 0 0 1px;
+input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
 }
 
-div.location {
-    margin-left: 40px;
+button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    width: 100%;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #0056b3;
 }

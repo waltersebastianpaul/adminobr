@@ -1,6 +1,7 @@
 package com.example.adminobr.ui.usuarios
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,6 +12,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.adminobr.R
@@ -117,9 +119,17 @@ class NuevoUsuarioFragment : Fragment() {
     private fun setupFab() {
         // Obtener referencia al FAB y configurar su OnClickListener
         val fab: FloatingActionButton? = activity?.findViewById(R.id.fab)
+
+        fab?.visibility = View.GONE
+        fab?.setImageResource(R.drawable.ic_add)
+        fab?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+        fab?.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white)))
+
         fab?.setOnClickListener {
             limpiarFormulario()
+            fab.visibility = View.GONE
         }
+
     }
 
     private fun limpiarFormulario() {

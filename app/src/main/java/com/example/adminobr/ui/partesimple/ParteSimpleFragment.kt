@@ -134,7 +134,7 @@ class ParteSimpleFragment : Fragment() {
         }
 
         // Agregar texto informativo debajo del botón
-        binding.infoTextView.text = "Atención: Los partes se eliminaran al salir de la actividad y ya no podran recuperarse. Tambien puede COMPARTIR la lista de partes."
+        // binding.infoTextView.text = "Atención: Los partes se eliminaran al salir de la actividad y ya no podran recuperarse. Tambien puede COMPARTIR la lista de partes."
 
         return binding.root
     }
@@ -260,6 +260,20 @@ class ParteSimpleFragment : Fragment() {
                 return false
             }
 
+//            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+//                val itemView = viewHolder.itemView
+//                val dX = itemView.translationX
+//
+//                // Verificar que el swipe fue lo suficientemente largo antes de eliminar
+//                if (abs(dX) > itemView.width * 0.3) {
+//                    // Proceder con la eliminación si se deslizó más del 30%
+//                    viewModel.removeParte(viewHolder.bindingAdapterPosition)
+//                } else {
+//                    // Devolver el ítem a su posición original si no se deslizó lo suficiente
+//                    adapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
+//                }
+//            }
+
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val itemView = viewHolder.itemView
                 val dX = itemView.translationX
@@ -268,68 +282,19 @@ class ParteSimpleFragment : Fragment() {
                 if (abs(dX) > itemView.width * 0.3) {
                     // Proceder con la eliminación si se deslizó más del 30%
                     viewModel.removeParte(viewHolder.bindingAdapterPosition)
+
+                    // Verificar si la lista está vacía después de la eliminación
+                    if (viewModel.partesList.value.isNullOrEmpty()) {
+                        // Ocultar el TextView con un pequeño retraso
+                        binding.infoTextView.postDelayed({
+                            binding.infoTextView.visibility = View.GONE
+                        }, 300) // Retraso de 300 milisegundos
+                    }
                 } else {
                     // Devolver el ítem a su posición original si no se deslizó lo suficiente
                     adapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
                 }
             }
-
-//            override fun onChildDraw(
-//                c: Canvas,
-//                recyclerView: RecyclerView,
-//                viewHolder: RecyclerView.ViewHolder,
-//                dX: Float,
-//                dY: Float,
-//                actionState: Int,
-//                isCurrentlyActive: Boolean
-//            ) {
-//                val itemView = viewHolder.itemView
-//                val deleteIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_delete) ?: return
-//
-//                // Cambiar el color del icono
-//                val desiredColor = ContextCompat.getColor(requireContext(), R.color.black) // Cambia R.color.white al color que desees
-//                deleteIcon.setColorFilter(PorterDuffColorFilter(desiredColor, PorterDuff.Mode.SRC_IN))
-//
-//                val background = ColorDrawable()
-//
-//                val iconMargin = (itemView.height - deleteIcon.intrinsicHeight) / 2
-//                val iconTop = itemView.top + iconMargin
-//                val iconBottom = iconTop + deleteIcon.intrinsicHeight
-//
-//                val redColor = ContextCompat.getColor(requireContext(), R.color.colorAlert)
-//                background.color = redColor
-//
-//                // Calcular la opacidad del ícono en función de dX
-//                val iconOpacity = (1 - abs(dX) / itemView.width) * 255 // 0 (totalmente transparente) a 255 (totalmente opaco)
-//
-//                if (dX < 0) { // Deslizando a la izquierda
-//                    // Calcular la posición del ícono considerando el padding
-//                    val recyclerViewPadding = recyclerView.paddingLeft
-//                    val recyclerViewPaddingRight = recyclerView.paddingRight
-//                    val iconLeft = itemView.right + dX.toInt() - recyclerViewPadding + iconMargin
-//                    val iconRight = iconLeft + deleteIcon.intrinsicWidth
-//
-//
-//                    // Dibujar el fondo considerando el padding
-//                    background.setBounds(
-//                        itemView.right + dX.toInt(),
-//                        itemView.top,
-//                        itemView.right,
-//                        itemView.bottom
-//                    )
-//                    background.draw(c)
-//
-//                    // Dibujar el ícono con la opacidad calculada
-//                    deleteIcon.alpha = iconOpacity.toInt()
-//                    deleteIcon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
-//                    deleteIcon.draw(c)
-//                } else {
-//                    background.setBounds(0, 0, 0, 0) // No mostrar fondo o ícono si se desliza a la derecha
-//                }
-//
-//                // Dibujar el ítem por encima del fondo y el ícono
-//                super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
-//            }
 
             override fun onChildDraw(
                 c: Canvas,
@@ -350,13 +315,20 @@ class ParteSimpleFragment : Fragment() {
                 // Fondo rojo
                 val redColor = ContextCompat.getColor(requireContext(), R.color.colorRedLite)
 
+                //val limit = 110 // itemView.width / 3 // Distancia límite para que el ícono se quede fijo
+                val limit = itemView.width / 7 // Distancia límite para que el ícono se quede fijo
+
                 when {
                     dX < 0 -> { // Deslizar hacia la izquierda
-                        val iconLeft = itemView.right + dX.toInt() + iconMargin
-                        val iconRight = itemView.right + dX.toInt() + iconMargin + icon.intrinsicWidth
+                        val iconLeft = if (dX > -limit) {
+                            itemView.right + dX.toInt() + iconMargin
+                        } else {
+                            itemView.right - limit.toInt() + iconMargin
+                        }
+                        val iconRight = iconLeft + icon.intrinsicWidth
 
                         // Aplicar tinte al ícono
-                        icon.setTint(ContextCompat.getColor(recyclerView.context, R.color.white))
+                        icon.setTint(ContextCompat.getColor(recyclerView.context, R.color.colorAlert))
 
                         icon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
 

@@ -30,7 +30,10 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 autoCompleteTextView.setAdapter(adapter)
 
                 // Guardar la relación nombre-Empresa en el HashMap
-                val empresaMap = empresas.associateBy { it.nombre }
+                //val empresaMap = empresas.associateBy { it.nombre }
+                // Llenar el empresaMap de la clase
+                empresaMap.clear()
+                empresaMap.putAll(empresas.associateBy { it.nombre })
 
                 // Agregar OnItemClickListener para obtener el objeto Empresa al seleccionar una empresa
                 autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
@@ -44,7 +47,7 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 }
 
                 autoCompleteTextView.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                    if (hasFocus) {
+                    if (hasFocus && autoCompleteTextView.text.isNotEmpty()) {
                         autoCompleteTextView.showDropDown()
                     }
                 }
@@ -72,5 +75,9 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 autoCompleteTextView.setAdapter(adapter)
             }
         }
+    }
+
+    fun getEmpresaByName(empresaName: String): Empresa? {
+        return empresaMap[empresaName]
     }
 }
