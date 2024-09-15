@@ -106,7 +106,7 @@
         android:layout_marginEnd="16dp"
         android:contentDescription="Botón para limpiar todos los filtros"
         android:text="Limpiar Filtros"
-        android:textAllCaps="true"
+        android:textAllCaps="false"
         android:backgroundTint="@color/button_secondary_background"
         android:textColor="@color/button_secondary_text_color"
         app:layout_constraintEnd_toEndOf="parent"

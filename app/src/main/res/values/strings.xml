@@ -4,8 +4,8 @@
     <string name="app_name_logo">AdminObr</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">NOMBRE DE LA EMPRESA</string>
-    <string name="nav_header_subtitle">Nombre del Usuario</string>
+    <string name="nav_header_title">Nombre del Usuario</string>
+    <string name="nav_header_subtitle">Nombre de la Empresa</string>
     <string name="nav_header_desc">Navigation header</string>
     <string name="action_settings">Ajustes</string>
     <string name="action_logout">Cerrar sesión</string>
@@ -28,7 +28,7 @@
     <string name="button_filtrar_descripcion">Botón para aplicar filtros</string>
     <string name="button_listar_partes">Listar Partes</string>
     <string name="button_clear_filters">Limpiar Filtros</string>
-    <string name="button_filtrar">Filtrar Datos</string>
+    <string name="button_filtrar">Listrar Partes</string>
 
 
     <string name="regresar">Regresar</string>

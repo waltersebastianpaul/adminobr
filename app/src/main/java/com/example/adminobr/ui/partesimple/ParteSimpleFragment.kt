@@ -35,7 +35,11 @@ import android.graphics.drawable.ColorDrawable
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
+import android.util.Log
+import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
+import androidx.paging.PagingData
+import com.example.adminobr.data.Equipo
 import com.example.adminobr.ui.adapter.ParteSimpleAdapter
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.viewmodel.ParteSimpleViewModel
@@ -50,6 +54,9 @@ class ParteSimpleFragment : Fragment() {
 
     private lateinit var autocompleteManager: AutocompleteManager
     private val appDataViewModel: AppDataViewModel by activityViewModels()
+
+    // Variable para almacenar el equipo seleccionado
+    private var selectedEquipo: Equipo? = null
 
     private lateinit var adapter: ParteSimpleAdapter
 
@@ -74,10 +81,9 @@ class ParteSimpleFragment : Fragment() {
         equipoTextInputLayout = binding.equipoTextInputLayout // Asegúrate de tener este ID en tu XML
         horasTextInputLayout = binding.horasActualesTextInputLayout // Asegúrate de tener este ID en tu XML
 
-
         binding.cargarParteButton.setOnClickListener {
-            val selectedEquipoText = binding.equipoAutocomplete.text.toString()
-            val equipoInterno = selectedEquipoText.split(" - ").firstOrNull() ?: ""
+            //val selectedEquipoText = binding.equipoAutocomplete.text.toString()
+            val equipoInterno = selectedEquipo?.interno ?: ""
 
             val horasText = horasEditText.text.toString()
             val horas = if (horasText.isNotBlank()) horasText.toInt() else 0
@@ -169,23 +175,22 @@ class ParteSimpleFragment : Fragment() {
     private fun validarCampos(): Boolean {
         var camposValidos = true
 
-        if (equipoAutocomplete.text.isNullOrEmpty()) {
-            equipoTextInputLayout.error = "Campo requerido"
-            equipoTextInputLayout.isErrorEnabled = true
-            camposValidos = false
-        } else {
-            // Verificar si el texto coincide con el interno de algún equipo
-            val esEquipoValido = appDataViewModel.equipos.value?.any { equipo ->
-                equipoAutocomplete.text.startsWith(equipo.interno) // Verifica si el texto coincide con el interno de algún equipo
-            } ?: false
-
-            if (!esEquipoValido) {
-                binding.equipoTextInputLayout.error = "Equipo inválido"
-                binding.equipoTextInputLayout.isErrorEnabled = true
-                camposValidos = false
-            } else {
-                binding.equipoTextInputLayout.isErrorEnabled = false
+        if (equipoAutocomplete.text.isNotEmpty()) {
+            if (selectedEquipo == null) {
+                val equipoName = binding.equipoAutocomplete.text.toString()
+                selectedEquipo = autocompleteManager.getEquipoByName(equipoName)
+                if (selectedEquipo == null) {
+                    binding.equipoTextInputLayout.error = "Seleccione un equipo válido"
+                    binding.equipoTextInputLayout.isErrorEnabled = true
+                    camposValidos = false
+                } else {
+                    binding.equipoTextInputLayout.isErrorEnabled = false
+                }
             }
+        } else {
+            binding.equipoTextInputLayout.error = "Campo requerido"
+            binding.equipoTextInputLayout.isErrorEnabled = true
+            camposValidos = false
         }
 
         if (horasEditText.text.isNullOrEmpty()) {
@@ -212,9 +217,23 @@ class ParteSimpleFragment : Fragment() {
         // Inicializar AutocompleteManager
         autocompleteManager = AutocompleteManager(requireContext(), appDataViewModel)
 
-        // Configurar los AutoCompleteTextView con AutocompleteManager
-        autocompleteManager.loadEquipos(binding.equipoAutocomplete, viewLifecycleOwner)
+        // Cargar equipos y capturar el objeto Equipo seleccionado
+        autocompleteManager.loadEquipos(
+            equipoAutocomplete,
+            this
+        ) { equipo ->
+            Log.d("ListarPartesFragment", "Equipo selecionado: $equipo")
 
+            selectedEquipo = equipo // Guardar equipo seleccionado
+        }
+
+        // Configura el OnItemClickListener para equipoAutocomplete
+        equipoAutocomplete.setOnItemClickListener { _, _, _, _ ->
+            // Si se selecciona un equipo, quita el foco del AutoCompleteTextView
+            equipoAutocomplete.clearFocus()
+        }
+
+        // Llamar a la función para convertir el texto a mayúsculas
         setEditTextToUppercase(equipoAutocomplete)
 
         // Mensaje alertando sobre la persistencia de los datos
@@ -359,45 +378,6 @@ class ParteSimpleFragment : Fragment() {
         val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
         itemTouchHelper.attachToRecyclerView(binding.listaPartesSimplesRecyclerView)
 
-        // TextWatcher para equipoAutocomplete
-        equipoAutocomplete.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                if (equipoTextInputLayout.isErrorEnabled) {
-                    if (s.isNullOrEmpty()) {
-                        equipoTextInputLayout.error = "Campo requerido"
-                    } else {
-                        equipoTextInputLayout.isErrorEnabled = false
-                    }
-                }
-            }
-        })
-
-        // Manejar la selección de un equipo en el AutoCompleteTextView
-        equipoAutocomplete.setOnItemClickListener { _, _, _, _ ->
-            horasEditText.requestFocus()
-        }
-
-        // TextWatcher para horasEditText
-        horasEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-
-            override fun afterTextChanged(s: Editable?) {
-                if (horasTextInputLayout.isErrorEnabled) {
-                    if (s.isNullOrEmpty()) {
-                        horasTextInputLayout.error = "Campo requerido"
-                    } else {
-                        horasTextInputLayout.isErrorEnabled = false
-                    }
-                }
-            }
-        })
-
         // Agregar el DividerItemDecoration al RecyclerView
         val dividerItemDecoration = DividerItemDecoration(
             binding.listaPartesSimplesRecyclerView.context,
@@ -410,7 +390,52 @@ class ParteSimpleFragment : Fragment() {
             dividerItemDecoration
         )
 
+        // Otras configuraciones del fragmento
+        setupTextWatchers()
+
     }
+
+    private fun hideKeyboard() {
+        val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val view = requireActivity().currentFocus
+        view?.let {
+            inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
+        }
+    }
+
+    private fun setupTextWatchers() {
+        // Otros TextWatchers para los campos requeridos
+        addTextWatcher(equipoTextInputLayout, "Campo requerido")
+        addTextWatcher(horasTextInputLayout, "Campo requerido")
+    }
+
+    private fun addTextWatcher(textInputLayout: TextInputLayout, errorMessage: String) {
+        val editText = textInputLayout.editText
+        editText?.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                // Implementación vacía o tu código aquí
+            }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                // Implementación vacía o tu código aquí
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                if (editText == equipoAutocomplete) {
+                    selectedEquipo = null // Limpiar selectedEquipo solo si es el AutoCompleteTextView de equipos
+                }
+
+                if (textInputLayout.isErrorEnabled) {
+                    if (s.isNullOrEmpty()) {
+                        textInputLayout.error = errorMessage
+                    } else {
+                        textInputLayout.isErrorEnabled = false
+                    }
+                }
+            }
+        })
+    }
+
 
     // Función para obtener la fecha actual en formato dd/MM/yyyy
     private fun getCurrentDate(): String {

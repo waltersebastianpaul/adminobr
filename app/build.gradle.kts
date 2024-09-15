@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("kotlin-parcelize") // Este plugin habilita el uso de @Parcelize
+    id("androidx.navigation.safeargs.kotlin")
 }
 
 android {
@@ -35,6 +37,7 @@ android {
 
     kotlinOptions {
         jvmTarget = "1.8"
+        freeCompilerArgs += ("-Xparcelize")
     }
 
     buildFeatures {

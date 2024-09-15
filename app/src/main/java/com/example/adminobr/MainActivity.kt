@@ -65,16 +65,20 @@ class MainActivity : AppCompatActivity() {
         // Usa SessionManager para obtener los datos del usuario
         val userName = sessionManager.getUserNombre() ?: "No hay usuario disponible"
         val userLastName = sessionManager.getUserApellido() ?: "No hay apellido disponible"
-        val empresaName = empresa?.nombre ?: "No hay email disponible"
-
-        val empresaTextView: TextView = headerView.findViewById(R.id.empresaTextView)
-        empresaTextView.text = empresaName.uppercase(Locale.ROOT)
+//        val empresaName = empresa?.nombre?.lowercase() ?: "No hay empresa disponible" // Convertir a minúsculas
+        val empresaName = empresa?.nombre ?: "No hay empresa disponible" // Convertir a minúsculas
 
         val userTextView: TextView = headerView.findViewById(R.id.userTextView)
         val fullName = "$userLastName $userName"
         userTextView.text = fullName.split(" ").joinToString(" ") {
             it.replaceFirstChar { char -> char.uppercase() }
         }
+
+        val empresaTextView: TextView = headerView.findViewById(R.id.empresaTextView)
+        empresaTextView.text = empresaName
+//        empresaTextView.text = empresaName.split(" ").joinToString(" ") {
+//            it.replaceFirstChar { char -> char.uppercase() }
+//        }
 
         val versionName = packageManager.getPackageInfo(packageName, 0).versionName
         val versionTextView: TextView = headerView.findViewById(R.id.versionTextView)

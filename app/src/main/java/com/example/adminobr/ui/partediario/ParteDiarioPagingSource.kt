@@ -1,5 +1,6 @@
 package com.example.adminobr.ui.partediario
 
+import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.adminobr.data.ListarPartesDiarios
@@ -45,6 +46,7 @@ class ParteDiarioPagingSource(
                 val response = client.newCall(request).execute()
 
                 val jsonData = response.body?.string() ?: ""
+                Log.d("ParteDiarioPagingSource", "Response Data: $jsonData")
                 val jsonArray = JSONArray(jsonData)
 
                 val partesDiarios = mutableListOf<ListarPartesDiarios>()

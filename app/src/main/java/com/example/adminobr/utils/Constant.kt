@@ -28,7 +28,8 @@ sealed class Constants {
         const val GET_LISTA = "/api/equipos/partes/get_partes_diarios.php"
         const val GUARDAR = "/api/equipos/partes/guardar_parte_diario.php"
         const val GET_ULTIMO_PARTE = "/api/equipos/partes/get_ultimo_parte_diario.php"
-        // ... otras rutas de obras si es necesario
+        const val ELIMINAR = "/api/equipos/partes/eliminar_parte_diario.php"
+    // ... otras rutas de obras si es necesario
     }
 
     object Equipos {
@@ -67,4 +68,5 @@ sealed class Constants {
         const val GUARDAR = "/api/usuarios/guardar_usuario.php" // Nueva ruta
         // ... otras rutas para actualizar, eliminar, etc.
     }
+
 }

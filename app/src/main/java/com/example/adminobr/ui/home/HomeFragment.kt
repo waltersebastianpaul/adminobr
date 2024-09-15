@@ -77,7 +77,7 @@ class HomeFragment : Fragment() {
         }
 
         binding.listarPartesCardView.setOnClickListener {
-            findNavController().navigate(R.id.nav_listapartes)
+            findNavController().navigate(R.id.nav_listarpartes)
         }
 
         // Obtener roles del usuario
@@ -92,7 +92,7 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        // Cambia el color de la "O" de AdminObr a otro color
+        // Cambia el color de la "O" de AdminOBR a otro color
         val title = SpannableString("AdminObr")
         val oColor =
             ContextCompat.getColor(this@HomeFragment.requireContext(), R.color.colorLogo) // Reemplaza con el color que quieras
@@ -100,11 +100,6 @@ class HomeFragment : Fragment() {
         title.setSpan(oSpan, 5, 6, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE) // Aplica el span a la "O"
         // Establecer el título en el ActionBar
         (activity as? AppCompatActivity)?.supportActionBar?.title = title
-
-
-
-
-
 
 
         // Configuración del FloatingActionButton regular

@@ -114,7 +114,7 @@ class LoginActivity : AppCompatActivity() {
             val usuario = binding.usuarioEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
 
-            if (validarCampos() && selectedEmpresa != null) {
+            if (validarCampos()) {
 
                 cerrarTeclado()
 
@@ -272,14 +272,6 @@ class LoginActivity : AppCompatActivity() {
         } else {
             binding.passwordTextInputLayout.isErrorEnabled = false
         }
-
-//        if (binding.empresaAutocomplete.text.isNullOrEmpty()) {
-//            binding.empresaTextInputLayout.error = "Campo requerido"
-//            binding.empresaTextInputLayout.isErrorEnabled = true
-//            camposValidos = false
-//        } else {
-//            binding.empresaTextInputLayout.isErrorEnabled = false
-//        }
 
         if (binding.empresaAutocomplete.text.isNotEmpty()) {
             if (selectedEmpresa == null) {
