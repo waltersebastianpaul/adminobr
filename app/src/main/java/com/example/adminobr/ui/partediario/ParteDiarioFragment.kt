@@ -60,6 +60,9 @@ import org.json.JSONObject
 
 import java.io.IOException
 
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+
 class ParteDiarioFragment : Fragment() {
 
     private val baseUrl = Constants.getBaseUrl() //"http://adminobr.site/"
@@ -127,8 +130,13 @@ class ParteDiarioFragment : Fragment() {
             equipoAutocomplete,
             this
         ) { equipo ->
+            fetchUltimoParteDiario(equipo.interno)
+
             Log.d("ListarPartesFragment", "Equipo selecionado: $equipo")
 
+            cerrarTeclado()
+
+            obraAutocomplete.requestFocus()
             selectedEquipo = equipo // Guardar equipo seleccionado
         }
 
@@ -138,6 +146,12 @@ class ParteDiarioFragment : Fragment() {
             this
         ) { obra ->
             Log.d("ParteDiarioFragment", "Obra selecionada: $obra")
+
+            if (horasInicioEditText.text.isNullOrEmpty()) {
+                horasInicioEditText.requestFocus()
+            } else {
+                horasFinEditText.requestFocus()
+            }
 
             selectedObra = obra // Guardar equipo seleccionado
         }
@@ -159,23 +173,6 @@ class ParteDiarioFragment : Fragment() {
     private fun setupListeners() {
         fechaEditText.setOnClickListener {
             showDatePickerDialog()
-        }
-
-        // Manejar la selección de un equipo en el AutoCompleteTextView
-        equipoAutocomplete.setOnItemClickListener { _, _, _, _ ->
-            // val selectedEquipoText = equipoAutocomplete.text.toString()
-            val equipoInterno = selectedEquipo!!.interno //selectedEquipoText.split(" - ").firstOrNull() ?: ""
-            fetchUltimoParteDiario(equipoInterno)
-            obraAutocomplete.requestFocus()
-        }
-
-        // Manejar la selección de una obra en el AutoCompleteTextView
-        obraAutocomplete.setOnItemClickListener { _, _, _, _ ->
-            if (horasInicioEditText.text.isNullOrEmpty()) {
-                horasInicioEditText.requestFocus()
-            } else {
-                horasFinEditText.requestFocus()
-            }
         }
 
         guardarButton.setOnClickListener {
@@ -300,8 +297,6 @@ class ParteDiarioFragment : Fragment() {
         datePickerDialog.show()
     }
 
-
-
     private fun setupTextWatchers() {
         // TextWatcher para calcular horas trabajadas
         val horasTextWatcher = object: TextWatcher {
@@ -357,73 +352,67 @@ class ParteDiarioFragment : Fragment() {
     }
 
     private fun fetchUltimoParteDiario(equipo: String) {
-        Log.d("ParteDiarioFragment", "Equipo seleccionado: $equipo") // Log del equipo
+        Log.d("ParteDiarioFragment", "Equipo seleccionado: $equipo")
 
-        // Usa viewLifecycleOwner.lifecycleScope para lanzar la corutina
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 // Obtén empresaDbName desde el SessionManager
                 val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: return@launch
 
-                // Crea el cuerpo de la solicitud POST
-                val requestBody = FormBody.Builder()
-                    .add("equipo", equipo)
-                    .add("empresaDbName", empresaDbName)
-                    .build()
-
-                val request = Request.Builder()
-                    .url("$baseUrl${Constants.PartesDiarios.GET_ULTIMO_PARTE}")
-                    .post(requestBody)  // Usando POST en lugar de GET
-                    .build()
-
-//                val url = "$baseUrl${Constants.PartesDiarios.GET_ULTIMO_PARTE}?equipo=$equipo"
-//                Log.d("ParteDiarioFragment", "Request URL: $url") // Log de la URL
-//
-//                val request = Request.Builder()
-//                    .url(url)
-//                    .build()
-
-                val resultado = withContext(Dispatchers.IO) {
-                    val response = client.newCall(request).execute()
-                    response.body?.string() // Aquí se obtiene la respuesta
+                // Crea el objeto JSON para la solicitud
+                val jsonBody = JSONObject().apply {
+                    put("equipo", equipo)
+                    put("empresaDbName", empresaDbName)
                 }
 
-                // Verificar si el resultado es nulo o si contiene la palabra "null"
+                // Define el MediaType para JSON
+                val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+                val requestBody = jsonBody.toString().toRequestBody(mediaType)
+
+                // Crea la solicitud POST con JSON
+                val request = Request.Builder()
+                    .url("$baseUrl${Constants.PartesDiarios.GET_ULTIMO_PARTE}")
+                    .post(requestBody)  // POST con JSON
+                    .build()
+
+                Log.d("ParteDiarioFragment", "Base URL: $$baseUrl${Constants.PartesDiarios.GET_ULTIMO_PARTE}")
+
+                // Ejecutar la solicitud
+                val resultado = withContext(Dispatchers.IO) {
+                    val response = client.newCall(request).execute()
+                    response.body?.string()  // Obtener respuesta como cadena
+                }
+
+                // Manejar la respuesta
                 if (resultado.isNullOrEmpty() || resultado == "null") {
                     Log.d("ParteDiarioFragment", "No se encontraron partes para el equipo seleccionado")
                     binding.ultimoParteLayout.visibility = View.GONE
                 } else {
-                    // Procesa el resultado y actualiza la UI
-                    resultado.let { responseText ->
-                        Log.d("ParteDiarioFragment", "Respuesta del servidor: $responseText") // Log de la respuesta
+                    Log.d("ParteDiarioFragment", "Respuesta del servidor: $resultado")
 
-                        // Convertir la respuesta en un objeto JSON
-                        val jsonObject = JSONObject(responseText)
+                    // Procesar el JSON de la respuesta
+                    val jsonObject = JSONObject(resultado)
 
-                        // Extraer los valores
-                        val fecha = jsonObject.getString("fecha")
-                        val equipo = jsonObject.getString("interno")
-                        val horasInicio = jsonObject.getString("horas_inicio")
-                        val horasFin = jsonObject.getString("horas_fin")
+                    // Extraer valores
+                    val fecha = jsonObject.getString("fecha")
+                    val equipo = jsonObject.getString("interno")
+                    val horasInicio = jsonObject.getString("horas_inicio")
+                    val horasFin = jsonObject.getString("horas_fin")
 
-                        // Mostrar los datos en el UI
-                        mostrarUltimoParte(fecha, equipo, horasInicio, horasFin)
-                    }
+                    // Mostrar los datos en la interfaz
+                    mostrarUltimoParte(fecha, equipo, horasInicio, horasFin)
                 }
 
             } catch (e: IOException) {
-                Log.e("ParteDiarioFragment", "Error dered: ${e.message}")
-                // Mostrar mensaje de error de red al usuario
+                Log.e("ParteDiarioFragment", "Error de red: ${e.message}")
                 Toast.makeText(requireContext(), "Error de red: ${e.message}", Toast.LENGTH_SHORT).show()
-                // O puedes usar un SnackBar o un AlertDialog para mostrar el mensaje
             } catch (e: JSONException) {
                 Log.e("ParteDiarioFragment", "Error al procesar JSON: ${e.message}")
-                // Mostrar mensaje de error de parseo al usuario
                 Toast.makeText(requireContext(), "Error al procesar datos: ${e.message}", Toast.LENGTH_SHORT).show()
-                // O puedes usar un SnackBar o un AlertDialog para mostrar el mensaje
             }
         }
     }
+
     private var ultimoParteHorasFin: String? = null // Variable para guardar horasFin
 
     private fun mostrarUltimoParte(fecha: String, equipo: String, horasInicio: String, horasFin: String) {
@@ -638,6 +627,12 @@ class ParteDiarioFragment : Fragment() {
         view?.let {
             inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
         }
+    }
+
+    private fun cerrarTeclado() {
+        // Cerrar el teclado
+        val imm = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(requireView().windowToken, 0)
     }
 
 }

@@ -25,8 +25,7 @@ import com.example.adminobr.utils.SessionManager
 class ParteDiarioViewModel(application: Application) : AndroidViewModel(application) {
 
     private val client = OkHttpClient.Builder().build()
-    private val baseUrl = Constants.getBaseUrl() //"http://adminobr.site/"
-//    private val baseUrl = Constants.buildUrl("") // Construye la URL base con CURRENT_DIR
+    private val baseUrl = Constants.getBaseUrl()
     private val guardarParteDiarioUrl = Constants.PartesDiarios.GUARDAR
     private val sessionManager = SessionManager(application)
 
@@ -170,5 +169,29 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         val currentList = _partesList.value.orEmpty().toMutableList()
         currentList.removeAt(position)
         _partesList.value = currentList
+    }
+
+    suspend fun editarParteDiario(parteDiario: ListarPartesDiarios, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val requestBody = FormBody.Builder()
+                    .add("id_parte_diario", parteDiario.id_parte_diario.toString())
+                    .add("fecha", parteDiario.fecha)
+                    .add("equipoId", parteDiario.equipo_id.toString())
+                    .add("horasInicio", parteDiario.horas_inicio.toString())
+                    .add("horasFin", parteDiario.horas_fin.toString())
+                    .build()
+
+                val request = Request.Builder()
+                    .url("$baseUrl/editar_parte_diario")  // Asegúrate de tener esta API en tu backend
+                    .put(requestBody)
+                    .build()
+
+                val response = client.newCall(request).execute()
+                callback(response.isSuccessful)
+            } catch (e: IOException) {
+                callback(false)
+            }
+        }
     }
 }

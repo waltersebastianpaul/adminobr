@@ -223,14 +223,8 @@ class ParteSimpleFragment : Fragment() {
             this
         ) { equipo ->
             Log.d("ListarPartesFragment", "Equipo selecionado: $equipo")
-
-            selectedEquipo = equipo // Guardar equipo seleccionado
-        }
-
-        // Configura el OnItemClickListener para equipoAutocomplete
-        equipoAutocomplete.setOnItemClickListener { _, _, _, _ ->
-            // Si se selecciona un equipo, quita el foco del AutoCompleteTextView
             equipoAutocomplete.clearFocus()
+            selectedEquipo = equipo // Guardar equipo seleccionado
         }
 
         // Llamar a la función para convertir el texto a mayúsculas

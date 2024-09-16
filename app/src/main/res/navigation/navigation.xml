@@ -38,7 +38,11 @@
         android:id="@+id/nav_listarpartes"
         android:name="com.example.adminobr.ui.partediario.ListarPartesFragment"
         android:label="Lista de Partes Diarios"
-        tools:layout="@layout/fragment_lista_partes" />
+        tools:layout="@layout/fragment_lista_partes">
+        <action
+            android:id="@+id/action_editar"
+            app:destination="@id/nav_partediario" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_gestion_usuarios"

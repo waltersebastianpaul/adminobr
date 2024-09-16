@@ -74,7 +74,6 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 equipoMap.clear()
                 equipoMap.putAll(equipos.associateBy { "${it.interno} - ${it.descripcion}" })
 
-
                 autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
                     val selectedEquipoNombre = parent.getItemAtPosition(position) as String
                     val selectedEquipo = equipoMap[selectedEquipoNombre]
@@ -113,6 +112,7 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
                     val selectedObraNombre = parent.getItemAtPosition(position) as String
                     val selectedObra = obraMap[selectedObraNombre]
+                    Log.d("AutocompleteManager", "Obra seleccionada: $selectedObra") // Agregar log
                     selectedObra?.let { onObraSelected?.invoke(it) }
                 }
 

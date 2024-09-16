@@ -23,6 +23,7 @@ import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.adminobr.R
+import com.example.adminobr.data.Equipo
 import com.example.adminobr.databinding.FragmentListaPartesBinding
 import com.example.adminobr.ui.adapter.ListarPartesAdapter
 import com.example.adminobr.utils.AutocompleteManager
@@ -52,6 +53,7 @@ class ListarPartesFragment : Fragment() {
     private lateinit var fechaFinTextInputLayout: TextInputLayout
     private lateinit var fechaInicioEditText: TextInputEditText
     private lateinit var fechaFinEditText: TextInputEditText
+    private var selectedEquipo: Equipo? = null
 
     private var isDatePickerOpen = false // Variable para controlar si el DatePicker está abierto
 
@@ -91,8 +93,18 @@ class ListarPartesFragment : Fragment() {
         // Inicializar AutocompleteManager
         autocompleteManager = AutocompleteManager(requireContext(), appDataViewModel)
 
-        // Configurar los AutoCompleteTextView con AutocompleteManager
-        autocompleteManager.loadEquipos(binding.equipoAutocomplete, viewLifecycleOwner)
+        // Cargar equipos y capturar el objeto Equipo seleccionado
+        autocompleteManager.loadEquipos(
+            equipoAutocomplete,
+            this
+        ) { equipo ->
+
+            Log.d("ListarPartesFragment", "Equipo selecionado: $equipo")
+
+            // Si se selecciona un equipo, quita el foco del AutoCompleteTextView
+            equipoAutocomplete.clearFocus()
+            selectedEquipo = equipo // Guardar equipo seleccionado
+        }
 
         // Otras configuraciones del fragmento
         //setupTextWatchers()
@@ -263,14 +275,6 @@ class ListarPartesFragment : Fragment() {
             // Establecer la fecha máxima en hoy
             datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
             datePickerDialog.show()
-        }
-
-        // Configura el OnItemClickListener para equipoAutocomplete
-        equipoAutocomplete.setOnItemClickListener { _, _, _, _ ->
-            // Si se selecciona un equipo, quita el foco del AutoCompleteTextView
-            equipoAutocomplete.clearFocus()
-//            applyFiltersButton.requestFocus()
-//            binding.applyFiltersButton.requestFocusFromTouch()
         }
     }
 
