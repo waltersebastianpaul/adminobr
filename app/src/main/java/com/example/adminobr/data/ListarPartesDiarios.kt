@@ -1,9 +1,5 @@
 package com.example.adminobr.data
 
-import kotlinx.parcelize.Parcelize
-import android.os.Parcelable
-
-@Parcelize
 data class ListarPartesDiarios(
     val id_parte_diario: Int,
     val fecha: String,
@@ -16,4 +12,4 @@ data class ListarPartesDiarios(
     val obra_id: Int,
     val user_created: Int,
     val estado_id: Int
-) : Parcelable
+)

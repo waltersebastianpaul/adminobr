@@ -1,5 +1,6 @@
 package com.example.adminobr.api
 
+import android.util.Log
 import com.example.adminobr.utils.Constants
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
@@ -16,6 +17,7 @@ object ApiUtils {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
+        Log.d("ApiUtils", "Base URL: $BASE_URL")
 
         val client = OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)

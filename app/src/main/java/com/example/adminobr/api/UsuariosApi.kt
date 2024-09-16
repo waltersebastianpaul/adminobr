@@ -34,7 +34,6 @@ suspend fun getUsuarios(): List<Usuario>
     companion object {
         private val BASE_URL = Constants.getBaseUrl()
 
-
         fun create(): UsuariosApi {
             val logging = HttpLoggingInterceptor()
             logging.setLevel(HttpLoggingInterceptor.Level.BODY)

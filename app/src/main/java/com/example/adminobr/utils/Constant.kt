@@ -1,19 +1,42 @@
 package com.example.adminobr.utils
 
+import com.example.adminobr.BuildConfig
 import java.net.URL
 
 sealed class Constants {
 
+//    companion object {
+//        private const val BASE_URL = "http://adminobr.site"
+//
+//        fun getBaseUrl(): String {
+//            return BASE_URL
+//        }
+//
+//        // Función auxiliar para construir URLs completas
+//        fun buildUrl(path: String): URL {
+//            return URL("$BASE_URL$path")
+//        }
+//    }
+
+
     companion object {
         private const val BASE_URL = "http://adminobr.site"
+        private const val DEBUG_DIR = "/debug/"
+        private const val RELEASE_DIR = ""
+        private var CURRENT_DIR = ""
 
-        fun getBaseUrl(): String {
-            return BASE_URL
+        init {
+            CURRENT_DIR = if (BuildConfig.DEBUG) DEBUG_DIR else RELEASE_DIR
         }
+
+        fun getBaseUrl(): URL {
+            return URL("$BASE_URL$CURRENT_DIR")
+        }
+
 
         // Función auxiliar para construir URLs completas
         fun buildUrl(path: String): URL {
-            return URL("$BASE_URL$path")
+            return URL("$BASE_URL$CURRENT_DIR$path")
         }
     }
 
@@ -25,15 +48,14 @@ sealed class Constants {
 
 
     object PartesDiarios {
-        const val GET_LISTA = "/api/equipos/partes/get_partes_diarios.php"
-        const val GUARDAR = "/api/equipos/partes/guardar_parte_diario.php"
-        const val GET_ULTIMO_PARTE = "/api/equipos/partes/get_ultimo_parte_diario.php"
-        const val ELIMINAR = "/api/equipos/partes/eliminar_parte_diario.php"
-    // ... otras rutas de obras si es necesario
+        const val GET_LISTA = "api/equipos/partes/get_partes_diarios.php"
+        const val GUARDAR = "api/equipos/partes/guardar_parte_diario.php"
+        const val GET_ULTIMO_PARTE = "api/equipos/partes/get_ultimo_parte_diario.php"
+        // ... otras rutas de obras si es necesario
     }
 
     object Equipos {
-        const val GET_LISTA = "/api/equipos/get_equipos.php"
+        const val GET_LISTA = "api/equipos/get_equipos.php"
         // ... otras rutas de obras si es necesario
     }
 
@@ -68,5 +90,4 @@ sealed class Constants {
         const val GUARDAR = "/api/usuarios/guardar_usuario.php" // Nueva ruta
         // ... otras rutas para actualizar, eliminar, etc.
     }
-
 }

@@ -1,15 +1,25 @@
 <?php
+// Verificar que los datos necesarios están presentes en la solicitud POST
+if (!$_POST || !isset($_POST['empresaDbName'])) {
+    http_response_code(400);
+    die(json_encode(['success' => false, 'message' => 'Datos de solicitud incompletos']));
+}
+
+// Obtener los valores desde el POST
+$empresaDbName = $_POST['empresaDbName'];
+$equipo = $_POST['equipo'];
+
 // Incluir el archivo de configuración
 include '../../db_config.php';
+$dbname = $empresaDbName; // Sobreescribir $dbname con empresaDbName 
 
+// Conectar a la base de datos usando el dbname obtenido
 $conn = new mysqli($servername, $username, $password, $dbname);
 
+// Verificar la conexión
 if ($conn->connect_error) {
     die("Error de conexión: " . $conn->connect_error);
 }
-
-// Obtener el parámetro del equipo
-$equipo = isset($_GET['equipo']) ? $conn->real_escape_string($_GET['equipo']) : '';
 
 if (empty($equipo)) {
     die(json_encode(['error' => 'El parámetro equipo es requerido.']));

@@ -13,6 +13,7 @@ $fechaFin = $_POST['fechaFin'];
 $page = intval($_POST['page']);
 $pageSize = intval($_POST['pageSize']);
 
+
 // Incluir el archivo de configuración
 include '../../db_config.php';
 $dbname = $empresaDbName; // Sobreescribir $dbname con empresaDbName 

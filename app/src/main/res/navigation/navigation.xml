@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <navigation
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -21,40 +22,24 @@
             app:destination="@id/nav_listarpartes" />
     </fragment>
 
-    <!-- ParteDiarioFragment -->
     <fragment
         android:id="@+id/nav_partediario"
         android:name="com.example.adminobr.ui.partediario.ParteDiarioFragment"
         android:label="Parte Diario"
-        tools:layout="@layout/fragment_parte_diario">
+        tools:layout="@layout/fragment_parte_diario" />
 
-        <!-- Agregar el argumento para el Parcelable -->
-        <argument
-            android:name="parteDiario"
-            app:argType="com.example.adminobr.data.ListarPartesDiarios"
-            app:nullable="false" />
-    </fragment>
-
-
-    <!-- ParteSimpleFragment -->
     <fragment
         android:id="@+id/nav_partesimple"
         android:name="com.example.adminobr.ui.partesimple.ParteSimpleFragment"
         android:label="Partes Simples"
         tools:layout="@layout/fragment_parte_simple" />
 
-    <!-- ListarPartesFragment -->
     <fragment
         android:id="@+id/nav_listarpartes"
         android:name="com.example.adminobr.ui.partediario.ListarPartesFragment"
         android:label="Lista de Partes Diarios"
-        tools:layout="@layout/fragment_lista_partes" >
-        <action
-            android:id="@+id/action_nav_listarpartes_to_nav_partediario"
-            app:destination="@id/nav_partediario" />
-    </fragment>
+        tools:layout="@layout/fragment_lista_partes" />
 
-    <!-- NuevoUsuarioFragment -->
     <fragment
         android:id="@+id/nav_gestion_usuarios"
         android:name="com.example.adminobr.ui.usuarios.NuevoUsuarioFragment"

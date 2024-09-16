@@ -19,6 +19,7 @@ import androidx.compose.ui.semantics.text
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.adminobr.BuildConfig
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.MainActivity
@@ -63,7 +64,8 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Asignar valores por defecto en modo Debug
-        val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+        val isDebuggable = BuildConfig.DEBUG
+//        val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         // Guardar el valor de isDebuggable en SessionManager
         sessionManager.saveDebuggable(isDebuggable)
         Log.d("LoginActivity", "Debuggable: $isDebuggable")

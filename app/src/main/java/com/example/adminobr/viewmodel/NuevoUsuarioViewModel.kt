@@ -40,7 +40,7 @@ class NuevoUsuarioViewModel(application: Application) : AndroidViewModel(applica
 
     private inner class NuevoUsuarioApi {
         private val client = OkHttpClient.Builder().build()
-        private val baseUrl = Constants.getBaseUrl()
+        private val baseUrl = Constants.getBaseUrl() //"http://adminobr.site/"
         private val guardarUsuarioUrl = Constants.Usuarios.GUARDAR
 
 
