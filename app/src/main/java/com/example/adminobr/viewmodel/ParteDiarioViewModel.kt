@@ -140,6 +140,9 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         _filterFechaFin.value = fechaFin
     }
 
+    private val _ultimosPartesDiarios = MutableStateFlow<List<ParteDiario>>(emptyList())
+    val ultimosPartesDiarios: StateFlow<List<ParteDiario>> = _ultimosPartesDiarios.asStateFlow()
+
     fun getUltimosPartesDiarios(userId: Int): LiveData<List<ParteDiario>> {
         val liveData = MutableLiveData<List<ParteDiario>>()
         viewModelScope.launch {
@@ -166,6 +169,8 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
                 } else {
                     _error.value = Event("Error al obtener los últimos partes diarios: ${response.message()}")
                 }
+
+                _ultimosPartesDiarios.value = response.body() ?: emptyList()
             } catch (e: Exception) {
                 _error.value = Event("Error inesperado: ${e.message}")
             }
@@ -187,6 +192,11 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
                 if (resultado) {
                     _mensaje.value = Event("Parte diario guardado con éxito")
                     callback(true, nuevoId)
+
+                    // Actualizar la lista de partes diarios
+                    val nuevaLista = (_ultimosPartesDiarios.value.toMutableList() + parteDiario).take(5)
+                    _ultimosPartesDiarios.value = nuevaLista
+
                 } else {
                     _error.value = Event("Error al guardar el parte diario")
                     callback(false, null)

@@ -192,12 +192,6 @@ class ParteDiarioFragment : Fragment() {
         guardarButton.setOnClickListener {
             guardarParteDiario()
 
-            // Actualizar la lista de partes diarios después de guardar
-            viewModel.getUltimosPartesDiarios(userId).observe(viewLifecycleOwner) { partesDiarios ->
-                adapter.submitList(partesDiarios)
-            }
-
-
         }
 
         binding.clearHistorialPartesTextView.setOnClickListener {
