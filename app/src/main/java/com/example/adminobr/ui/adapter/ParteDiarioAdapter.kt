@@ -43,6 +43,7 @@ class ParteDiarioAdapter(private val context: Context) : ListAdapter<ParteDiario
         }
     }
 
+
     fun addParteDiario(parteDiario: ParteDiario) {
         val currentList = currentList.toMutableList()
         val limitePartes = 30
@@ -57,4 +58,5 @@ class ParteDiarioAdapter(private val context: Context) : ListAdapter<ParteDiario
         // Guardar la lista actualizada en SharedPreferences
         SharedPreferencesHelper.savePartesList(context, currentList)
     }
+
 }

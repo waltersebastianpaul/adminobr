@@ -1,18 +1,20 @@
 <?php
-// Verificar que los datos necesarios están presentes en la solicitud POST
-if (!$_POST || !isset($_POST['empresaDbName'])) {
+// Obtener el cuerpo de la solicitud y decodificar el JSON
+$data = json_decode(file_get_contents('php://input'), true);
+
+// Verificar que los datos necesarios están presentes en el JSON
+if (!$data || !isset($data['empresaDbName'])) {
     http_response_code(400);
     die(json_encode(['success' => false, 'message' => 'Datos de solicitud incompletos']));
 }
 
-// Obtener los valores desde el POST
-$empresaDbName = $_POST['empresaDbName'];
-$equipo = $_POST['equipo'];
-$fechaInicio = $_POST['fechaInicio'];
-$fechaFin = $_POST['fechaFin'];
-$page = intval($_POST['page']);
-$pageSize = intval($_POST['pageSize']);
-
+// Obtener los valores desde el JSON decodificado
+$empresaDbName = $data['empresaDbName'];
+$equipo = $data['equipo'];
+$fechaInicio = $data['fechaInicio'];
+$fechaFin = $data['fechaFin'];
+$page = intval($data['page']);
+$pageSize = intval($data['pageSize']);
 
 // Incluir el archivo de configuración
 include '../../db_config.php';

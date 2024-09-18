@@ -4,6 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
 import androidx.paging.*
+import com.example.adminobr.api.ApiService
 import com.example.adminobr.data.ListarPartesDiarios
 import com.example.adminobr.data.ParteDiario
 import com.example.adminobr.utils.Event
@@ -21,10 +22,24 @@ import java.io.IOException
 
 import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.SessionManager
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class ParteDiarioViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val client = OkHttpClient.Builder().build()
+    //private val client = OkHttpClient.Builder().build()
+
+    val loggingInterceptor = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY // Registra el cuerpo de la solicitud y la respuesta
+    }
+
+    val client = OkHttpClient.Builder()
+        .addInterceptor(loggingInterceptor)
+        .build()
+
     private val baseUrl = Constants.getBaseUrl()
     private val guardarParteDiarioUrl = Constants.PartesDiarios.GUARDAR
     private val sessionManager = SessionManager(application)
@@ -125,6 +140,39 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         _filterFechaFin.value = fechaFin
     }
 
+    fun getUltimosPartesDiarios(userId: Int): LiveData<List<ParteDiario>> {
+        val liveData = MutableLiveData<List<ParteDiario>>()
+        viewModelScope.launch {
+            try {
+                val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
+
+                // Crear el objeto JSON para la solicitud
+                val jsonBody = JSONObject().apply {
+                    put("empresaDbName", empresaDbName)
+                    put("limit", 5)
+                    put("user_created", userId)
+                    // Agregar otros parámetros opcionales si es necesario
+                }
+
+                // Define el MediaType para JSON
+                val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
+                val requestBody = jsonBody.toString().toRequestBody(mediaType)
+
+                // Realizar la solicitud POST
+                val response = apiService.getUltimosPartesDiarios(requestBody) // Pasar el requestBody
+
+                if (response.isSuccessful) {
+                    liveData.value = response.body()
+                } else {
+                    _error.value = Event("Error al obtener los últimos partes diarios: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                _error.value = Event("Error inesperado: ${e.message}")
+            }
+        }
+        return liveData
+    }
+
     fun guardarParteDiario(parteDiario: ParteDiario, callback: (Boolean, Int?) -> Unit) {
         _isLoading.value = true
         viewModelScope.launch {
@@ -165,33 +213,49 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         _partesList.value = emptyList()
     }
 
-    fun removeParte(position: Int) {
-        val currentList = _partesList.value.orEmpty().toMutableList()
-        currentList.removeAt(position)
-        _partesList.value = currentList
-    }
-
-    suspend fun editarParteDiario(parteDiario: ListarPartesDiarios, callback: (Boolean) -> Unit) {
-        viewModelScope.launch {
-            try {
-                val requestBody = FormBody.Builder()
-                    .add("id_parte_diario", parteDiario.id_parte_diario.toString())
-                    .add("fecha", parteDiario.fecha)
-                    .add("equipoId", parteDiario.equipo_id.toString())
-                    .add("horasInicio", parteDiario.horas_inicio.toString())
-                    .add("horasFin", parteDiario.horas_fin.toString())
-                    .build()
-
-                val request = Request.Builder()
-                    .url("$baseUrl/editar_parte_diario")  // Asegúrate de tener esta API en tu backend
-                    .put(requestBody)
-                    .build()
-
-                val response = client.newCall(request).execute()
-                callback(response.isSuccessful)
-            } catch (e: IOException) {
-                callback(false)
+    fun updateParteDiario(parteDiario: ListarPartesDiarios, empresaDbName: String) = viewModelScope.launch {
+        try {
+            val response = apiService.updateParteDiario(parteDiario, empresaDbName)
+            if (response.isSuccessful) {
+                // Actualizar la lista de partes diarios (opcional, si quieres una actualización inmediata)
+                // ...
+                _mensaje.value = Event("Parte diario actualizado correctamente")
+            } else {
+                _error.value = Event("Error al actualizar el parte diario: ${response.message()}")
             }
+        } catch (e: Exception) {
+            _error.value = Event("Error inesperado: ${e.message}")
         }
     }
+
+    fun deleteParteDiario(idParteDiario: Int, empresaDbName: String, callback: (Boolean) -> Unit) = viewModelScope.launch {
+        try {
+            Log.d("ParteDiarioViewModel", "Eliminando parte diario con ID: $idParteDiario")
+            val response = apiService.deleteParteDiario(idParteDiario, empresaDbName)
+            Log.d("ParteDiarioViewModel", "Código de respuesta de la API: ${response.code()}")
+            if (response.isSuccessful) {
+                // Invalida la fuente de datos para refrescar la lista
+                //pager.value?.refresh()
+                _mensaje.value = Event("Parte diario eliminado correctamente")
+                callback(true)
+                Log.d("ParteDiarioViewModel", "Parte diario eliminado correctamente") // Log de éxito
+            } else {
+                _error.value = Event("Error al eliminar el parte diario: ${response.message()}") // Log de error con mensaje
+                callback(false)
+            }
+        } catch (e: Exception) {
+            _error.value = Event("Error inesperado: ${e.message}")
+            callback(false)
+        }
+    }
+
+    val apiService: ApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl("http://adminobr.site/") // Tu URL base
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
+            .build()
+            .create(ApiService::class.java)
+    }
+
 }

@@ -384,8 +384,6 @@ import com.example.adminobr.data.VersionInfo
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 
-import android.app.*
-import android.content.*
 import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.SessionManager
 
@@ -395,12 +393,7 @@ class UpdateManager(private val context: Context) {
     private val sessionManager = SessionManager(context)
     private val isDebuggable = sessionManager.getDebuggable()
 
-
-    private var updateUrl = if (isDebuggable) {
-        Constants.Update.DEBUG_DIR
-    } else {
-        Constants.Update.RELEASE_DIR
-    }
+    private var updateUrl = Constants.Update.UPDATE_DIR
 
     suspend fun checkForUpdates(): Boolean {
 
@@ -474,11 +467,7 @@ class UpdateManager(private val context: Context) {
     }
 
     suspend fun getLatestVersion(): VersionInfo {
-//        if(isDebuggable){
-//            updateUrl = Constants.Update.DEBUG_DIR
-//        } else {
-//            updateUrl = Constants.Update.RELEASE_DIR
-//        }
+
         val updateService = Retrofit.Builder()
             .baseUrl(updateUrl).addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -567,17 +556,6 @@ class UpdateManager(private val context: Context) {
             -1L
         }
     }
-//    fun getCurrentVersionCode(): Int {
-//        val packageManager = context.packageManager
-//        val packageName = context.packageName
-//        return try {
-//            val packageInfo = packageManager.getPackageInfo(packageName, 0)
-//            packageInfo.versionCode
-//        } catch (e: PackageManager.NameNotFoundException) {
-//            Log.e("UpdateManager", "Error al obtener la versión actual: ${e.message}", e)
-//            -1 // O cualquier otro valor que indique un error
-//        }
-//    }
 
     private fun isAppInForeground(): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager

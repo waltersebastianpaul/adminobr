@@ -60,6 +60,13 @@
             </LinearLayout>
         </LinearLayout>
 
+        <Button
+            android:id="@+id/button_delete"
+            android:text="Eliminar"
+            android:onClick="onDeleteParteDiarioClick"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"/>
+
         <!-- Menú de tres puntos -->
         <ImageView
             android:id="@+id/menuItemParte"

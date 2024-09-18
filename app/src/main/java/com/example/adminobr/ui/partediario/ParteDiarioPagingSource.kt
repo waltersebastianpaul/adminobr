@@ -7,13 +7,11 @@ import com.example.adminobr.data.ListarPartesDiarios
 import com.example.adminobr.utils.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.FormBody
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
 
@@ -50,6 +48,9 @@ class ParteDiarioPagingSource(
                     .url("$baseUrl${Constants.PartesDiarios.GET_LISTA}")
                     .post(requestBody)  // Enviar el JSON
                     .build()
+                Log.d("ParteDiarioPagingSource", "Request URL: $request")
+                Log.d("ParteDiarioPagingSource", "Request Body: $requestBody")
+                Log.d("ParteDiarioPagingSource", "Url: \"$baseUrl${Constants.PartesDiarios.GET_LISTA}\"")
 
                 val response = client.newCall(request).execute()
 

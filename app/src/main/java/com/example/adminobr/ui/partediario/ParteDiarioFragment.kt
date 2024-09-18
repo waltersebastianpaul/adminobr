@@ -44,7 +44,8 @@ import java.util.Calendar
 import java.util.Locale
 
 import androidx.lifecycle.lifecycleScope
-import androidx.paging.PagingData
+import androidx.lifecycle.observe
+
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.data.Obra
@@ -54,7 +55,7 @@ import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.utils.SharedPreferencesHelper
 import com.example.adminobr.viewmodel.ParteDiarioViewModel
 import kotlinx.coroutines.launch
-import okhttp3.FormBody
+
 import org.json.JSONException
 import org.json.JSONObject
 
@@ -62,6 +63,7 @@ import java.io.IOException
 
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
 
 class ParteDiarioFragment : Fragment() {
 
@@ -122,6 +124,16 @@ class ParteDiarioFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        val userId = sessionManager.getUserId() // Obtener el ID del usuario
+        val adapter = ParteDiarioAdapter(requireContext()) // Inicializar el adaptador
+
+        // Obtener los últimos partes diarios al ingresar al Fragment
+        viewModel.getUltimosPartesDiarios(userId).observe(viewLifecycleOwner) { partesDiarios ->
+            adapter.submitList(partesDiarios)
+        }
+
+        binding.listaPartesDiariosRecyclerView.adapter = adapter // Configurar el RecyclerView
+
         // Inicializar AutocompleteManager
         autocompleteManager = AutocompleteManager(requireContext(), appDataViewModel)
 
@@ -171,12 +183,21 @@ class ParteDiarioFragment : Fragment() {
     }
 
     private fun setupListeners() {
+        val userId = sessionManager.getUserId()
+
         fechaEditText.setOnClickListener {
             showDatePickerDialog()
         }
 
         guardarButton.setOnClickListener {
             guardarParteDiario()
+
+            // Actualizar la lista de partes diarios después de guardar
+            viewModel.getUltimosPartesDiarios(userId).observe(viewLifecycleOwner) { partesDiarios ->
+                adapter.submitList(partesDiarios)
+            }
+
+
         }
 
         binding.clearHistorialPartesTextView.setOnClickListener {
@@ -211,7 +232,6 @@ class ParteDiarioFragment : Fragment() {
         // Extensión para convertir String a Editable
         fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
 
-        //val userId = requireActivity().intent.getIntExtra("id", -1)
         val userId = sessionManager.getUserId()
 
         if (validarCampos()) {
@@ -250,9 +270,14 @@ class ParteDiarioFragment : Fragment() {
                         binding.parteDiarioIdTextView.text = it.toString().toEditable()
                     }
 
-                    // Agregar el nuevo ParteDiario al adaptador
-                    adapter.addParteDiario(parteDiario)
-                    actualizarHistorialPartes()
+                    // Obtener los últimos partes diarios
+                    viewModel.getUltimosPartesDiarios(userId).observe(viewLifecycleOwner) { partesDiarios ->
+                        adapter.submitList(partesDiarios)
+                    }
+
+//                    // Agregar el nuevo ParteDiario al adaptador
+//                    adapter.addParteDiario(parteDiario)
+//                    actualizarHistorialPartes()
 
                 } else {
                     Toast.makeText(requireContext(), "Error al guardar el parte diario", Toast.LENGTH_SHORT).show()
@@ -347,7 +372,7 @@ class ParteDiarioFragment : Fragment() {
         val equipos = appDataViewModel.equipos.value ?: emptyList() // Obtener la lista de equipos
         adapter = ParteDiarioAdapter(requireContext()) // Pasar la lista de equipos al adaptador
         binding.listaPartesDiariosRecyclerView.adapter = adapter
-        binding.listaPartesDiariosRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+//        binding.listaPartesDiariosRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
     }
 
@@ -390,17 +415,25 @@ class ParteDiarioFragment : Fragment() {
                 } else {
                     Log.d("ParteDiarioFragment", "Respuesta del servidor: $resultado")
 
-                    // Procesar el JSON de la respuesta
-                    val jsonObject = JSONObject(resultado)
+                    // Procesar el JSON de la respuesta como JSONArray
+                    val jsonArray = JSONArray(resultado)
 
-                    // Extraer valores
-                    val fecha = jsonObject.getString("fecha")
-                    val equipo = jsonObject.getString("interno")
-                    val horasInicio = jsonObject.getString("horas_inicio")
-                    val horasFin = jsonObject.getString("horas_fin")
+                    // Obtener el primer elemento del array (si existe)
+                    if (jsonArray.length() > 0) {
+                        val jsonObject = jsonArray.getJSONObject(0)
 
-                    // Mostrar los datos en la interfaz
-                    mostrarUltimoParte(fecha, equipo, horasInicio, horasFin)
+                        // Extraer valores
+                        val fecha = jsonObject.getString("fecha")
+                        val equipo = jsonObject.getString("interno")
+                        val horasInicio = jsonObject.getString("horas_inicio")
+                        val horasFin = jsonObject.getString("horas_fin")
+
+                        // Mostrar los datos en la interfaz
+                        mostrarUltimoParte(fecha, equipo, horasInicio, horasFin)
+                    } else {
+                        // No se encontraron partes
+                        binding.ultimoParteLayout.visibility = View.GONE
+                    }
                 }
 
             } catch (e: IOException) {

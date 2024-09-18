@@ -64,7 +64,9 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Asignar valores por defecto en modo Debug
-        val isDebuggable = BuildConfig.DEBUG
+        val isDebuggable = false // BuildConfig.DEBUG
+        //Toast.makeText(this, "isDebuggable: $isDebuggable", Toast.LENGTH_SHORT).show()
+
 //        val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         // Guardar el valor de isDebuggable en SessionManager
         sessionManager.saveDebuggable(isDebuggable)

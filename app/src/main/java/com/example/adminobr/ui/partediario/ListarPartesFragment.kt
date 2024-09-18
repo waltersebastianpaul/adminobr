@@ -84,8 +84,9 @@ class ListarPartesFragment : Fragment() {
         val recyclerView = binding.listaPartesRecyclerView
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        val adapter = ListarPartesAdapter()
+        val adapter = ListarPartesAdapter(viewModel)
         recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(context)
 
         val fab: FloatingActionButton = requireActivity().findViewById(R.id.fab)
         fab.visibility = View.VISIBLE

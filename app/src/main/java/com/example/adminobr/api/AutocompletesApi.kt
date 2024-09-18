@@ -1,6 +1,7 @@
 package com.example.adminobr.api
 
 import android.app.Application
+import android.util.Log
 
 import com.example.adminobr.utils.Constants
 import com.example.adminobr.data.Empresa
@@ -33,6 +34,7 @@ interface AutocompletesApi {
     companion object {
         private val BASE_URL = Constants.getBaseUrl()
 
+
         fun create(application: Application): AutocompletesApi {
             val logging = HttpLoggingInterceptor().apply {
                 setLevel(HttpLoggingInterceptor.Level.BODY)
@@ -44,7 +46,7 @@ interface AutocompletesApi {
             val gson = GsonBuilder()
                 .setDateFormat("yyyy-MM-dd HH:mm:ss")
                 .create()
-
+            Log.d("AutocompletesApi", "Base URL: $BASE_URL")
             val retrofit = Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create(gson))
