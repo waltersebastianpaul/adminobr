@@ -104,7 +104,12 @@ class ParteDiarioFragment : Fragment() {
         // Inicializa el SessionManager con el contexto del fragmento
         sessionManager = SessionManager(requireContext())
 
-        _binding = FragmentParteDiarioBinding.inflate(inflater, container, false)
+        _binding = FragmentParteDiarioBinding.inflate(inflater, container, false) // Mover esta línea aquí
+
+        // Obtén empresaDbName desde el SessionManager
+        val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
+        adapter = ParteDiarioAdapter(requireContext(), sessionManager, viewModel, empresaDbName)
+        binding.listaPartesDiariosRecyclerView.adapter = adapter
 
         fechaEditText = binding.fechaEditText
         parteDiarioIdTextView = binding.parteDiarioIdTextView
@@ -117,22 +122,20 @@ class ParteDiarioFragment : Fragment() {
         guardarButton = binding.guardarButton
 
         val view = binding.root
-
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val userId = sessionManager.getUserId() // Obtener el ID del usuario
-        val adapter = ParteDiarioAdapter(requireContext()) // Inicializar el adaptador
+        val userId = sessionManager.getUserId()
+        binding.listaPartesDiariosRecyclerView.adapter = adapter
 
         // Obtener los últimos partes diarios al ingresar al Fragment
         viewModel.getUltimosPartesDiarios(userId).observe(viewLifecycleOwner) { partesDiarios ->
             adapter.submitList(partesDiarios)
         }
 
-        binding.listaPartesDiariosRecyclerView.adapter = adapter // Configurar el RecyclerView
 
         // Inicializar AutocompleteManager
         autocompleteManager = AutocompleteManager(requireContext(), appDataViewModel)
@@ -177,7 +180,7 @@ class ParteDiarioFragment : Fragment() {
         setupFab()
         setupTextWatchers()
         setupListeners()
-        actualizarHistorialPartes()
+        //actualizarHistorialPartes()
         observeViewModels()
 
     }
@@ -192,6 +195,10 @@ class ParteDiarioFragment : Fragment() {
         guardarButton.setOnClickListener {
             guardarParteDiario()
 
+            // Actualizar la lista después de guardar
+            viewModel.getUltimosPartesDiarios(userId).observe(viewLifecycleOwner) { partesDiarios ->
+                adapter.submitList(partesDiarios) // Actualizar la lista del adaptador
+            }
         }
 
         binding.clearHistorialPartesTextView.setOnClickListener {
@@ -215,7 +222,7 @@ class ParteDiarioFragment : Fragment() {
 
         builder.setPositiveButton(positiveButtonText) { dialog, _ ->
             SharedPreferencesHelper.clearPartesList(requireContext())
-            actualizarHistorialPartes()
+            //actualizarHistorialPartes()
             dialog.dismiss()
         }
         builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.dismiss() }
@@ -264,15 +271,10 @@ class ParteDiarioFragment : Fragment() {
                         binding.parteDiarioIdTextView.text = it.toString().toEditable()
                     }
 
-                    // Obtener los últimos partes diarios
+                    // Obtener los últimos partes diarios y actualizar la lista
                     viewModel.getUltimosPartesDiarios(userId).observe(viewLifecycleOwner) { partesDiarios ->
                         adapter.submitList(partesDiarios)
                     }
-
-//                    // Agregar el nuevo ParteDiario al adaptador
-//                    adapter.addParteDiario(parteDiario)
-//                    actualizarHistorialPartes()
-
                 } else {
                     Toast.makeText(requireContext(), "Error al guardar el parte diario", Toast.LENGTH_SHORT).show()
                 }
@@ -364,7 +366,6 @@ class ParteDiarioFragment : Fragment() {
     private fun setupRecyclerView() {
         // Inicializar el RecyclerView y el adapter
         val equipos = appDataViewModel.equipos.value ?: emptyList() // Obtener la lista de equipos
-        adapter = ParteDiarioAdapter(requireContext()) // Pasar la lista de equipos al adaptador
         binding.listaPartesDiariosRecyclerView.adapter = adapter
 //        binding.listaPartesDiariosRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
@@ -376,7 +377,8 @@ class ParteDiarioFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 // Obtén empresaDbName desde el SessionManager
-                val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: return@launch
+                val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
+                //adapter = ParteDiarioAdapter(requireContext(), sessionManager, viewModel, empresaDbName) // Pasa sessionManager, viewModel y empresaDbName aquí
 
                 // Crea el objeto JSON para la solicitud
                 val jsonBody = JSONObject().apply {
@@ -632,21 +634,21 @@ class ParteDiarioFragment : Fragment() {
     }
 
     // Actualizar historial de partes
-    private fun actualizarHistorialPartes() {
-        val newList = SharedPreferencesHelper.getPartesList(requireContext())
-        adapter.submitList(newList)
-
-        // Retrasar la actualización de la visibilidad del mensaje
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (adapter.itemCount == 0) {
-                binding.clearHistorialPartesTextView.visibility = View.GONE
-                binding.emptyListMessage.visibility = View.VISIBLE
-            } else {
-                binding.clearHistorialPartesTextView.visibility = View.VISIBLE
-                binding.emptyListMessage.visibility = View.GONE
-            }
-        }, 100) // Retrasar 100 milisegundos
-    }
+//    private fun actualizarHistorialPartes() {
+//        val newList = SharedPreferencesHelper.getPartesList(requireContext())
+//        adapter.submitList(newList)
+//
+//        // Retrasar la actualización de la visibilidad del mensaje
+//        Handler(Looper.getMainLooper()).postDelayed({
+//            if (adapter.itemCount == 0) {
+//                binding.clearHistorialPartesTextView.visibility = View.GONE
+//                binding.emptyListMessage.visibility = View.VISIBLE
+//            } else {
+//                binding.clearHistorialPartesTextView.visibility = View.VISIBLE
+//                binding.emptyListMessage.visibility = View.GONE
+//            }
+//        }, 100) // Retrasar 100 milisegundos
+//    }
 
     private fun hideKeyboard() {
         val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

@@ -55,8 +55,6 @@ class ListarPartesFragment : Fragment() {
     private lateinit var fechaFinEditText: TextInputEditText
     private var selectedEquipo: Equipo? = null
 
-    private var isDatePickerOpen = false // Variable para controlar si el DatePicker está abierto
-
 //    private val autocompleteViewModel: AutocompleteViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -84,7 +82,7 @@ class ListarPartesFragment : Fragment() {
         val recyclerView = binding.listaPartesRecyclerView
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        val adapter = ListarPartesAdapter(viewModel)
+        val adapter = ListarPartesAdapter(viewModel, requireContext())        // val adapter = ListarPartesAdapter(viewModel)
         recyclerView.adapter = adapter
         recyclerView.layoutManager = LinearLayoutManager(context)
 
@@ -278,44 +276,6 @@ class ListarPartesFragment : Fragment() {
             datePickerDialog.show()
         }
     }
-
-    private fun setupTextWatchers() {
-        // TextWatcher para calcular horas trabajadas
-        val horasTextWatcher = object: TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                //
-            }
-        }
-
-        // Otros TextWatchers para los campos requeridos
-        //addTextWatcher(binding.equipoTextInputLayout, "Campo requerido")
-    }
-
-    private fun addTextWatcher(textInputLayout: TextInputLayout, errorMessage: String) {
-        val editText = textInputLayout.editText
-        editText?.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Implementación vacía o tu código aquí
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Implementación vacía o tu código aquí
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                if (textInputLayout.isErrorEnabled) {
-                    if (s.isNullOrEmpty()) {
-                        textInputLayout.error = errorMessage
-                    } else {
-                        textInputLayout.isErrorEnabled = false
-                    }
-                }
-            }
-        })
-    }
-
 
     private fun setEditTextToUppercase(editText: AutoCompleteTextView) {
         editText.filters = arrayOf(InputFilter.AllCaps())

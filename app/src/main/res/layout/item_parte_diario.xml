@@ -60,13 +60,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <Button
-            android:id="@+id/button_delete"
-            android:text="Eliminar"
-            android:onClick="onDeleteParteDiarioClick"
-            android:layout_height="wrap_content"
-            android:layout_width="wrap_content"/>
-
         <!-- Menú de tres puntos -->
         <ImageView
             android:id="@+id/menuItemParte"
@@ -74,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="16dp"
-            android:visibility="gone"
+            android:visibility="visible"
             android:clickable="true"
             android:src="@drawable/ic_more_vert"
             android:contentDescription="overflow menu" />

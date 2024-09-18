@@ -33,5 +33,5 @@ interface ApiService {
     @POST(Constants.PartesDiarios.GET_ULTIMOS_PARTES)
     suspend fun getUltimosPartesDiarios(
         @Body requestBody: RequestBody
-    ): Response<List<ParteDiario>>
+    ): Response<List<ListarPartesDiarios>>
 }

@@ -44,8 +44,8 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
     private val guardarParteDiarioUrl = Constants.PartesDiarios.GUARDAR
     private val sessionManager = SessionManager(application)
 
-    private val _partesList = MutableLiveData<List<ParteDiario>>()
-    val partesList: LiveData<List<ParteDiario>> = _partesList
+    private val _partesList = MutableLiveData<List<ListarPartesDiarios>>()
+    val partesList: LiveData<List<ListarPartesDiarios>> = _partesList
 
     private val _mensaje = MutableLiveData<Event<String?>>()
     val mensaje: LiveData<Event<String?>> = _mensaje
@@ -140,11 +140,8 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         _filterFechaFin.value = fechaFin
     }
 
-    private val _ultimosPartesDiarios = MutableStateFlow<List<ParteDiario>>(emptyList())
-    val ultimosPartesDiarios: StateFlow<List<ParteDiario>> = _ultimosPartesDiarios.asStateFlow()
-
-    fun getUltimosPartesDiarios(userId: Int): LiveData<List<ParteDiario>> {
-        val liveData = MutableLiveData<List<ParteDiario>>()
+    fun getUltimosPartesDiarios(userId: Int): LiveData<List<ListarPartesDiarios>> {
+        val liveData = MutableLiveData<List<ListarPartesDiarios>>() // Corregir el tipo de liveData
         viewModelScope.launch {
             try {
                 val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
@@ -169,8 +166,6 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
                 } else {
                     _error.value = Event("Error al obtener los últimos partes diarios: ${response.message()}")
                 }
-
-                _ultimosPartesDiarios.value = response.body() ?: emptyList()
             } catch (e: Exception) {
                 _error.value = Event("Error inesperado: ${e.message}")
             }
@@ -182,21 +177,16 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                val fechaConvertida = convertirFecha(parteDiario.fecha)
-                val parteDiarioConvertido = parteDiario.copy(fecha = fechaConvertida)
+                //val fechaConvertida = convertirFecha(parteDiario.fecha)
+                //val parteDiarioConvertido = parteDiario.copy(fecha = fechaConvertida)
 //                val (resultado, nuevoId) = withContext(Dispatchers.IO) {
 //                    guardarParteDiarioEnBaseDeDatos(parteDiarioConvertido)
 //                }
 
-                val (resultado, nuevoId) = api.guardarParteDiario(parteDiarioConvertido)
+                val (resultado, nuevoId) = api.guardarParteDiario(parteDiario)
                 if (resultado) {
                     _mensaje.value = Event("Parte diario guardado con éxito")
                     callback(true, nuevoId)
-
-                    // Actualizar la lista de partes diarios
-                    val nuevaLista = (_ultimosPartesDiarios.value.toMutableList() + parteDiario).take(5)
-                    _ultimosPartesDiarios.value = nuevaLista
-
                 } else {
                     _error.value = Event("Error al guardar el parte diario")
                     callback(false, null)
