@@ -1,8 +1,19 @@
 <?php
+// Obtener los datos de la solicitud (empresaDbName debe ser enviado como un parámetro POST)
+$data = json_decode(file_get_contents('php://input'), true);
+
+if (!$data || !isset($data['empresaDbName'])) {
+    http_response_code(400);
+    die(json_encode(['success' => false, 'message' => 'Datos de solicitud incompletos']));
+}
+
+$empresaDbName = $data['empresaDbName'] ?? null;
+
 // Incluir el archivo de configuración
 include '../db_config.php';
+$dbname = $empresaDbName; // Sobreescribir $dbname con empresaDbName 
 
-// Crear conexión
+// Conectar a la base de datos usando el dbname obtenido
 $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Verificar conexión

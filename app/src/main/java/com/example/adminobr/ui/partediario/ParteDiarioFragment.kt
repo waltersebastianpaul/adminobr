@@ -6,8 +6,7 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+
 import android.text.Editable
 import android.text.InputFilter
 import android.text.Spannable
@@ -44,9 +43,7 @@ import java.util.Calendar
 import java.util.Locale
 
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.observe
 
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.data.Obra
 import com.example.adminobr.ui.adapter.ParteDiarioAdapter
@@ -200,10 +197,6 @@ class ParteDiarioFragment : Fragment() {
                 adapter.submitList(partesDiarios) // Actualizar la lista del adaptador
             }
         }
-
-        binding.clearHistorialPartesTextView.setOnClickListener {
-            showClearHistorialDialog()
-        }
     }
 
     private fun showClearHistorialDialog() {
@@ -340,7 +333,6 @@ class ParteDiarioFragment : Fragment() {
         addTextWatcher(binding.horasFinTextInputLayout, "Campo requerido")
         addTextWatcher(binding.obraTextInputLayout, "Campo requerido")
     }
-
 
     private fun observeViewModels() {
         viewModel.mensaje.observe(viewLifecycleOwner) { event ->
@@ -632,23 +624,6 @@ class ParteDiarioFragment : Fragment() {
             }
         })
     }
-
-    // Actualizar historial de partes
-//    private fun actualizarHistorialPartes() {
-//        val newList = SharedPreferencesHelper.getPartesList(requireContext())
-//        adapter.submitList(newList)
-//
-//        // Retrasar la actualización de la visibilidad del mensaje
-//        Handler(Looper.getMainLooper()).postDelayed({
-//            if (adapter.itemCount == 0) {
-//                binding.clearHistorialPartesTextView.visibility = View.GONE
-//                binding.emptyListMessage.visibility = View.VISIBLE
-//            } else {
-//                binding.clearHistorialPartesTextView.visibility = View.VISIBLE
-//                binding.emptyListMessage.visibility = View.GONE
-//            }
-//        }, 100) // Retrasar 100 milisegundos
-//    }
 
     private fun hideKeyboard() {
         val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

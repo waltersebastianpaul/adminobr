@@ -1,7 +1,10 @@
 package com.example.adminobr.utils
 
 
+import android.R
 import android.content.Context
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.AutoCompleteTextView
@@ -11,6 +14,7 @@ import com.example.adminobr.data.Empresa
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.data.Obra
 import com.example.adminobr.ui.adapter.CustomArrayAdapter
+import com.example.adminobr.ui.adapter.EmpresaArrayAdapter
 import com.example.adminobr.viewmodel.AppDataViewModel
 
 
@@ -30,8 +34,8 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
         viewModel.cargarEmpresas()
         if (autoCompleteTextView != null && lifecycleOwner != null) {
             viewModel.empresas.observe(lifecycleOwner, Observer { empresas ->
-                val adapter = CustomArrayAdapter(
-                    context, android.R.layout.simple_dropdown_item_1line,
+                val adapter = EmpresaArrayAdapter(
+                    context, R.layout.simple_dropdown_item_1line,
                     empresas.map { it.nombre }
                 )
                 autoCompleteTextView.setAdapter(adapter)
@@ -47,11 +51,24 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                     selectedEmpresa?.let { onEmpresaSelected?.invoke(it) }
                 }
 
+                autoCompleteTextView.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                        // No es necesario hacer nada aquí
+                    }
+
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                        if (s?.isNotEmpty() == true) {
+                            autoCompleteTextView.showDropDown()
+                        }
+                    }
+
+                    override fun afterTextChanged(s: Editable?) {
+                        // No es necesario hacer nada aquí
+                    }
+                })
 
                 autoCompleteTextView.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                    if (hasFocus && autoCompleteTextView.text.isNotEmpty()) {
-                        autoCompleteTextView.showDropDown()
-                    }
+                    // No es necesario hacer nada aquí
                 }
             })
         }
@@ -81,11 +98,24 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                     selectedEquipo?.let { onEquipoSelected?.invoke(it) }
                 }
 
+                autoCompleteTextView.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                        // No es necesario hacer nada aquí
+                    }
+
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                        if (s?.isNotEmpty() == true) {
+                            autoCompleteTextView.showDropDown()
+                        }
+                    }
+
+                    override fun afterTextChanged(s: Editable?) {
+                        // No es necesario hacer nada aquí
+                    }
+                })
 
                 autoCompleteTextView.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                    if (hasFocus && autoCompleteTextView.text.isNotEmpty()) {
-                        autoCompleteTextView.showDropDown()
-                    }
+                    // No es necesario hacer nada aquí
                 }
             })
         }
@@ -116,11 +146,24 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                     selectedObra?.let { onObraSelected?.invoke(it) }
                 }
 
+                autoCompleteTextView.addTextChangedListener(object : TextWatcher {
+                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                        // No es necesario hacer nada aquí
+                    }
+
+                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                        if (s?.isNotEmpty() == true) {
+                            autoCompleteTextView.showDropDown()
+                        }
+                    }
+
+                    override fun afterTextChanged(s: Editable?) {
+                        // No es necesario hacer nada aquí
+                    }
+                })
 
                 autoCompleteTextView.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                    if (hasFocus && autoCompleteTextView.text.isNotEmpty()) {
-                        autoCompleteTextView.showDropDown()
-                    }
+                    // No es necesario hacer nada aquí
                 }
             })
         }

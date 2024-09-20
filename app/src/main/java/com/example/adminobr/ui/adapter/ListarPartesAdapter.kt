@@ -1,12 +1,18 @@
 package com.example.adminobr.ui.adapter
 
+import android.app.AlertDialog
 import android.content.Context
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
-import androidx.compose.ui.semantics.text
+
+import androidx.core.content.ContextCompat
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
@@ -31,13 +37,12 @@ class ListarPartesAdapter(private val viewModel: ParteDiarioViewModel, private v
         val parteDiario = getItem(position)
         parteDiario?.let { holder.bind(it) }
 
-        // Configurar OnClickListener para el menú de tres puntos
-        holder.binding.menuItemParte.setOnClickListener { view ->
-            // Obtener roles del usuario
-            val userRoles = holder.sessionManager.getUserRol() // Acceder a sessionManager a través de holder
-
-            // Control de visibilidad según roles
-            if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
+        // Control de visibilidad del menú
+        val userRoles = holder.sessionManager.getUserRol()
+        if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
+            holder.binding.menuItemParte.visibility = View.VISIBLE
+            // Configurar OnClickListener para el menú de tres puntos
+            holder.binding.menuItemParte.setOnClickListener { view ->
                 // Mostrar el menú contextual
                 val popupMenu = PopupMenu(holder.context, view)
                 popupMenu.inflate(R.menu.menu_item_parte)
@@ -48,18 +53,51 @@ class ListarPartesAdapter(private val viewModel: ParteDiarioViewModel, private v
                             true
                         }
                         R.id.action_eliminar -> {
-                            // Lógica para eliminar el parte diario
-                            val parteDiarioId = parteDiario?.id_parte_diario
-                            if (parteDiarioId != null) {
-                                viewModel.deleteParteDiario(parteDiarioId, holder.empresaDbName) { success ->
-                                    if (success) {
-                                        Toast.makeText(holder.context, "Parte diario eliminado correctamente", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        Toast.makeText(holder.context, "Error al eliminar el parte diario", Toast.LENGTH_SHORT).show()
+                            val position = holder.bindingAdapterPosition
+                            val parteDiario = getItem(position)
+                            if (parteDiario != null) {
+                                // Mostrar diálogo de confirmación
+                                val builder = AlertDialog.Builder(context) // Usar context del adaptador
+                                builder.setTitle("Eliminar Parte Diario")
+                                builder.setMessage("¿Estás seguro de que quieres eliminar este parte diario?")
+
+                                // Personalizar el texto del botón positivo
+                                val positiveButtonText = SpannableString("Eliminar")
+                                val colorRojo = ContextCompat.getColor(context, R.color.colorAlert)
+                                positiveButtonText.setSpan(
+                                    ForegroundColorSpan(colorRojo),
+                                    0,
+                                    positiveButtonText.length,
+                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                                )
+
+                                builder.setPositiveButton(positiveButtonText) { dialog, _ ->
+                                    viewModel.deleteParteDiario(parteDiario, holder.empresaDbName) { success, parteEliminado ->
+                                        if (success) {
+                                            refresh() // Recargar los datos del PagingDataAdapter
+                                            Toast.makeText(holder.context, "Parte diario eliminado correctamente", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(holder.context, "Error al eliminar el parte diario", Toast.LENGTH_SHORT).show()
+                                        }
                                     }
+                                    dialog.dismiss()
                                 }
+
+//                                builder.setPositiveButton(positiveButtonText) { dialog, _ ->
+//                                    viewModel.deleteParteDiario(parteDiario, holder.empresaDbName) { success, parteEliminado ->
+//                                        if (success) {
+//                                            snapshot().invalidate() // Invalidar el snapshot
+//                                            Toast.makeText(holder.context, "Parte diario eliminado correctamente", Toast.LENGTH_SHORT).show()
+//                                        } else {
+//                                            Toast.makeText(holder.context, "Error al eliminar el parte diario", Toast.LENGTH_SHORT).show()
+//                                        }
+//                                    }
+//                                    dialog.dismiss()
+//                                }
+                                builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.dismiss() }
+                                builder.create().show()
                             } else {
-                                Log.e("ParteDiarioViewHolder", "Error: parteDiarioId es nulo")
+                                Log.e("ParteDiarioViewHolder", "Error: parteDiario es nulo")
                             }
                             true
                         }
@@ -68,6 +106,8 @@ class ListarPartesAdapter(private val viewModel: ParteDiarioViewModel, private v
                 }
                 popupMenu.show()
             }
+        } else {
+            holder.binding.menuItemParte.visibility = View.GONE
         }
     }
 

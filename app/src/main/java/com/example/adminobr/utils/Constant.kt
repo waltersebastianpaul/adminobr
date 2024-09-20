@@ -6,20 +6,6 @@ import java.net.URL
 
 sealed class Constants {
 
-//    companion object {
-//        private const val BASE_URL = "http://adminobr.site"
-//
-//        fun getBaseUrl(): String {
-//            return BASE_URL
-//        }
-//
-//        // Función auxiliar para construir URLs completas
-//        fun buildUrl(path: String): URL {
-//            return URL("$BASE_URL$path")
-//        }
-//    }
-
-
     companion object {
         private const val BASE_URL = "http://adminobr.site"
         private const val DEBUG_DIR = "/debug/"
@@ -27,7 +13,7 @@ sealed class Constants {
         private var CURRENT_DIR = ""
 
         init {
-            CURRENT_DIR = RELEASE_DIR//if (BuildConfig.DEBUG) DEBUG_DIR else RELEASE_DIR
+            CURRENT_DIR = if (BuildConfig.DEBUG) DEBUG_DIR else RELEASE_DIR
         }
 
         fun getBaseUrl(): URL {

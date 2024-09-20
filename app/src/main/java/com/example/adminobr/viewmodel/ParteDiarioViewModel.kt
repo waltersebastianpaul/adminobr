@@ -228,24 +228,42 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun deleteParteDiario(idParteDiario: Int, empresaDbName: String, callback: (Boolean) -> Unit) = viewModelScope.launch {
+//    fun deleteParteDiario(idParteDiario: Int, empresaDbName: String, callback: (Boolean) -> Unit) = viewModelScope.launch {
+//        try {
+//            Log.d("ParteDiarioViewModel", "Eliminando parte diario con ID: $idParteDiario")
+//            val response = apiService.deleteParteDiario(idParteDiario, empresaDbName)
+//            Log.d("ParteDiarioViewModel", "Código de respuesta de la API: ${response.code()}")
+//            if (response.isSuccessful) {
+//                // Invalida la fuente de datos para refrescar la lista
+//                //pager.value?.refresh()
+//                _mensaje.value = Event("Parte diario eliminado correctamente")
+//                callback(true)
+//                Log.d("ParteDiarioViewModel", "Parte diario eliminado correctamente") // Log de éxito
+//            } else {
+//                _error.value = Event("Error al eliminar el parte diario: ${response.message()}") // Log de error con mensaje
+//                callback(false)
+//            }
+//        } catch (e: Exception) {
+//            _error.value = Event("Error inesperado: ${e.message}")
+//            callback(false)
+//        }
+//    }
+    fun deleteParteDiario(parteDiario: ListarPartesDiarios, empresaDbName: String, callback: (Boolean, ListarPartesDiarios?) -> Unit) = viewModelScope.launch {
         try {
-            Log.d("ParteDiarioViewModel", "Eliminando parte diario con ID: $idParteDiario")
-            val response = apiService.deleteParteDiario(idParteDiario, empresaDbName)
+            Log.d("ParteDiarioViewModel", "Eliminando parte diario con ID: ${parteDiario.id_parte_diario}")
+            val response = apiService.deleteParteDiario(parteDiario.id_parte_diario, empresaDbName)
             Log.d("ParteDiarioViewModel", "Código de respuesta de la API: ${response.code()}")
             if (response.isSuccessful) {
-                // Invalida la fuente de datos para refrescar la lista
-                //pager.value?.refresh()
                 _mensaje.value = Event("Parte diario eliminado correctamente")
-                callback(true)
-                Log.d("ParteDiarioViewModel", "Parte diario eliminado correctamente") // Log de éxito
+                callback(true, parteDiario) // Devuelve el parte eliminado en caso de éxito
+                Log.d("ParteDiarioViewModel", "Parte diario eliminado correctamente")
             } else {
-                _error.value = Event("Error al eliminar el parte diario: ${response.message()}") // Log de error con mensaje
-                callback(false)
+                _error.value = Event("Error al eliminar el parte diario: ${response.message()}")
+                callback(false, null) // Devuelve null en caso de error
             }
         } catch (e: Exception) {
             _error.value = Event("Error inesperado: ${e.message}")
-            callback(false)
+            callback(false, null) // Devuelve null en caso de error
         }
     }
 

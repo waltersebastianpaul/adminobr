@@ -67,7 +67,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="16dp"
-            android:visibility="visible"
+            android:visibility="gone"
             android:clickable="true"
             android:src="@drawable/ic_more_vert"
             android:contentDescription="overflow menu" />
