@@ -3,6 +3,7 @@ package com.example.adminobr.utils
 import android.content.Context
 import android.content.SharedPreferences
 import com.example.adminobr.data.Empresa
+import com.example.adminobr.data.Usuario
 import com.google.gson.Gson
 
 class SessionManager(context: Context) {
@@ -16,6 +17,7 @@ class SessionManager(context: Context) {
         private const val KEY_USER_NOMBRE = "user_nombre"
         private const val KEY_USER_APELLIDO = "user_apellido"
         private const val KEY_USER_EMAIL = "user_email"
+        private const val KEY_USER_PASSWORD = "user_password"
         private const val KEY_USER_ROL = "user_rol"
         private const val KEY_USER_PERMISOS = "user_permisos"
 
@@ -51,15 +53,16 @@ class SessionManager(context: Context) {
     }
 
     // Métodos para guardar y obtener los datos del usuario
-    fun saveUserData(id: Int, legajo: String, nombre: String, apellido: String, email: String, rol: List<String>, permisos: List<String>) {
+    //fun saveUserData(id: Int, nombre: String, apellido: String, email: String, rol: List<String>, permisos: List<String>) {
+    fun saveUserData(usuario: Usuario) {
         val editor = prefs.edit()
-        editor.putInt(KEY_USER_ID, id)
-        editor.putString(KEY_USER_LEGAJO, legajo)
-        editor.putString(KEY_USER_NOMBRE, nombre)
-        editor.putString(KEY_USER_APELLIDO, apellido)
-        editor.putString(KEY_USER_EMAIL, email)
-        editor.putStringSet(KEY_USER_ROL, rol.toSet())
-        editor.putStringSet(KEY_USER_PERMISOS, permisos.toSet())
+        editor.putInt(KEY_USER_ID, usuario.id ?: -1)
+        editor.putString(KEY_USER_LEGAJO, usuario.legajo)
+        editor.putString(KEY_USER_NOMBRE, usuario.nombre)
+        editor.putString(KEY_USER_APELLIDO, usuario.apellido)
+        editor.putString(KEY_USER_EMAIL, usuario.email)
+        editor.putStringSet(KEY_USER_ROL, usuario.rol?.toSet())
+        editor.putStringSet(KEY_USER_PERMISOS, usuario.permisos?.toSet())
         editor.apply()
     }
 
