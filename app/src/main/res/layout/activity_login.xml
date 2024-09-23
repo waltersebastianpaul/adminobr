@@ -10,28 +10,14 @@
 
     <ImageView
         android:id="@+id/logoImageView"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_marginTop="90dp"
         android:contentDescription="@string/logo_app"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@mipmap/adminobr_logo" />
-
-    <TextView
-        android:id="@+id/tituloLogoTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name_logo"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:textColor="#333333"
-        android:layout_marginTop="8dp"
-        android:textIsSelectable="true"
-        app:layout_constraintTop_toBottomOf="@id/logoImageView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/empresaTextInputLayout"
@@ -42,7 +28,7 @@
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tituloLogoTextView"
+        app:layout_constraintTop_toBottomOf="@id/logoImageView"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <AutoCompleteTextView
@@ -76,7 +62,7 @@
             android:layout_width="match_parent"
             android:layout_height="52dp"
             android:hint="@string/user"
-            android:inputType="text" />
+            android:inputType="text|textEmailAddress" />
 
     </com.google.android.material.textfield.TextInputLayout>
 

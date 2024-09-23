@@ -12,6 +12,7 @@ class SessionManager(context: Context) {
     companion object {
         private const val KEY_EMPRESA = "empresa"
         private const val KEY_USER_ID = "user_id"
+        private const val KEY_USER_LEGAJO = "user_legajo"
         private const val KEY_USER_NOMBRE = "user_nombre"
         private const val KEY_USER_APELLIDO = "user_apellido"
         private const val KEY_USER_EMAIL = "user_email"
@@ -50,9 +51,10 @@ class SessionManager(context: Context) {
     }
 
     // Métodos para guardar y obtener los datos del usuario
-    fun saveUserData(id: Int, nombre: String, apellido: String, email: String, rol: List<String>, permisos: List<String>) {
+    fun saveUserData(id: Int, legajo: String, nombre: String, apellido: String, email: String, rol: List<String>, permisos: List<String>) {
         val editor = prefs.edit()
         editor.putInt(KEY_USER_ID, id)
+        editor.putString(KEY_USER_LEGAJO, legajo)
         editor.putString(KEY_USER_NOMBRE, nombre)
         editor.putString(KEY_USER_APELLIDO, apellido)
         editor.putString(KEY_USER_EMAIL, email)

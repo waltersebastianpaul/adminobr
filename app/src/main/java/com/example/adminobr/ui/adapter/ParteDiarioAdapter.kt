@@ -77,7 +77,7 @@ class ParteDiarioAdapter(
 
                                 // Personalizar el texto del botón positivo
                                 val positiveButtonText = SpannableString("Eliminar")
-                                val colorRojo = ContextCompat.getColor(context, R.color.colorAlert)
+                                val colorRojo = ContextCompat.getColor(context, R.color.warning_300)
                                 positiveButtonText.setSpan(
                                     ForegroundColorSpan(colorRojo),
                                     0,

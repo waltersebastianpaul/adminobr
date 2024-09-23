@@ -42,7 +42,7 @@
     </style>
 
     <style name="ProgressDialogStyle" parent="Theme.AppCompat.Light.Dialog.Alert">
-        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/transparent</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:backgroundDimEnabled">true</item>

@@ -1,69 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="colorDefaultBackground">@null</color>
-    <color name="colorDefaultText">@color/black</color>
-    <color name="colorDisabledText">#bdbdbd</color>
-    <color name="colorDefaultStroke">#000000</color>
-    <color name="colorPrimary">#009fe3</color>
-    <color name="colorPrimaryDark">#212529</color>
+    <!-- App colors -->
+
+    <color name="colorDisabledText">#dbdfe9</color>
+    <color name="colorPrimary">#0094ff</color>
+    <color name="colorPrimaryDark">#0d0e12</color>
+    <color name="colorBackground">#FFFFFF</color>
     <color name="colorAccent">#2fb344</color>
     <color name="colorGreen">#2fb344</color>
-    <color name="colorAlert">#f23d4f</color>
-    <color name="colorRed">#f7312a</color>
-    <color name="colorYellow">#fadb4a</color>
+    <color name="colorRed">@color/danger_500</color>
     <color name="colorGray">#6c757d</color>
-    <color name="colorLogo">#ffb03b</color>
-
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="blue">#0000FF</color>
-    <color name="background_color">#FFFFFF</color> <!-- Puedes usar cualquier color que desees -->
     <color name="transparent">#00000000</color>
 
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+
+
+
+
+
     <!-- Buttons -->
-    <color name="colorButtonPrimary">@color/colorPrimary</color>
-    <color name="colorButtonSecondary">#e3edfb</color>
-    <color name="colorButtonSuccess">#00a650</color>
-    <color name="colorTextButtonPrimary">#ffffff</color>
-    <color name="colorTextButtonSecondary">@color/colorPrimary</color>
-    <color name="colorTextButtonSuccess">#ffffff</color>
-    <color name="colorBorderEnfocado">@color/colorPrimary</color>
-    <color name="colorButtonDisabled">#E5E5E5</color>
-    <color name="colorTextButtonDisabled">#ACACAC</color>
-    <color name="colorButtonStrokeColor">#009fe3</color> <!-- Azul brillante -->
-    <color name="colorButtonBackgroundColor">#005ba1</color> <!-- Azul oscuro -->
+    <color name="colorButtonPrimary">#1b84ff</color>
+    <color name="colorTextButtonPrimary">#FFFFFF</color>
+    <color name="colorButtonDisabled">#8dc1ff</color>
+    <color name="colorTextButtonDisabled">#FFFFFF</color>
 
-    <!-- Light colors -->
-    <color name="colorBlueLite">#e9f0f9</color>
-    <color name="colorAzureLite">#ecf5fc</color>
-    <color name="colorIndigoLite">#eceffd</color>
-    <color name="colorPurpleLite">#f7ecfa</color>
-    <color name="colorPinkLite">#fbebf0</color>
-    <color name="colorRedLite">#fbebeb</color>
-    <color name="colorOrangeLite">#fef0e6</color>
-    <color name="colorYellowLite">#fef5e6</color>
-    <color name="colorLimeLite">#f1f8e8</color>
-    <color name="colorGreenLite">#eaf7ec</color>
-    <color name="colorTealLite">#e7f6f2</color>
-    <color name="colorCyanLite">#e8f6f8</color>
+    <color name="colorButtonSecondary">#f9f9f9</color>
+    <color name="colorButtonSuccess">#17c653</color>
+    <color name="colorTextButtonSecondary">#252f4a</color>
+    <color name="colorBorderEnfocado">#056ee9</color>
 
-    <!-- Gray palette -->
-    <color name="gray_50">#f8fafc</color>
-    <color name="gray_100">#f1f5f9</color>
-    <color name="gray_200">#c8d3e1</color>
-    <color name="gray_300">#c8d3e1</color>
-    <color name="gray_400">#9ba9be</color>
-    <color name="gray_500">#6c7a91</color>
-    <color name="gray_600">#49566c</color>
-    <color name="gray_700">#313c52</color>
-    <color name="gray_800">#1d273b</color>
-    <color name="gray_900">#0f172a</color>
+    <color name="colorButtonStrokeColor">#056ee9</color>
+    <color name="colorButtonBackgroundColor">@color/colorPrimary</color>
 
+    <color name="colorButtonInfo">#7239ea</color>
+    <color name="colorButtonDanger">#f8285a</color>
+    <color name="colorButtonWarning">#f6b100</color>
+    <color name="colorButtonDark">#1e2129</color>
+    <color name="colorButtonLight">#FFFFFF</color>
 
+    <!-- Primary -->
+    <color name="primary_50">#EFF6FF</color>
+    <color name="primary_100">#DBEAFE</color>
+    <color name="primary_200">#BFDBFE</color>
+    <color name="primary_300">#93C5FD</color>
+    <color name="primary_400">#60A5FA</color>
+    <color name="primary_500">#3B82F6</color>
+    <color name="primary_600">#2563EB</color>
+    <color name="primary_700">#1D4ED8</color>
+    <color name="primary_800">#1E40AF</color>
+    <color name="primary_900">#1E3A8A</color>
+    <color name="primary_950">#172554</color>
+
+    <!-- Light -->
+    <color name="light_50">#F9FAFB</color>
+    <color name="light_100">#F3F4F6</color>
+    <color name="light_200">#E5E7EB</color>
+    <color name="light_300">#D1D5DB</color>
+    <color name="light_400">#9CA3AF</color>
+    <color name="light_500">#6B7280</color>
+    <color name="light_600">#4B5563</color>
+    <color name="light_700">#374151</color>
+    <color name="light_800">#1F2937</color>
+    <color name="light_900">#111827</color>
+    <color name="light_950">#030712</color>
+
+    <!-- Success -->
+    <color name="success_50">#F0FDF4</color>
+    <color name="success_100">#DCFCE7</color>
+    <color name="success_200">#BBF7D0</color>
+    <color name="success_300">#86EFAC</color>
+    <color name="success_400">#4ADE80</color>
+    <color name="success_500">#22C55E</color>
+    <color name="success_600">#16A34A</color>
+    <color name="success_700">#15803D</color>
+    <color name="success_800">#166534</color>
+    <color name="success_900">#14532D</color>
+    <color name="success_950">#052E16</color>
+
+    <!-- Info -->
+    <color name="info_50">#EFF9FE</color>
+    <color name="info_100">#DBE8FC</color>
+    <color name="info_200">#BCE0FD</color>
+    <color name="info_300">#91D1FD</color>
+    <color name="info_400">#67C0FE</color>
+    <color name="info_500">#38BDF8</color>
+    <color name="info_600">#22D3EE</color>
+    <color name="info_700">#14B8A6</color>
+    <color name="info_800">#13988B</color>
+    <color name="info_900">#117871</color>
+    <color name="info_950">#044B4A</color>
+
+    <!-- Warning -->
+    <color name="warning_50">#FFFBEB</color>
+    <color name="warning_100">#FEF3C7</color>
+    <color name="warning_200">#FDE68A</color>
+    <color name="warning_300">#FCD34D</color>
+    <color name="warning_400">#FBBF24</color>
+    <color name="warning_500">#F59E0B</color>
+    <color name="warning_600">#D97706</color>
+    <color name="warning_700">#B45309</color>
+    <color name="warning_800">#92400E</color>
+    <color name="warning_900">#78350F</color>
+    <color name="warning_950">#451A03</color>
+
+    <!-- Danger -->
+    <color name="danger_50">#FEF2F2</color>
+    <color name="danger_100">#FEE2E2</color>
+    <color name="danger_200">#FECACA</color>
+    <color name="danger_300">#FCA5A5</color>
+    <color name="danger_400">#F87171</color>
+    <color name="danger_500">#EF4444</color>
+    <color name="danger_600">#DC2626</color>
+    <color name="danger_700">#B91C1C</color>
+    <color name="danger_800">#991B1B</color>
+    <color name="danger_900">#7F1D1D</color>
+    <color name="danger_950">#450B0B</color>
 </resources>

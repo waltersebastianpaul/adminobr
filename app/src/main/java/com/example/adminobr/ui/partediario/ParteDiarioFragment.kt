@@ -22,6 +22,7 @@ import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.compose.ui.semantics.text
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -205,7 +206,7 @@ class ParteDiarioFragment : Fragment() {
         builder.setMessage("¿Estás seguro de que quieres borrar el historial de partes?")
 
         val positiveButtonText = SpannableString("Borrar")
-        val colorRojo = ContextCompat.getColor(requireContext(), R.color.colorAlert)
+        val colorRojo = ContextCompat.getColor(requireContext(), R.color.warning_300)
         positiveButtonText.setSpan(
             ForegroundColorSpan(colorRojo),
             0,
@@ -239,7 +240,6 @@ class ParteDiarioFragment : Fragment() {
             val obraCentroCosto = selectedObra!!.centro_costo //selectedObraText.split(" - ").firstOrNull() ?: ""
             val selectedObra = appDataViewModel.obras.value?.find { it.centro_costo.trim().equals(obraCentroCosto.trim(), ignoreCase = true) }
 
-
             val parteDiario = ParteDiario(
                 fecha = fechaEditText.text.toString(),
                 equipoId = selectedEquipo?.id ?: 0,
@@ -252,6 +252,7 @@ class ParteDiarioFragment : Fragment() {
                 userCreated = userId,
                 estadoId = 1
             )
+            Log.d("ParteDiarioFragment", "ParteDiario: ${parteDiario.fecha}")
 
             viewModel.guardarParteDiario(parteDiario) { success, nuevoId ->
                 if (success) {
@@ -284,22 +285,35 @@ class ParteDiarioFragment : Fragment() {
     private fun showDatePickerDialog() {
         val locale = Locale.getDefault()
         val calendar = Calendar.getInstance(locale)
-
         val dateString = fechaEditText.text.toString()
+
+        Log.d("DatePickerDialog", "Fecha actual en EditText: $dateString")
+
         if (dateString.isNotBlank()) {
             val formatter = SimpleDateFormat("dd/MM/yyyy", locale)
             val date = formatter.parse(dateString)
-            date?.let { calendar.time = it }
+
+            Log.d("DatePickerDialog", "Fecha parseada: $date")
+
+            date?.let {
+                calendar.time = it
+                Log.d("DatePickerDialog", "Calendario actualizado con fecha: ${calendar.time}")
+            }
         }
 
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
         val day = calendar.get(Calendar.DAY_OF_MONTH)
 
+        Log.d("DatePickerDialog", "Año: $year, Mes: $month, Día: $day")
+
         val datePickerDialog = DatePickerDialog(
             requireContext(),
             { _, selectedYear, selectedMonth, selectedDay ->
                 val formattedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
+
+                Log.d("DatePickerDialog", "Fecha formateada: $formattedDate")
+
                 fechaEditText.setText(formattedDate)
                 equipoAutocomplete.requestFocus()
             },

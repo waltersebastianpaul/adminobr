@@ -114,7 +114,7 @@ class ParteSimpleFragment : Fragment() {
             builder.setMessage("¿Estás seguro de que quieres borrar el historial de partes simples?")
 
             val positiveButtonText = SpannableString("Borrar")
-            val colorRojo = ContextCompat.getColor(requireContext(), R.color.colorAlert) // Reemplaza 'rojo' con el nombre de tu color en colors.xml
+            val colorRojo = ContextCompat.getColor(requireContext(), R.color.warning_300) // Reemplaza 'rojo' con el nombre de tu color en colors.xml
             positiveButtonText.setSpan(
                 ForegroundColorSpan(colorRojo),
                 0,
@@ -326,7 +326,7 @@ class ParteSimpleFragment : Fragment() {
                 val iconTop = itemView.top + (itemView.height - icon.intrinsicHeight) / 2
                 val iconBottom = iconTop + icon.intrinsicHeight
                 // Fondo rojo
-                val redColor = ContextCompat.getColor(requireContext(), R.color.colorRedLite)
+                val redColor = ContextCompat.getColor(requireContext(), R.color.danger_500)
 
                 //val limit = 110 // itemView.width / 3 // Distancia límite para que el ícono se quede fijo
                 val limit = itemView.width / 7 // Distancia límite para que el ícono se quede fijo
@@ -341,7 +341,7 @@ class ParteSimpleFragment : Fragment() {
                         val iconRight = iconLeft + icon.intrinsicWidth
 
                         // Aplicar tinte al ícono
-                        icon.setTint(ContextCompat.getColor(recyclerView.context, R.color.colorAlert))
+                        icon.setTint(ContextCompat.getColor(recyclerView.context, R.color.warning_300))
 
                         icon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
 

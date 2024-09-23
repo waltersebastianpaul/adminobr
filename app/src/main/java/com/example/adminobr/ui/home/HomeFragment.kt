@@ -92,15 +92,8 @@ class HomeFragment : Fragment() {
     override fun onResume() {
         super.onResume()
 
-        // Cambia el color de la "O" de AdminOBR a otro color
-        val title = SpannableString("AdminObr")
-        val oColor =
-            ContextCompat.getColor(this@HomeFragment.requireContext(), R.color.colorLogo) // Reemplaza con el color que quieras
-        val oSpan = ForegroundColorSpan(oColor)
-        title.setSpan(oSpan, 5, 6, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE) // Aplica el span a la "O"
         // Establecer el título en el ActionBar
-        (activity as? AppCompatActivity)?.supportActionBar?.title = title
-
+        (activity as? AppCompatActivity)?.supportActionBar?.title = "AdminObr"
 
         // Configuración del FloatingActionButton regular
         val fab: FloatingActionButton = requireActivity().findViewById(R.id.fab)

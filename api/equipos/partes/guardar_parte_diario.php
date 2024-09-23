@@ -26,6 +26,9 @@
     }
 
     // Obtener los datos del parte diario enviados desde la aplicación
+    // id_parte_diario solo será relevante si es un método PUT
+    $id_parte_diario = ($_SERVER["REQUEST_METHOD"] == "PUT") ? mysqli_real_escape_string($conn, $_POST["id_parte_diario"] ?? null) : null;
+
     $fecha = mysqli_real_escape_string($conn, $_POST["fecha"]);
     $horas_inicio = mysqli_real_escape_string($conn, $_POST["horasInicio"]);
     $horas_fin = mysqli_real_escape_string($conn, $_POST["horasFin"]);
@@ -36,12 +39,26 @@
     $obra_id = mysqli_real_escape_string($conn, $_POST["obraId"]);
     $estado_id = mysqli_real_escape_string($conn, $_POST["estadoId"]);
 
+    // Función para validar y convertir fecha
+    function convertirFecha($fecha) {
+        $date = DateTime::createFromFormat('d/m/Y', $fecha);
+        if ($date && $date->format('d/m/Y') === $fecha) {
+            return $date->format('Y-m-d'); // Convertir a formato Y-m-d para MySQL
+        }
+        return false; // Retorna false si el formato no es válido
+    }
+
+    $fechaConvertida = convertirFecha($fecha);
+    if (!$fechaConvertida) {
+        die(json_encode(['success' => false, 'message' => 'Formato de fecha inválido. Use dd/mm/yyyy']));
+    }
+
     // Obtener la fecha y hora actuales
     $current_date = date("Y-m-d H:i:s");
 
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $sql = "INSERT INTO partes_diarios (fecha, equipo_id, horas_inicio, horas_fin, horas_trabajadas, observaciones, obra_id, date_created, date_updated, user_created, user_updated, estado_id) 
-        VALUES ('$fecha', '$equipo_id', '$horas_inicio', '$horas_fin', '$horas_trabajadas', '$observaciones', '$obra_id', '$current_date', '$current_date', '$user_id', '$user_id', '$estado_id')";
+        VALUES ('$fechaConvertida', '$equipo_id', '$horas_inicio', '$horas_fin', '$horas_trabajadas', '$observaciones', '$obra_id', '$current_date', '$current_date', '$user_id', '$user_id', '$estado_id')";
 
         if ($conn->query($sql) === TRUE) {
             $newId = $conn->insert_id; // Obtiene el ID del nuevo registro
@@ -51,58 +68,25 @@
         }
     } elseif ($_SERVER["REQUEST_METHOD"] == "PUT") {
         
-        // Obtener empresaDbName de $_GET (se envía por la url)
-        $empresaDbName = isset($_GET['empresaDbName']) ? $_GET['empresaDbName'] : null;
-        
-        if (is_null($empresaDbName)) {
-            $response = array("success" => false, "message" => "empresaDbName no especificado.");
-            http_response_code(400); // Bad Request
+        // Actualizar el parte diario en la base de datos
+        $sql = "UPDATE partes_diarios SET 
+            fecha = '$fechaConvertida', 
+            equipo_id = '$equipo_id', 
+            horas_inicio = '$horas_inicio', 
+            horas_fin = '$horas_fin', 
+            horas_trabajadas = '$horas_trabajadas', 
+            observaciones = '$observaciones', 
+            obra_id = '$obra_id', 
+            date_updated = '$current_date', 
+            user_updated = '$user_id', 
+            estado_id = '$estado_id' 
+        WHERE id_parte_diario = '$id_parte_diario'";
+
+        if ($conn->query($sql) === TRUE) {
+            $response =array("success" => true, "message" => "Parte diario actualizado correctamente.");
         } else {
-            $dbname = $empresaDbName;
-            // Conectar a la base de datos usando el dbname obtenido
-            $conn = new mysqli($servername, $username, $password, $dbname);
-
-            // Verificar la conexión
-            if ($conn->connect_error) {
-                die("Error de conexión: " . $conn->connect_error);
-            }
-
-            // Obtener los datos del parte diario enviados desde la aplicación (se envían por el body)
-            $id_parte_diario = mysqli_real_escape_string($conn, $_POST["id_parte_diario"]);
-            $fecha = mysqli_real_escape_string($conn, $_POST["fecha"]);
-            $horas_inicio = mysqli_real_escape_string($conn, $_POST["horasInicio"]);
-            $horas_fin = mysqli_real_escape_string($conn, $_POST["horasFin"]);
-            $horas_trabajadas = mysqli_real_escape_string($conn, $_POST["horasTrabajadas"]);
-            $observaciones = mysqli_real_escape_string($conn, $_POST["observaciones"]);
-            $user_id = mysqli_real_escape_string($conn, $_POST["userCreated"]); // ID del usuario que realiza la acción
-            $equipo_id = mysqli_real_escape_string($conn, $_POST["equipoId"]);
-            $obra_id = mysqli_real_escape_string($conn, $_POST["obraId"]);
-            $estado_id = mysqli_real_escape_string($conn, $_POST["estadoId"]);
-
-            // Obtener la fecha y hora actuales
-            $current_date = date("Y-m-d H:i:s");
-
-            // Actualizar el parte diario en la base de datos
-            $sql = "UPDATE partes_diarios SET 
-                fecha = '$fecha', 
-                equipo_id = '$equipo_id', 
-                horas_inicio = '$horas_inicio', 
-                horas_fin = '$horas_fin', 
-                horas_trabajadas = '$horas_trabajadas', 
-                observaciones = '$observaciones', 
-                obra_id = '$obra_id', 
-                date_updated = '$current_date', 
-                user_updated = '$user_id', 
-                estado_id = '$estado_id' 
-            WHERE id_parte_diario = '$id_parte_diario'";
-
-            if ($conn->query($sql) === TRUE) {
-                $response =array("success" => true, "message" => "Parte diario actualizado correctamente.");
-            } else {
-                $response = array("success" => false, "message" => "Error al actualizar el parte diario: " . $conn->error);
-            }
+            $response = array("success" => false, "message" => "Error al actualizar el parte diario: " . $conn->error);
         }
-
     }
 
 } elseif ($_SERVER["REQUEST_METHOD"] == "DELETE") {
