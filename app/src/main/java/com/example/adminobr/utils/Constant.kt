@@ -7,13 +7,17 @@ import java.net.URL
 sealed class Constants {
 
     companion object {
+
+        // Configuración de la URL base
+        private const val DEBUG = true // Cambiar a false en producción
+
         private const val BASE_URL = "http://adminobr.site"
         private const val DEBUG_DIR = "/debug/"
         private const val RELEASE_DIR = "/"
         private var CURRENT_DIR = ""
 
         init {
-            CURRENT_DIR = if (BuildConfig.DEBUG) DEBUG_DIR else RELEASE_DIR
+            CURRENT_DIR = if (BuildConfig.DEBUG && DEBUG) DEBUG_DIR else RELEASE_DIR
         }
 
         fun getBaseUrl(): URL {

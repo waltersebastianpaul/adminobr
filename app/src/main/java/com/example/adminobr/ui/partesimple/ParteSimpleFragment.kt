@@ -37,6 +37,7 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.inputmethod.InputMethodManager
+import androidx.compose.ui.input.key.type
 import androidx.core.content.ContextCompat
 import androidx.paging.PagingData
 import com.example.adminobr.data.Equipo
@@ -114,7 +115,7 @@ class ParteSimpleFragment : Fragment() {
             builder.setMessage("¿Estás seguro de que quieres borrar el historial de partes simples?")
 
             val positiveButtonText = SpannableString("Borrar")
-            val colorRojo = ContextCompat.getColor(requireContext(), R.color.warning_300) // Reemplaza 'rojo' con el nombre de tu color en colors.xml
+            val colorRojo = ContextCompat.getColor(requireContext(), R.color.danger_500) // Reemplaza 'rojo' con el nombre de tu color en colors.xml
             positiveButtonText.setSpan(
                 ForegroundColorSpan(colorRojo),
                 0,
@@ -140,7 +141,7 @@ class ParteSimpleFragment : Fragment() {
         }
 
         // Agregar texto informativo debajo del botón
-        // binding.infoTextView.text = "Atención: Los partes se eliminaran al salir de la actividad y ya no podran recuperarse. Tambien puede COMPARTIR la lista de partes."
+        binding.infoTextView.text = "Atención: La lista se borrará luego de $TIEMPO_LIMITE_HS horas.\nSe recomienda COMPARTIR la lista de partes."
 
         return binding.root
     }
@@ -233,7 +234,8 @@ class ParteSimpleFragment : Fragment() {
         // Mensaje alertando sobre la persistencia de los datos
         Toast.makeText(
             requireContext(),
-            "La lista de PARTES SIMPLES, se borrará al salir de la actividad.",
+//            "La lista de PARTES SIMPLES, se borrará al salir de la actividad.",
+            "La lista de PARTES SIMPLES se borrará luego de $TIEMPO_LIMITE_HS horas.",
             Toast.LENGTH_LONG
         ).show()
 
@@ -341,7 +343,7 @@ class ParteSimpleFragment : Fragment() {
                         val iconRight = iconLeft + icon.intrinsicWidth
 
                         // Aplicar tinte al ícono
-                        icon.setTint(ContextCompat.getColor(recyclerView.context, R.color.warning_300))
+                        icon.setTint(ContextCompat.getColor(recyclerView.context, R.color.danger_500))
 
                         icon.setBounds(iconLeft, iconTop, iconRight, iconBottom)
 
@@ -437,25 +439,60 @@ class ParteSimpleFragment : Fragment() {
         return dateFormat.format(Date())
     }
 
+    // ... (código existente) ...
+
+    private val TIEMPO_LIMITE_HS = 24 // horas
+    private val TIEMPO_LIMITE_MS = TIEMPO_LIMITE_HS * 60 * 60 * 1000 // 24 horas en milisegundos
+
     private fun guardarDatosEnSharedPreferences() {
         val sharedPreferences = requireContext().getSharedPreferences("partes_simples", Context.MODE_PRIVATE)
         val partesSimplesJson = Gson().toJson(viewModel.partesList.value)
 
         with(sharedPreferences.edit()) {
             putString("partes_simples", partesSimplesJson)
+            putLong("ultima_actualizacion", System.currentTimeMillis()) // Guardar timestamp
             apply()
         }
     }
 
     private fun cargarDatosDesdeSharedPreferences() {
         val sharedPreferences = requireContext().getSharedPreferences("partes_simples", Context.MODE_PRIVATE)
-        val partesSimplesJson = sharedPreferences.getString("partes_simples", null)
-        if (partesSimplesJson != null) {
-            val listType = object : TypeToken<List<ParteSimple>>() {}.type
-            val partesSimples = Gson().fromJson<List<ParteSimple>>(partesSimplesJson, listType)
-            viewModel.setPartesList(partesSimples)
+        val ultimaActualizacion = sharedPreferences.getLong("ultima_actualizacion", 0)
+
+        if (System.currentTimeMillis() - ultimaActualizacion < TIEMPO_LIMITE_MS) {
+            // Los datos no han expirado, cargarlos
+            val partesSimplesJson = sharedPreferences.getString("partes_simples", null)
+            if (partesSimplesJson != null) {
+                val listType = object : TypeToken<List<ParteSimple>>() {}.type
+                val partesSimples = Gson().fromJson<List<ParteSimple>>(partesSimplesJson, listType)
+                viewModel.setPartesList(partesSimples)
+            }
+        } else {
+            // Los datos han expirado, borrarlos
+            limpiarDatosEnSharedPreferences()
         }
     }
+
+
+//    private fun guardarDatosEnSharedPreferences() {
+//        val sharedPreferences = requireContext().getSharedPreferences("partes_simples", Context.MODE_PRIVATE)
+//        val partesSimplesJson = Gson().toJson(viewModel.partesList.value)
+//
+//        with(sharedPreferences.edit()) {
+//            putString("partes_simples", partesSimplesJson)
+//            apply()
+//        }
+//    }
+//
+//    private fun cargarDatosDesdeSharedPreferences() {
+//        val sharedPreferences = requireContext().getSharedPreferences("partes_simples", Context.MODE_PRIVATE)
+//        val partesSimplesJson = sharedPreferences.getString("partes_simples", null)
+//        if (partesSimplesJson != null) {
+//            val listType = object : TypeToken<List<ParteSimple>>() {}.type
+//            val partesSimples = Gson().fromJson<List<ParteSimple>>(partesSimplesJson, listType)
+//            viewModel.setPartesList(partesSimples)
+//        }
+//    }
 
     private fun setEditTextToUppercase(editText: AutoCompleteTextView) {
         editText.filters = arrayOf(InputFilter.AllCaps())
@@ -469,7 +506,7 @@ class ParteSimpleFragment : Fragment() {
 
     override fun onDetach() {
         super.onDetach()
-        limpiarDatosEnSharedPreferences()
+        // limpiarDatosEnSharedPreferences()
     }
 
     private fun limpiarDatosEnSharedPreferences() {

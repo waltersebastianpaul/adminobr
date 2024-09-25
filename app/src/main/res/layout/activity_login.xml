@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -13,11 +12,39 @@
         android:layout_width="150dp"
         android:layout_height="150dp"
         android:layout_marginTop="90dp"
+        android:layout_marginBottom="16dp"
         android:contentDescription="@string/logo_app"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@mipmap/adminobr_logo" />
+
+    <TextView
+        android:id="@+id/tvWelcomeMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:textSize="22sp"
+        android:text="¡Hola !"
+        android:textStyle="bold"
+        android:textColor="@color/light_700"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/logoImageView" />
+
+    <TextView
+        android:id="@+id/tvNotMeLink"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="16dp"
+        android:text="No soy yo"
+        android:textColor="@color/colorButtonPrimary"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvWelcomeMessage" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/empresaTextInputLayout"
@@ -26,9 +53,12 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="40dp"
         android:layout_marginEnd="16dp"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/logoImageView"
+        app:layout_constraintTop_toBottomOf="@id/tvNotMeLink"
+        app:layout_goneMarginTop="40dp"
+
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <AutoCompleteTextView
@@ -44,7 +74,6 @@
             android:nextFocusForward="@id/usuarioEditText" />
     </com.google.android.material.textfield.TextInputLayout>
 
-
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/usuarioTextInputLayout"
         android:layout_width="0dp"
@@ -52,9 +81,11 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
+        android:visibility="visible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/empresaTextInputLayout"
+        app:layout_goneMarginTop="0dp"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -68,16 +99,17 @@
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/passwordTextInputLayout"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         app:endIconMode="password_toggle"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/usuarioTextInputLayout"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        app:layout_goneMarginTop="40dp" >
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/passwordEditText"

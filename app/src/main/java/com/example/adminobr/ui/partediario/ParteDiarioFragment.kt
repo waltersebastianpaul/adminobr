@@ -206,7 +206,7 @@ class ParteDiarioFragment : Fragment() {
         builder.setMessage("¿Estás seguro de que quieres borrar el historial de partes?")
 
         val positiveButtonText = SpannableString("Borrar")
-        val colorRojo = ContextCompat.getColor(requireContext(), R.color.warning_300)
+        val colorRojo = ContextCompat.getColor(requireContext(), R.color.danger_500)
         positiveButtonText.setSpan(
             ForegroundColorSpan(colorRojo),
             0,

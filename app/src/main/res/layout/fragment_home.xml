@@ -53,13 +53,14 @@
                     android:id="@+id/parteDiarioCardView"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
                     android:clickable="true"
+                    android:layout_marginBottom="16dp"
                     android:foreground="?attr/selectableItemBackground"
-                    android:layout_margin="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginStart="4dp"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp"
-                    app:layout_flexBasisPercent="47%">
+                    app:layout_flexBasisPercent="46%">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -120,13 +121,14 @@
                     android:id="@+id/listarPartesCardView"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
                     android:clickable="true"
+                    android:layout_marginBottom="16dp"
                     android:foreground="?attr/selectableItemBackground"
-                    android:layout_margin="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginStart="4dp"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp"
-                    app:layout_flexBasisPercent="47%">
+                    app:layout_flexBasisPercent="46%">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -184,14 +186,15 @@
                     android:id="@+id/parteSimpleCardView"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
                     android:clickable="true"
+                    android:layout_marginBottom="16dp"
                     android:foreground="?attr/selectableItemBackground"
-                    android:layout_margin="4dp"
+                    android:layout_marginEnd="4dp"
+                    android:layout_marginStart="4dp"
                     android:visibility="visible"
                     app:cardCornerRadius="12dp"
                     app:cardElevation="4dp"
-                    app:layout_flexBasisPercent="47%">
+                    app:layout_flexBasisPercent="46%">
 
                     <LinearLayout
                         android:layout_width="match_parent"

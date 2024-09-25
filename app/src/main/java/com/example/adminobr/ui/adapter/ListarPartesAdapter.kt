@@ -63,7 +63,7 @@ class ListarPartesAdapter(private val viewModel: ParteDiarioViewModel, private v
 
                                 // Personalizar el texto del botón positivo
                                 val positiveButtonText = SpannableString("Eliminar")
-                                val colorRojo = ContextCompat.getColor(context, R.color.warning_300)
+                                val colorRojo = ContextCompat.getColor(context, R.color.danger_500)
                                 positiveButtonText.setSpan(
                                     ForegroundColorSpan(colorRojo),
                                     0,

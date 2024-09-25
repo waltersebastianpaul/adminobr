@@ -3,14 +3,14 @@ package com.example.adminobr.data
 data class Usuario(
     val id: Int? = null,
     val legajo: String,
-    val email: String,
     val dni: String,
     val nombre: String,
     val apellido: String,
+    val email: String,
     val telefono: String,
     val userCreated: Int,
     val password: String,
-    val estadoId: Int, // Nuevo campo
+    val estadoId: Int,
     val rol: List<String>? = null,
     val permisos: List<String>? = null
 )

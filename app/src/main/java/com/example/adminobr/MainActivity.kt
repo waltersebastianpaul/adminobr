@@ -105,13 +105,16 @@ class MainActivity : AppCompatActivity() {
 
     private fun cerrarSesion() {
         // Borrar las credenciales del user
-        val sharedPreferences = getSharedPreferences("mis_preferencias", Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        editor.clear()
-        editor.apply()
+//        val sharedPreferences = getSharedPreferences("mis_preferencias", Context.MODE_PRIVATE)
+//        val editor = sharedPreferences.edit()
+//        editor.clear()
+//        editor.apply()
+//        editor.remove("user_legajo")  // Borrar solo el legajo del usuario
+//        editor.remove("user_nombre")  // Borrar solo el nombre del usuario
+//        editor.remove("user_apellido")  // Borrar solo el apellido del usuario
 
         // Limpiar la sesión
-        sessionManager.clearSession()
+        //sessionManager.clearSession()
 
         // Crear un Intent para iniciar la actividad de Login
         val intent = Intent(this, LoginActivity::class.java)

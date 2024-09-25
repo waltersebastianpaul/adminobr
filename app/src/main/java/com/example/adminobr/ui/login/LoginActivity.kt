@@ -1,29 +1,21 @@
 package com.example.adminobr.ui.login
 
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputFilter
-import android.text.Spannable
-import android.text.SpannableString
 import android.text.TextWatcher
-import android.text.style.ForegroundColorSpan
 import android.util.Log
+import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.ui.semantics.error
-import androidx.compose.ui.semantics.text
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import com.example.adminobr.BuildConfig
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.MainActivity
-import com.example.adminobr.R
 import com.example.adminobr.api.ApiService
 import com.example.adminobr.databinding.ActivityLoginBinding
 import com.example.adminobr.api.ApiUtils
@@ -42,6 +34,7 @@ import retrofit2.HttpException
 import retrofit2.Response
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import java.util.Locale
 
 class LoginActivity : AppCompatActivity() {
 
@@ -58,10 +51,61 @@ class LoginActivity : AppCompatActivity() {
     // Instancia de SessionManager solo cuando se acceda a ella
     private val sessionManager by lazy { SessionManager(this) }
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Verificar si ya existen datos guardados del usuario
+        val userDetails = sessionManager.getUserDetails()
+        val empresa = sessionManager.getEmpresaData() // Obtener los datos de la empresa
+
+        if (!userDetails["legajo"].isNullOrEmpty() && !userDetails["nombre"].isNullOrEmpty()) {
+            // Log para verificar si encontramos datos en SharedPreferences
+            Log.d("LoginActivity", "Datos de usuario encontrados en SharedPreferences:")
+            Log.d("LoginActivity", "Legajo: ${userDetails["legajo"]}")
+            Log.d("LoginActivity", "Nombre: ${userDetails["nombre"]}")
+            Log.d("LoginActivity", "Apellido: ${userDetails["apellido"]}")
+
+            // Mostrar mensaje de bienvenida
+            binding.tvWelcomeMessage.text = "¡Hola ${userDetails["nombre"]?.uppercase(Locale.ROOT)}!"
+//            binding.tvWelcomeMessage.text = "¡Hola ${userDetails["nombre"]?.uppercase(Locale.ROOT)} ${userDetails["apellido"]?.uppercase(Locale.ROOT)}!"
+            binding.tvWelcomeMessage.visibility = View.VISIBLE
+
+            // Mostrar el enlace de "No soy yo"
+            binding.tvNotMeLink.visibility = View.VISIBLE
+
+            // Ocultar los campos de empresa y usuario
+            binding.empresaTextInputLayout.visibility = View.GONE
+            binding.usuarioTextInputLayout.visibility = View.GONE
+
+
+            // Si los datos de la empresa existen, mostrar el nombre de la empresa en el campo de autocomplete
+            if (empresa != null && empresa.nombre.isNotEmpty()) {
+                Log.d("LoginActivity", "Empresa recuperada: ${empresa.nombre}")
+                binding.empresaAutocomplete.setText(empresa.nombre) // Asignar el nombre de la empresa
+            }
+
+            // Asignar el legajo al campo de usuario
+            val legajo = userDetails["legajo"]
+            if (!legajo.isNullOrEmpty()) {
+                Log.d("LoginActivity", "Legajo recuperado: $legajo")
+                binding.usuarioEditText.setText(legajo)  // Asignar el legajo al campo de usuario
+            }
+        } else {
+            // Si no hay datos, mostrar los campos de login
+            Log.d("LoginActivity", "No se encontraron datos de usuario en SharedPreferences.")
+        }
+
+        // Configurar el enlace de "No soy yo"
+        binding.tvNotMeLink.setOnClickListener {
+            binding.empresaAutocomplete.setText("") // Limpiar el campo de empresa
+            binding.usuarioEditText.setText("")  // Limpiar el campo de usuario
+
+            sessionManager.clearUserDetails() // Borrar los datos del usuario
+            recreate() // Recargar la actividad para mostrar los campos de login nuevamente
+        }
 
         // Asignar valores por defecto en modo Debug
         val isDebuggable = false // BuildConfig.DEBUG
@@ -205,24 +249,24 @@ class LoginActivity : AppCompatActivity() {
         if (response.isSuccessful) {
             val loginResponse = response.body()
 
-            Log.d("LoginActivity", "Respuesta del servidor: $loginResponse")
-
             if (loginResponse != null && loginResponse.success) {
                 Log.d("LoginActivity", "Inicio de sesión exitoso")
 
                 // Guardar la empresa seleccionada
                 sessionManager.saveEmpresaData(selectedEmpresa!!)
 
-                // Guardar los datos del usuario
-                sessionManager.saveUserData(loginResponse.user) // Guarda el objeto usuario completo
-//                sessionManager.saveUserData(
-//                    loginResponse.user.id ?: -1,
-//                    loginResponse.user.nombre,
-//                    loginResponse.user.apellido,
-//                    loginResponse.user.email,
-//                    loginResponse.user.rol ?: emptyList(),
-//                    loginResponse.user.permisos ?: emptyList()
-//                )
+                // Guardar los datos del usuario en SharedPreferences
+                sessionManager.saveUserDetails(
+                    loginResponse.user.legajo,
+                    loginResponse.user.nombre,
+                    loginResponse.user.apellido
+                )
+
+                // Log después de guardar los datos
+                Log.d("LoginActivity", "Datos de usuario guardados en SharedPreferences:")
+                Log.d("LoginActivity", "Legajo: ${loginResponse.user.legajo}")
+                Log.d("LoginActivity", "Nombre: ${loginResponse.user.nombre}")
+                Log.d("LoginActivity", "Apellido: ${loginResponse.user.apellido}")
 
                 // Iniciar la actividad principal
                 startActivity(Intent(this, MainActivity::class.java))

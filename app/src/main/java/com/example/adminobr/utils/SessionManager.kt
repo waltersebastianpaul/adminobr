@@ -2,6 +2,9 @@ package com.example.adminobr.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.annotation.OptIn
+import androidx.media3.common.util.Log
+import androidx.media3.common.util.UnstableApi
 import com.example.adminobr.data.Empresa
 import com.example.adminobr.data.Usuario
 import com.google.gson.Gson
@@ -17,7 +20,6 @@ class SessionManager(context: Context) {
         private const val KEY_USER_NOMBRE = "user_nombre"
         private const val KEY_USER_APELLIDO = "user_apellido"
         private const val KEY_USER_EMAIL = "user_email"
-        private const val KEY_USER_PASSWORD = "user_password"
         private const val KEY_USER_ROL = "user_rol"
         private const val KEY_USER_PERMISOS = "user_permisos"
 
@@ -66,6 +68,10 @@ class SessionManager(context: Context) {
         editor.apply()
     }
 
+    fun getUserLegajo(): String? {
+        return prefs.getString(KEY_USER_LEGAJO, null)
+    }
+
     fun getUserId(): Int {
         return prefs.getInt(KEY_USER_ID, -1)
     }
@@ -95,5 +101,57 @@ class SessionManager(context: Context) {
         editor.clear()
         editor.apply()
     }
+
+
+
+// SessionManager.kt
+
+    @OptIn(UnstableApi::class)
+    fun saveUserDetails(legajo: String, nombre: String, apellido: String) {
+        val editor = prefs.edit()
+        editor.putString("user_legajo", legajo)
+        editor.putString("user_nombre", nombre)
+        editor.putString("user_apellido", apellido)
+        editor.apply()
+
+        // Log para verificar los datos que se guardan
+        Log.d("SessionManager", "Datos guardados en SharedPreferences:")
+        Log.d("SessionManager", "Legajo: $legajo")
+        Log.d("SessionManager", "Nombre: $nombre")
+        Log.d("SessionManager", "Apellido: $apellido")
+    }
+
+    @OptIn(UnstableApi::class)
+    fun getUserDetails(): Map<String, String?> {
+        // Obtener los datos guardados
+        val legajo = prefs.getString("user_legajo", null)
+        val nombre = prefs.getString("user_nombre", null)
+        val apellido = prefs.getString("user_apellido", null)
+
+        // Log para verificar qué datos se recuperan
+        Log.d("SessionManager", "Datos recuperados de SharedPreferences:")
+        Log.d("SessionManager", "Legajo: $legajo")
+        Log.d("SessionManager", "Nombre: $nombre")
+        Log.d("SessionManager", "Apellido: $apellido")
+
+        return mapOf(
+            "legajo" to legajo,
+            "nombre" to nombre,
+            "apellido" to apellido
+        )
+    }
+
+    @OptIn(UnstableApi::class)
+    fun clearUserDetails() {
+        val editor = prefs.edit()
+        editor.remove("user_legajo")
+        editor.remove("user_nombre")
+        editor.remove("user_apellido")
+        editor.apply()
+
+        // Log para confirmar que los datos se han eliminado
+        Log.d("SessionManager", "Datos de usuario eliminados de SharedPreferences")
+    }
+
 }
 
