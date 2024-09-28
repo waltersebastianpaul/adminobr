@@ -41,9 +41,9 @@ class UpdateManager(private val context: Context) {
 
     suspend fun checkForUpdates(): Boolean {
 
-        Log.d("UpdateManager", "Iniciando checkForUpdates()")
-        Log.d("UpdateManager", "updateUrl $updateUrl")
-        Log.d("UpdateManager", "isDebuggable $isDebuggable")
+//        Log.d("UpdateManager", "Iniciando checkForUpdates()")
+//        Log.d("UpdateManager", "updateUrl $updateUrl")
+//        Log.d("UpdateManager", "isDebuggable $isDebuggable")
         return try {
             val updateService = Retrofit.Builder()
                 .baseUrl(updateUrl)

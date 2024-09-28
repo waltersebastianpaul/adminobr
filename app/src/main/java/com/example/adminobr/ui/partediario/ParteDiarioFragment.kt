@@ -22,7 +22,6 @@ import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
-import androidx.compose.ui.semantics.text
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -48,6 +47,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.data.Obra
 import com.example.adminobr.ui.adapter.ParteDiarioAdapter
+import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.utils.SharedPreferencesHelper
@@ -127,6 +127,7 @@ class ParteDiarioFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val userId = sessionManager.getUserId()
+        Log.d("ParteDiarioFragment", "User ID: $userId")
         binding.listaPartesDiariosRecyclerView.adapter = adapter
 
         // Obtener los últimos partes diarios al ingresar al Fragment
@@ -144,10 +145,6 @@ class ParteDiarioFragment : Fragment() {
             this
         ) { equipo ->
             fetchUltimoParteDiario(equipo.interno)
-
-            Log.d("ListarPartesFragment", "Equipo selecionado: $equipo")
-
-            cerrarTeclado()
 
             obraAutocomplete.requestFocus()
             selectedEquipo = equipo // Guardar equipo seleccionado
@@ -186,8 +183,16 @@ class ParteDiarioFragment : Fragment() {
     private fun setupListeners() {
         val userId = sessionManager.getUserId()
 
+        // Configurar el listener para el ícono del calendario
         fechaEditText.setOnClickListener {
-            showDatePickerDialog()
+            //showDatePickerDialog()
+
+            //
+            AppUtils.showDatePickerDialog(requireContext(), fechaEditText) { _, selectedYear, selectedMonth, selectedDay ->
+                val formattedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
+                fechaEditText.setText(formattedDate)
+                equipoAutocomplete.requestFocus() // Mantener el enfoque en equipoAutocomplete
+            }
         }
 
         guardarButton.setOnClickListener {
@@ -224,6 +229,10 @@ class ParteDiarioFragment : Fragment() {
     }
 
     private fun guardarParteDiario() {
+
+        // Ocultar el teclado usando AppUtils
+        AppUtils.closeKeyboard(requireActivity(), view)
+
         // Extensión para convertir String a Editable
         fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
 
@@ -282,48 +291,48 @@ class ParteDiarioFragment : Fragment() {
         }
     }
 
-    private fun showDatePickerDialog() {
-        val locale = Locale.getDefault()
-        val calendar = Calendar.getInstance(locale)
-        val dateString = fechaEditText.text.toString()
-
-        Log.d("DatePickerDialog", "Fecha actual en EditText: $dateString")
-
-        if (dateString.isNotBlank()) {
-            val formatter = SimpleDateFormat("dd/MM/yyyy", locale)
-            val date = formatter.parse(dateString)
-
-            Log.d("DatePickerDialog", "Fecha parseada: $date")
-
-            date?.let {
-                calendar.time = it
-                Log.d("DatePickerDialog", "Calendario actualizado con fecha: ${calendar.time}")
-            }
-        }
-
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-        Log.d("DatePickerDialog", "Año: $year, Mes: $month, Día: $day")
-
-        val datePickerDialog = DatePickerDialog(
-            requireContext(),
-            { _, selectedYear, selectedMonth, selectedDay ->
-                val formattedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
-
-                Log.d("DatePickerDialog", "Fecha formateada: $formattedDate")
-
-                fechaEditText.setText(formattedDate)
-                equipoAutocomplete.requestFocus()
-            },
-            year,
-            month,
-            day
-        )
-        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
-        datePickerDialog.show()
-    }
+//    private fun showDatePickerDialog() {
+//        val locale = Locale.getDefault()
+//        val calendar = Calendar.getInstance(locale)
+//        val dateString = fechaEditText.text.toString()
+//
+//        Log.d("DatePickerDialog", "Fecha actual en EditText: $dateString")
+//
+//        if (dateString.isNotBlank()) {
+//            val formatter = SimpleDateFormat("dd/MM/yyyy", locale)
+//            val date = formatter.parse(dateString)
+//
+//            Log.d("DatePickerDialog", "Fecha parseada: $date")
+//
+//            date?.let {
+//                calendar.time = it
+//                Log.d("DatePickerDialog", "Calendario actualizado con fecha: ${calendar.time}")
+//            }
+//        }
+//
+//        val year = calendar.get(Calendar.YEAR)
+//        val month = calendar.get(Calendar.MONTH)
+//        val day = calendar.get(Calendar.DAY_OF_MONTH)
+//
+//        Log.d("DatePickerDialog", "Año: $year, Mes: $month, Día: $day")
+//
+//        val datePickerDialog = DatePickerDialog(
+//            requireContext(),
+//            { _, selectedYear, selectedMonth, selectedDay ->
+//                val formattedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
+//
+//                Log.d("DatePickerDialog", "Fecha formateada: $formattedDate")
+//
+//                fechaEditText.setText(formattedDate)
+//                equipoAutocomplete.requestFocus()
+//            },
+//            year,
+//            month,
+//            day
+//        )
+//        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
+//        datePickerDialog.show()
+//    }
 
     private fun setupTextWatchers() {
         // TextWatcher para calcular horas trabajadas
@@ -332,13 +341,14 @@ class ParteDiarioFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 // Calcular horas trabajadas
-                calcularHorasTrabajadas()
+                // calcularHorasTrabajadas()
             }
         }
 
         // Configurar TextWatchers para los campos de horas
         horasInicioEditText.addTextChangedListener(horasTextWatcher)
         horasFinEditText.addTextChangedListener(horasTextWatcher)
+        //horasTrabajadasEditText.addTextChangedListener(horasTextWatcher)
 
         // Otros TextWatchers para los campos requeridos
         addTextWatcher(binding.fechaTextInputLayout, "Campo requerido")
@@ -346,6 +356,29 @@ class ParteDiarioFragment : Fragment() {
         addTextWatcher(binding.horasInicioTextInputLayout, "Campo requerido")
         addTextWatcher(binding.horasFinTextInputLayout, "Campo requerido")
         addTextWatcher(binding.obraTextInputLayout, "Campo requerido")
+
+
+
+    horasInicioEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
+        if (!hasFocus) {
+            calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+        }
+    }
+
+    horasFinEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
+        if (!hasFocus) {
+            calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+        }
+    }
+
+    horasTrabajadasEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
+        if (!hasFocus) {
+            calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+        }
+    }
+
+
+
     }
 
     private fun observeViewModels() {
@@ -486,6 +519,7 @@ class ParteDiarioFragment : Fragment() {
         equipoAutocomplete.isEnabled = true
         horasInicioEditText.isEnabled = true
         horasFinEditText.isEnabled = true
+        horasTrabajadasEditText.isEnabled = true
         observacionesEditText.isEnabled = true
         obraAutocomplete.isEnabled = true
         guardarButton.isEnabled = true
@@ -498,6 +532,7 @@ class ParteDiarioFragment : Fragment() {
         equipoAutocomplete.isEnabled = false
         horasInicioEditText.isEnabled = false
         horasFinEditText.isEnabled = false
+        horasTrabajadasEditText.isEnabled = false
         observacionesEditText.isEnabled = false
         obraAutocomplete.isEnabled = false
         guardarButton.isEnabled = false
@@ -582,31 +617,39 @@ class ParteDiarioFragment : Fragment() {
     }
 
     @SuppressLint("SetTextI18n")
-    private fun calcularHorasTrabajadas() {
-        val horasInicioText = horasInicioEditText.text.toString()
-        val horasFinText = horasFinEditText.text.toString()
 
-        if (horasInicioText.isNotEmpty() && horasFinText.isNotEmpty()) {
-            try {
-                val horasInicio = horasInicioText.toDouble()
-                val horasFin = horasFinText.toDouble()
-                val horasTrabajadas = (horasFin - horasInicio).toInt() // Convertir a entero
-                // Establecer el valor en horasTrabajadasEditText
-                horasTrabajadasEditText.setText(horasTrabajadas.toString())
-
-                // Verificar si es negativo y aplicar los cambios de color
-                if (horasTrabajadas < 0) {
-                    horasTrabajadasEditText.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorRed))
+    private fun calcularHorasTrabajadas(fieldId: Int) {
+        when (fieldId) {
+            R.id.horasInicioEditText -> {
+                if (horasInicioEditText.text.isNotEmpty() && horasFinEditText.text.isNotEmpty()) {
+                    val horasInicio = horasInicioEditText.text.toString().toDouble()
+                    val horasFin = horasFinEditText.text.toString().toDouble()
+                    val horasTrabajadas = (horasFin - horasInicio).toInt() // Convertir a entero
+                    horasTrabajadasEditText.setText(horasTrabajadas.toString()) // Mostrar sin coma decimal
                 } else {
-                    // Restablecer a los colores predeterminados si no es negativo
-                    horasTrabajadasEditText.setTextColor(ContextCompat.getColor(requireContext(), R.color.colorDisabledText))
+                    horasTrabajadasEditText.setText("")
                 }
-            } catch (e: NumberFormatException) {
-                // Manejar el caso en que los valores no sean números válidos
-                horasTrabajadasEditText.setText("")}
-        } else {
-            // Si alguno de los campos está vacío, limpia horasTrabajadasEditText
-            horasTrabajadasEditText.setText("")
+            }
+            R.id.horasFinEditText -> {
+                if (horasInicioEditText.text.isNotEmpty() && horasFinEditText.text.isNotEmpty()) {
+                    val horasInicio = horasInicioEditText.text.toString().toDouble()
+                    val horasFin = horasFinEditText.text.toString().toDouble()
+                    val horasTrabajadas = (horasFin - horasInicio).toInt() // Convertir a entero
+                    horasTrabajadasEditText.setText(horasTrabajadas.toString()) // Mostrar sin coma decimal
+                } else {
+                    horasTrabajadasEditText.setText("")
+                }
+            }
+            R.id.horasTrabajadasEditText -> {
+                if (horasInicioEditText.text.isNotEmpty() && horasTrabajadasEditText.text.isNotEmpty()) {
+                    val horasInicio = horasInicioEditText.text.toString().toDouble()
+                    val horastrabajadas = horasTrabajadasEditText.text.toString().toDouble()
+                    val horasFin = (horasInicio + horastrabajadas).toInt() // Convertir a entero
+                    horasFinEditText.setText(horasFin.toString()) // Mostrar sin coma decimal
+                } else {
+                    horasFinEditText.setText("")
+                }
+            }
         }
     }
 
@@ -638,20 +681,5 @@ class ParteDiarioFragment : Fragment() {
             }
         })
     }
-
-    private fun hideKeyboard() {
-        val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        val view = requireActivity().currentFocus
-        view?.let {
-            inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
-        }
-    }
-
-    private fun cerrarTeclado() {
-        // Cerrar el teclado
-        val imm = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(requireView().windowToken, 0)
-    }
-
 }
 

@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -82,7 +83,7 @@ class HomeFragment : Fragment() {
 
         // Obtener roles del usuario
         val userRoles = sessionManager.getUserRol()
-
+Log.d("HomeFragment", "Roles del usuario: $userRoles")
         // Constrol de visivilidad segun roles
         if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
             binding.parteSimpleCardView.visibility = View.VISIBLE

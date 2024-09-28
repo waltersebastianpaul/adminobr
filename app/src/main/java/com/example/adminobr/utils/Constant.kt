@@ -9,7 +9,7 @@ sealed class Constants {
     companion object {
 
         // Configuración de la URL base
-        private const val DEBUG = true // Cambiar a false en producción
+        private const val DEBUG = false // Cambiar a true en desarrollo, false en producción
 
         private const val BASE_URL = "http://adminobr.site"
         private const val DEBUG_DIR = "/debug/"

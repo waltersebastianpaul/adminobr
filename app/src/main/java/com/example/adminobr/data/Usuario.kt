@@ -11,7 +11,8 @@ data class Usuario(
     val userCreated: Int,
     val password: String,
     val estadoId: Int,
-    val rol: List<String>? = null,
+    val roles: List<String>? = null,
+    val principalRole: String? = null,
     val permisos: List<String>? = null
 )
 

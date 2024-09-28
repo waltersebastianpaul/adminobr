@@ -26,6 +26,7 @@ import com.example.adminobr.R
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.databinding.FragmentListaPartesBinding
 import com.example.adminobr.ui.adapter.ListarPartesAdapter
+import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.viewmodel.AppDataViewModel
 import com.example.adminobr.viewmodel.ParteDiarioViewModel
@@ -169,12 +170,17 @@ class ListarPartesFragment : Fragment() {
             // Borrar la lista
             adapter.submitData(lifecycle, PagingData.empty())
 
-            hideKeyboard()
+            // Ocultar el teclado usando AppUtils
+            AppUtils.closeKeyboard(requireActivity(), view)
         }
 
         // Configura el botón para aplicar los filtros
         val applyFiltersButton: Button = binding.root.findViewById(R.id.applyFiltersButton)
         applyFiltersButton.setOnClickListener {
+
+            // Ocultar el teclado usando AppUtils
+            AppUtils.closeKeyboard(requireActivity(), view)
+
             val equipo = equipoAutocomplete.text.toString()
             val equipoInterno = equipo.split(" - ").firstOrNull() ?: ""
             // Usa equipoInterno para filtrar
@@ -182,7 +188,7 @@ class ListarPartesFragment : Fragment() {
             val fechaFin = fechaFinEditText.text.toString()
             Log.d("ListarPartesFragment", "Aplicando filtro - Equipo: $equipoInterno, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
             viewModel.setFilter(equipoInterno, fechaInicio, fechaFin)
-            hideKeyboard()
+
         }
 
         // Configura el FloatingActionButton
@@ -279,14 +285,6 @@ class ListarPartesFragment : Fragment() {
 
     private fun setEditTextToUppercase(editText: AutoCompleteTextView) {
         editText.filters = arrayOf(InputFilter.AllCaps())
-    }
-
-    private fun hideKeyboard() {
-        val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        val view = requireActivity().currentFocus
-        view?.let {
-            inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
-        }
     }
 
     override fun onDestroyView() {

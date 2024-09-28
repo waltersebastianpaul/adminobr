@@ -1,6 +1,5 @@
 package com.example.adminobr.utils
 
-
 import android.R
 import android.content.Context
 import android.text.Editable
@@ -20,12 +19,10 @@ import com.example.adminobr.viewmodel.AppDataViewModel
 
 class AutocompleteManager(private val context: Context, private val viewModel: AppDataViewModel) {
 
-
     // HashMap para almacenar la relación nombre-Empresa
     private val empresaMap = HashMap<String, Empresa>()
     private val obraMap = HashMap<String, Obra>()
     private val equipoMap = HashMap<String, Equipo>()
-
 
     // Callback para manejar la selección de la empresa
     fun loadEmpresas(autoCompleteTextView: AutoCompleteTextView? = null, lifecycleOwner: LifecycleOwner? = null,
@@ -40,15 +37,18 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 )
                 autoCompleteTextView.setAdapter(adapter)
 
-
                 empresaMap.clear()
                 empresaMap.putAll(empresas.associateBy { it.nombre })
-
 
                 autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
                     val selectedEmpresaNombre = parent.getItemAtPosition(position) as String
                     val selectedEmpresa = empresaMap[selectedEmpresaNombre]
-                    selectedEmpresa?.let { onEmpresaSelected?.invoke(it) }
+                    selectedEmpresa?.let {
+                        onEmpresaSelected?.invoke(it)
+
+                        // Cerrar el teclado después de seleccionar la empresa
+                        AppUtils.closeKeyboard(context, autoCompleteTextView)
+                    }
                 }
 
                 autoCompleteTextView.addTextChangedListener(object : TextWatcher {
@@ -87,7 +87,6 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 )
                 autoCompleteTextView.setAdapter(adapter)
 
-
                 equipoMap.clear()
                 equipoMap.putAll(equipos.associateBy { "${it.interno} - ${it.descripcion}" })
 
@@ -95,7 +94,12 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                     val selectedEquipoNombre = parent.getItemAtPosition(position) as String
                     val selectedEquipo = equipoMap[selectedEquipoNombre]
                     Log.d("AutocompleteManager", "Equipo seleccionado: $selectedEquipo") // Agregar log
-                    selectedEquipo?.let { onEquipoSelected?.invoke(it) }
+                    selectedEquipo?.let {
+                        onEquipoSelected?.invoke(it)
+
+                        // Cerrar el teclado después de seleccionar un equipo
+                        AppUtils.closeKeyboard(context, autoCompleteTextView)
+                    }
                 }
 
                 autoCompleteTextView.addTextChangedListener(object : TextWatcher {
@@ -133,17 +137,20 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                     obras.map { "${it.centro_costo} - ${it.nombre}" }
                 )
                 autoCompleteTextView.setAdapter(adapter)
-
-
+                
                 obraMap.clear()
                 obraMap.putAll(obras.associateBy { "${it.centro_costo} - ${it.nombre}" })
-
 
                 autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
                     val selectedObraNombre = parent.getItemAtPosition(position) as String
                     val selectedObra = obraMap[selectedObraNombre]
                     Log.d("AutocompleteManager", "Obra seleccionada: $selectedObra") // Agregar log
-                    selectedObra?.let { onObraSelected?.invoke(it) }
+                    selectedObra?.let {
+                        onObraSelected?.invoke(it)
+
+                        // Cerrar el teclado después de seleccionar una obra
+                        AppUtils.closeKeyboard(context, autoCompleteTextView)
+                    }
                 }
 
                 autoCompleteTextView.addTextChangedListener(object : TextWatcher {

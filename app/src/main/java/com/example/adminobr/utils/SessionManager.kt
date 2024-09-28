@@ -6,7 +6,6 @@ import androidx.annotation.OptIn
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import com.example.adminobr.data.Empresa
-import com.example.adminobr.data.Usuario
 import com.google.gson.Gson
 
 class SessionManager(context: Context) {
@@ -20,9 +19,9 @@ class SessionManager(context: Context) {
         private const val KEY_USER_NOMBRE = "user_nombre"
         private const val KEY_USER_APELLIDO = "user_apellido"
         private const val KEY_USER_EMAIL = "user_email"
-        private const val KEY_USER_ROL = "user_rol"
+        private const val KEY_USER_ROLES = "user_rol"
+        private const val KEY_USER_PRINCIPAL_ROL = "user_principal_rol"
         private const val KEY_USER_PERMISOS = "user_permisos"
-
         private const val KEY_DEBUGGABLE = "false"
     }
 
@@ -54,20 +53,6 @@ class SessionManager(context: Context) {
         }
     }
 
-    // Métodos para guardar y obtener los datos del usuario
-    //fun saveUserData(id: Int, nombre: String, apellido: String, email: String, rol: List<String>, permisos: List<String>) {
-    fun saveUserData(usuario: Usuario) {
-        val editor = prefs.edit()
-        editor.putInt(KEY_USER_ID, usuario.id ?: -1)
-        editor.putString(KEY_USER_LEGAJO, usuario.legajo)
-        editor.putString(KEY_USER_NOMBRE, usuario.nombre)
-        editor.putString(KEY_USER_APELLIDO, usuario.apellido)
-        editor.putString(KEY_USER_EMAIL, usuario.email)
-        editor.putStringSet(KEY_USER_ROL, usuario.rol?.toSet())
-        editor.putStringSet(KEY_USER_PERMISOS, usuario.permisos?.toSet())
-        editor.apply()
-    }
-
     fun getUserLegajo(): String? {
         return prefs.getString(KEY_USER_LEGAJO, null)
     }
@@ -89,7 +74,11 @@ class SessionManager(context: Context) {
     }
 
     fun getUserRol(): List<String>? {
-        return prefs.getStringSet(KEY_USER_ROL, null)?.toList()
+        return prefs.getStringSet(KEY_USER_ROLES, null)?.toList()
+    }
+
+    fun getUserPrincipalRol(): String? {
+        return prefs.getString(KEY_USER_PRINCIPAL_ROL, null)
     }
 
     fun getUserPermisos(): List<String>? {
@@ -102,51 +91,73 @@ class SessionManager(context: Context) {
         editor.apply()
     }
 
-
-
-// SessionManager.kt
-
     @OptIn(UnstableApi::class)
-    fun saveUserDetails(legajo: String, nombre: String, apellido: String) {
+    fun saveUserDetails(
+        id: Int,
+        legajo: String,
+        nombre: String,
+        apellido: String,
+        roles: List<String>?,
+        principalRole: String?
+    ) {
+        clearUserDetails()
         val editor = prefs.edit()
-        editor.putString("user_legajo", legajo)
-        editor.putString("user_nombre", nombre)
-        editor.putString("user_apellido", apellido)
+        editor.putInt(KEY_USER_ID, id)
+        editor.putString(KEY_USER_LEGAJO, legajo)
+        editor.putString(KEY_USER_NOMBRE, nombre)
+        editor.putString(KEY_USER_APELLIDO, apellido)
+        editor.putStringSet(KEY_USER_ROLES, roles?.toSet()) // Guardar la lista de roles como un Set<String>
+        editor.putString(KEY_USER_PRINCIPAL_ROL, principalRole) // Guardar el rol principal como una cadena
         editor.apply()
 
         // Log para verificar los datos que se guardan
         Log.d("SessionManager", "Datos guardados en SharedPreferences:")
+        Log.d("SessionManager", "ID: $id")
         Log.d("SessionManager", "Legajo: $legajo")
         Log.d("SessionManager", "Nombre: $nombre")
         Log.d("SessionManager", "Apellido: $apellido")
+        Log.d("SessionManager", "Roles: $roles")
+        Log.d("SessionManager", "Principal Rol: $principalRole")
     }
 
     @OptIn(UnstableApi::class)
     fun getUserDetails(): Map<String, String?> {
         // Obtener los datos guardados
-        val legajo = prefs.getString("user_legajo", null)
-        val nombre = prefs.getString("user_nombre", null)
-        val apellido = prefs.getString("user_apellido", null)
+        val id = prefs.getInt(KEY_USER_ID, -1)
+        val legajo = prefs.getString(KEY_USER_LEGAJO, null)
+        val nombre = prefs.getString(KEY_USER_NOMBRE, null)
+        val apellido = prefs.getString(KEY_USER_APELLIDO, null)
+        val roles = prefs.getStringSet(KEY_USER_ROLES, null)?.toList()
+        val principalRole = prefs.getString(KEY_USER_PRINCIPAL_ROL, null)
 
         // Log para verificar qué datos se recuperan
         Log.d("SessionManager", "Datos recuperados de SharedPreferences:")
+        Log.d("SessionManager", "ID: $id")
         Log.d("SessionManager", "Legajo: $legajo")
         Log.d("SessionManager", "Nombre: $nombre")
         Log.d("SessionManager", "Apellido: $apellido")
+        Log.d("SessionManager", "Roles: $roles")
+        Log.d("SessionManager", "Rol Principal: $principalRole")
 
         return mapOf(
+            "id" to id.toString(),
             "legajo" to legajo,
             "nombre" to nombre,
-            "apellido" to apellido
+            "apellido" to apellido,
+            "roles" to roles?.joinToString(", "),
+            "principalRole" to principalRole
         )
     }
 
     @OptIn(UnstableApi::class)
     fun clearUserDetails() {
         val editor = prefs.edit()
-        editor.remove("user_legajo")
-        editor.remove("user_nombre")
-        editor.remove("user_apellido")
+        editor.remove(KEY_USER_ID)
+        editor.remove(KEY_USER_LEGAJO)
+        editor.remove(KEY_USER_NOMBRE)
+        editor.remove(KEY_USER_APELLIDO)
+        editor.remove(KEY_USER_ROLES)
+        editor.remove(KEY_USER_PRINCIPAL_ROL)
         editor.apply()
 
         // Log para confirmar que los datos se han eliminado

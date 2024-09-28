@@ -305,12 +305,6 @@ class NuevoUsuarioFragment : Fragment() {
         guardarButton.isEnabled = false
     }
 
-    private fun cerrarTeclado() {
-        // Cerrar el teclado
-        val imm = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(requireView().windowToken, 0)
-    }
-
     private var progressDialog: ProgressDialogFragment? = null // Mostrar ProgressDialog
 
     private fun observeViewModels() {

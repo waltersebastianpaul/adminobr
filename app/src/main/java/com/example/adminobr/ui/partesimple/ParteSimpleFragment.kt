@@ -37,11 +37,10 @@ import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.inputmethod.InputMethodManager
-import androidx.compose.ui.input.key.type
 import androidx.core.content.ContextCompat
-import androidx.paging.PagingData
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.ui.adapter.ParteSimpleAdapter
+import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.viewmodel.ParteSimpleViewModel
 import com.google.gson.Gson
@@ -83,6 +82,9 @@ class ParteSimpleFragment : Fragment() {
         horasTextInputLayout = binding.horasActualesTextInputLayout // Asegúrate de tener este ID en tu XML
 
         binding.cargarParteButton.setOnClickListener {
+            // Ocultar el teclado usando AppUtils
+            AppUtils.closeKeyboard(requireActivity(), view)
+
             //val selectedEquipoText = binding.equipoAutocomplete.text.toString()
             val equipoInterno = selectedEquipo?.interno ?: ""
 
@@ -124,7 +126,6 @@ class ParteSimpleFragment : Fragment() {
             )
 
             builder.setPositiveButton(positiveButtonText) { dialog, _ ->
-//                SharedPreferencesHelper.clearPartesList(requireContext())
                 viewModel.clearPartesList() // Limpiar la lista
                 // actualizarHistorialPartes()
                 dialog.dismiss()
@@ -275,20 +276,6 @@ class ParteSimpleFragment : Fragment() {
                 return false
             }
 
-//            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-//                val itemView = viewHolder.itemView
-//                val dX = itemView.translationX
-//
-//                // Verificar que el swipe fue lo suficientemente largo antes de eliminar
-//                if (abs(dX) > itemView.width * 0.3) {
-//                    // Proceder con la eliminación si se deslizó más del 30%
-//                    viewModel.removeParte(viewHolder.bindingAdapterPosition)
-//                } else {
-//                    // Devolver el ítem a su posición original si no se deslizó lo suficiente
-//                    adapter.notifyItemChanged(viewHolder.bindingAdapterPosition)
-//                }
-//            }
-
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val itemView = viewHolder.itemView
                 val dX = itemView.translationX
@@ -328,7 +315,7 @@ class ParteSimpleFragment : Fragment() {
                 val iconTop = itemView.top + (itemView.height - icon.intrinsicHeight) / 2
                 val iconBottom = iconTop + icon.intrinsicHeight
                 // Fondo rojo
-                val redColor = ContextCompat.getColor(requireContext(), R.color.danger_500)
+                val redColor = ContextCompat.getColor(requireContext(), R.color.danger_100)
 
                 //val limit = 110 // itemView.width / 3 // Distancia límite para que el ícono se quede fijo
                 val limit = itemView.width / 7 // Distancia límite para que el ícono se quede fijo
@@ -432,16 +419,13 @@ class ParteSimpleFragment : Fragment() {
         })
     }
 
-
     // Función para obtener la fecha actual en formato dd/MM/yyyy
     private fun getCurrentDate(): String {
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         return dateFormat.format(Date())
     }
 
-    // ... (código existente) ...
-
-    private val TIEMPO_LIMITE_HS = 24 // horas
+    private val TIEMPO_LIMITE_HS = 12 // horas
     private val TIEMPO_LIMITE_MS = TIEMPO_LIMITE_HS * 60 * 60 * 1000 // 24 horas en milisegundos
 
     private fun guardarDatosEnSharedPreferences() {
@@ -455,44 +439,29 @@ class ParteSimpleFragment : Fragment() {
         }
     }
 
-    private fun cargarDatosDesdeSharedPreferences() {
+    private fun cargarDatosDesdeSharedPreferences(): Boolean {
         val sharedPreferences = requireContext().getSharedPreferences("partes_simples", Context.MODE_PRIVATE)
-        val ultimaActualizacion = sharedPreferences.getLong("ultima_actualizacion", 0)
+        val partesSimplesJson = sharedPreferences.getString("partes_simples", null)
+        if (partesSimplesJson != null) {
+            val listType = object : TypeToken<List<ParteSimple>>() {}.type
+            val partesSimples = Gson().fromJson<List<ParteSimple>>(partesSimplesJson, listType)
 
-        if (System.currentTimeMillis() - ultimaActualizacion < TIEMPO_LIMITE_MS) {
-            // Los datos no han expirado, cargarlos
-            val partesSimplesJson = sharedPreferences.getString("partes_simples", null)
-            if (partesSimplesJson != null) {
-                val listType = object : TypeToken<List<ParteSimple>>() {}.type
-                val partesSimples = Gson().fromJson<List<ParteSimple>>(partesSimplesJson, listType)
-                viewModel.setPartesList(partesSimples)
+            // Filtrar la lista para eliminar items que hayan superado el tiempo límite
+            val partesSimplesFiltradas = partesSimples.filter { parteSimple ->
+                System.currentTimeMillis() - parteSimple.timestamp < TIEMPO_LIMITE_MS
             }
+
+            viewModel.setPartesList(partesSimplesFiltradas)
+            return true // Los datos se cargaron correctamente
         } else {
-            // Los datos han expirado, borrarlos
-            limpiarDatosEnSharedPreferences()
+            return false // No se encontraron datos para cargar
         }
     }
 
-
-//    private fun guardarDatosEnSharedPreferences() {
-//        val sharedPreferences = requireContext().getSharedPreferences("partes_simples", Context.MODE_PRIVATE)
-//        val partesSimplesJson = Gson().toJson(viewModel.partesList.value)
-//
-//        with(sharedPreferences.edit()) {
-//            putString("partes_simples", partesSimplesJson)
-//            apply()
-//        }
-//    }
-//
-//    private fun cargarDatosDesdeSharedPreferences() {
-//        val sharedPreferences = requireContext().getSharedPreferences("partes_simples", Context.MODE_PRIVATE)
-//        val partesSimplesJson = sharedPreferences.getString("partes_simples", null)
-//        if (partesSimplesJson != null) {
-//            val listType = object : TypeToken<List<ParteSimple>>() {}.type
-//            val partesSimples = Gson().fromJson<List<ParteSimple>>(partesSimplesJson, listType)
-//            viewModel.setPartesList(partesSimples)
-//        }
-//    }
+    override fun onResume() {
+        super.onResume()
+        cargarDatosDesdeSharedPreferences() // Cargar datos y verificar tiempo límite
+    }
 
     private fun setEditTextToUppercase(editText: AutoCompleteTextView) {
         editText.filters = arrayOf(InputFilter.AllCaps())
@@ -504,16 +473,4 @@ class ParteSimpleFragment : Fragment() {
         // guardarDatosEnSharedPreferences()
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        // limpiarDatosEnSharedPreferences()
-    }
-
-    private fun limpiarDatosEnSharedPreferences() {
-        val sharedPreferences = requireContext().getSharedPreferences("partes_simples", Context.MODE_PRIVATE)
-        with(sharedPreferences.edit()) {
-            clear()
-            apply()
-        }
-    }
 }

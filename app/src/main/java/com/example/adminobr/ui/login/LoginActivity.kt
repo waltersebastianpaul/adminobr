@@ -7,7 +7,7 @@ import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
-import android.view.inputmethod.InputMethodManager
+import android.view.inputmethod.EditorInfo
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -24,6 +24,7 @@ import com.example.adminobr.data.ErrorResponse
 import com.example.adminobr.data.LoginRequest
 import com.example.adminobr.data.LoginResponse
 import com.example.adminobr.ui.common.ProgressDialogFragment
+import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.viewmodel.AppDataViewModel
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
@@ -67,6 +68,7 @@ class LoginActivity : AppCompatActivity() {
             Log.d("LoginActivity", "Legajo: ${userDetails["legajo"]}")
             Log.d("LoginActivity", "Nombre: ${userDetails["nombre"]}")
             Log.d("LoginActivity", "Apellido: ${userDetails["apellido"]}")
+            Log.d("LoginActivity", "Roles: ${userDetails["roles"]}")
 
             // Mostrar mensaje de bienvenida
             binding.tvWelcomeMessage.text = "¡Hola ${userDetails["nombre"]?.uppercase(Locale.ROOT)}!"
@@ -79,7 +81,6 @@ class LoginActivity : AppCompatActivity() {
             // Ocultar los campos de empresa y usuario
             binding.empresaTextInputLayout.visibility = View.GONE
             binding.usuarioTextInputLayout.visibility = View.GONE
-
 
             // Si los datos de la empresa existen, mostrar el nombre de la empresa en el campo de autocomplete
             if (empresa != null && empresa.nombre.isNotEmpty()) {
@@ -109,17 +110,11 @@ class LoginActivity : AppCompatActivity() {
 
         // Asignar valores por defecto en modo Debug
         val isDebuggable = false // BuildConfig.DEBUG
-        //Toast.makeText(this, "isDebuggable: $isDebuggable", Toast.LENGTH_SHORT).show()
 
-//        val isDebuggable = (applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
         // Guardar el valor de isDebuggable en SessionManager
         sessionManager.saveDebuggable(isDebuggable)
         Log.d("LoginActivity", "Debuggable: $isDebuggable")
 
-        if (isDebuggable) {
-            binding.usuarioEditText.setText("0001")
-            binding.passwordEditText.setText("123456")
-        }
 
         // Obtener el ViewModel
         appDataViewModel = ViewModelProvider(this).get(AppDataViewModel::class.java)
@@ -138,10 +133,10 @@ class LoginActivity : AppCompatActivity() {
         }
 
         // Configura el OnItemClickListener para equipoAutocomplete
-        binding.empresaAutocomplete.setOnItemClickListener { _, _, _, _ ->
-            // Si se selecciona un equipo, quita el foco del AutoCompleteTextView
-            binding.empresaAutocomplete.clearFocus()
-        }
+//        binding.empresaAutocomplete.setOnItemClickListener { _, _, _, _ ->
+//            // Si se selecciona un equipo, quita el foco del AutoCompleteTextView
+//            binding.empresaAutocomplete.clearFocus()
+//        }
 
         // Llamar a la función para convertir el texto a mayúsculas
         setEditTextToUppercase(binding.empresaAutocomplete)
@@ -150,14 +145,24 @@ class LoginActivity : AppCompatActivity() {
         addTextWatcher(binding.usuarioTextInputLayout, "Campo requerido")
         addTextWatcher(binding.passwordTextInputLayout, "Campo requerido")
 
+        binding.passwordEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                binding.loginButton.performClick() // Simula un clic en el botón de login
+                true // Indica que la acción se ha manejado
+            } else {
+                false // Indica que la acción no se ha manejado
+            }
+        }
+
         // Listener para el botón de login
         binding.loginButton.setOnClickListener {
             val usuario = binding.usuarioEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
 
-            if (validarCampos()) {
+            // Cerrar el teclado usando AppUtils
+            AppUtils.closeKeyboard(this, currentFocus)
 
-                cerrarTeclado()
+            if (validarCampos()) {
 
                 val progressDialog = ProgressDialogFragment.show(supportFragmentManager)
                 lifecycleScope.launch {
@@ -240,14 +245,14 @@ class LoginActivity : AppCompatActivity() {
         editText.filters = arrayOf(InputFilter.AllCaps())
     }
 
-    private fun cerrarTeclado() {
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
-    }
-
     private fun handleLoginResponse(response: Response<LoginResponse>) {
         if (response.isSuccessful) {
             val loginResponse = response.body()
+
+
+            Log.d("LoginActivity", "loginResponse.user: ${loginResponse?.user}")
+            Log.d("LoginActivity", "Roles: ${loginResponse?.user?.roles?.joinToString()}")
+            Log.d("LoginActivity", "Permisos: ${loginResponse?.user?.permisos?.joinToString()}")
 
             if (loginResponse != null && loginResponse.success) {
                 Log.d("LoginActivity", "Inicio de sesión exitoso")
@@ -257,9 +262,12 @@ class LoginActivity : AppCompatActivity() {
 
                 // Guardar los datos del usuario en SharedPreferences
                 sessionManager.saveUserDetails(
+                    loginResponse.user.id ?: -1, // Usar -1 como valor predeterminado si es nulo
                     loginResponse.user.legajo,
                     loginResponse.user.nombre,
-                    loginResponse.user.apellido
+                    loginResponse.user.apellido,
+                    loginResponse.user.roles,
+                    loginResponse.user.principalRole
                 )
 
                 // Log después de guardar los datos
@@ -267,6 +275,7 @@ class LoginActivity : AppCompatActivity() {
                 Log.d("LoginActivity", "Legajo: ${loginResponse.user.legajo}")
                 Log.d("LoginActivity", "Nombre: ${loginResponse.user.nombre}")
                 Log.d("LoginActivity", "Apellido: ${loginResponse.user.apellido}")
+                Log.d("LoginActivity", "Roles: ${loginResponse.user.roles}")
 
                 // Iniciar la actividad principal
                 startActivity(Intent(this, MainActivity::class.java))
