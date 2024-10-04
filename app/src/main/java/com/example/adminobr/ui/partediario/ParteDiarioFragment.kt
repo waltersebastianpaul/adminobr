@@ -135,7 +135,6 @@ class ParteDiarioFragment : Fragment() {
             adapter.submitList(partesDiarios)
         }
 
-
         // Inicializar AutocompleteManager
         autocompleteManager = AutocompleteManager(requireContext(), appDataViewModel)
 
@@ -187,7 +186,6 @@ class ParteDiarioFragment : Fragment() {
         fechaEditText.setOnClickListener {
             //showDatePickerDialog()
 
-            //
             AppUtils.showDatePickerDialog(requireContext(), fechaEditText) { _, selectedYear, selectedMonth, selectedDay ->
                 val formattedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
                 fechaEditText.setText(formattedDate)
@@ -202,6 +200,12 @@ class ParteDiarioFragment : Fragment() {
             viewModel.getUltimosPartesDiarios(userId).observe(viewLifecycleOwner) { partesDiarios ->
                 adapter.submitList(partesDiarios) // Actualizar la lista del adaptador
             }
+        }
+
+        binding.ultimoParteLayout.setOnClickListener {
+            horasInicioEditText.setText(ultimoParteHorasFin)
+            horasInicioEditText.requestFocus() // Opcional: enfocar el campo
+            // Puedes agregar más acciones aquí si es necesario
         }
     }
 

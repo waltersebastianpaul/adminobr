@@ -21,7 +21,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.GestionEquipos"
+        android:theme="@style/Theme.AdminObr"
         android:name=".application.MyApplication"
         tools:targetApi="31"
         tools:ignore="ForegroundServicePermission">
@@ -29,7 +29,7 @@
 
         <activity
             android:name=".ui.login.LoginActivity"
-            android:theme="@style/Theme.GestionEquipos.NoActionBar"
+            android:theme="@style/Theme.AdminObr.NoActionBar"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -40,7 +40,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:theme="@style/Theme.GestionEquipos.NoActionBar" />
+            android:theme="@style/Theme.AdminObr.NoActionBar" />
 
         <service
             android:name=".update.DownloadService"

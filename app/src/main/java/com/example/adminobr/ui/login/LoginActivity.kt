@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.MainActivity
+import com.example.adminobr.R
 import com.example.adminobr.api.ApiService
 import com.example.adminobr.databinding.ActivityLoginBinding
 import com.example.adminobr.api.ApiUtils
@@ -25,6 +26,7 @@ import com.example.adminobr.data.LoginRequest
 import com.example.adminobr.data.LoginResponse
 import com.example.adminobr.ui.common.ProgressDialogFragment
 import com.example.adminobr.utils.AppUtils
+import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.viewmodel.AppDataViewModel
 import com.google.android.material.textfield.TextInputLayout
 import com.google.gson.Gson
@@ -41,10 +43,15 @@ class LoginActivity : AppCompatActivity() {
 
     private val apiService: ApiService by lazy { ApiUtils.getApiService() }
 
+    // Declaración de variables para verificar la conexión
+    private lateinit var networkHelper: NetworkStatusHelper
+
     // Declaración de variables para cargar los datos
     private lateinit var autocompleteManager: AutocompleteManager
     private lateinit var appDataViewModel: AppDataViewModel
     private lateinit var binding: ActivityLoginBinding
+
+    private lateinit var networkErrorLayout: View
 
     // Variable para almacenar la empresa seleccionada
     private var selectedEmpresa: Empresa? = null
@@ -52,27 +59,35 @@ class LoginActivity : AppCompatActivity() {
     // Instancia de SessionManager solo cuando se acceda a ella
     private val sessionManager by lazy { SessionManager(this) }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Inicializa NetworkStatusHelper después de que la actividad ha sido creada
+        networkHelper = NetworkStatusHelper(this)
+
+//        if (networkHelper.isWifiConnected()) {
+//            Snackbar.make(binding.root, "Conectado por Wi-Fi", Snackbar.LENGTH_SHORT).show()
+//        } else {
+//            Snackbar.make(binding.root, "Conectado por Datos Moviles", Snackbar.LENGTH_SHORT).show()
+//        }
+
+        // Inicializar networkErrorLayout
+        networkErrorLayout = findViewById(R.id.networkErrorLayout)
+
+        // Asegúrate de que binding se haya inicializado antes de acceder a networkErrorView
+        networkErrorLayout.visibility = View.GONE // O View.VISIBLE si quieres que se muestre inicialmente
+
 
         // Verificar si ya existen datos guardados del usuario
         val userDetails = sessionManager.getUserDetails()
         val empresa = sessionManager.getEmpresaData() // Obtener los datos de la empresa
 
         if (!userDetails["legajo"].isNullOrEmpty() && !userDetails["nombre"].isNullOrEmpty()) {
-            // Log para verificar si encontramos datos en SharedPreferences
-            Log.d("LoginActivity", "Datos de usuario encontrados en SharedPreferences:")
-            Log.d("LoginActivity", "Legajo: ${userDetails["legajo"]}")
-            Log.d("LoginActivity", "Nombre: ${userDetails["nombre"]}")
-            Log.d("LoginActivity", "Apellido: ${userDetails["apellido"]}")
-            Log.d("LoginActivity", "Roles: ${userDetails["roles"]}")
 
             // Mostrar mensaje de bienvenida
             binding.tvWelcomeMessage.text = "¡Hola ${userDetails["nombre"]?.uppercase(Locale.ROOT)}!"
-//            binding.tvWelcomeMessage.text = "¡Hola ${userDetails["nombre"]?.uppercase(Locale.ROOT)} ${userDetails["apellido"]?.uppercase(Locale.ROOT)}!"
             binding.tvWelcomeMessage.visibility = View.VISIBLE
 
             // Mostrar el enlace de "No soy yo"
@@ -100,13 +115,35 @@ class LoginActivity : AppCompatActivity() {
         }
 
         // Configurar el enlace de "No soy yo"
-        binding.tvNotMeLink.setOnClickListener {
-            binding.empresaAutocomplete.setText("") // Limpiar el campo de empresa
-            binding.usuarioEditText.setText("")  // Limpiar el campo de usuario
+//        binding.tvNotMeLink.setOnClickListener {
+//            binding.empresaAutocomplete.setText("") // Limpiar el campo de empresa
+//            binding.usuarioEditText.setText("")  // Limpiar el campo de usuario
+//
+//            sessionManager.clearUserDetails() // Borrar los datos del usuario
+//            recreate() // Recargar la actividad para mostrar los campos de login nuevamente
+//        }
 
-            sessionManager.clearUserDetails() // Borrar los datos del usuario
-            recreate() // Recargar la actividad para mostrar los campos de login nuevamente
+
+        binding.tvNotMeLink.setOnClickListener {
+            // Limpiar el campo de empresa
+            binding.empresaAutocomplete.setText("")
+            // Limpiar el campo de usuario
+            binding.usuarioEditText.setText("")
+
+            // Borrar los datos del usuario almacenados en SessionManager
+            sessionManager.clearUserDetails()
+
+            // Mostrar los campos de empresa y usuario nuevamente
+            binding.empresaTextInputLayout.visibility = View.VISIBLE
+            binding.usuarioTextInputLayout.visibility = View.VISIBLE
+
+            // Ocultar el mensaje de bienvenida y el enlace de "No soy yo"
+            binding.tvWelcomeMessage.visibility = View.GONE
+            binding.tvNotMeLink.visibility = View.GONE
+
+            // Aquí puedes restablecer cualquier otro estado necesario
         }
+
 
         // Asignar valores por defecto en modo Debug
         val isDebuggable = false // BuildConfig.DEBUG
@@ -131,12 +168,6 @@ class LoginActivity : AppCompatActivity() {
 
             selectedEmpresa = empresa // Guardar empresa seleccionada
         }
-
-        // Configura el OnItemClickListener para equipoAutocomplete
-//        binding.empresaAutocomplete.setOnItemClickListener { _, _, _, _ ->
-//            // Si se selecciona un equipo, quita el foco del AutoCompleteTextView
-//            binding.empresaAutocomplete.clearFocus()
-//        }
 
         // Llamar a la función para convertir el texto a mayúsculas
         setEditTextToUppercase(binding.empresaAutocomplete)
@@ -211,6 +242,52 @@ class LoginActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Seleccione una empresa válida", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        networkHelper.registerNetworkCallback()  // Registrar cuando la actividad esté visible
+    }
+
+    override fun onStop() {
+        super.onStop()
+        networkHelper.unregisterNetworkCallback()  // Desregistrar cuando la actividad deje de ser visible
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // Unregister the network callback to prevent leaks
+        networkHelper.unregisterNetworkCallback()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        networkHelper.registerNetworkCallback()
+
+        if (!networkHelper.isNetworkAvailable()) {
+            networkErrorLayout.visibility = View.VISIBLE
+            // Oculta el contenido principal
+            // ...
+        } else {
+            networkErrorLayout.visibility = View.GONE
+            // Muestra el contenido principal
+            // ...
+        }
+    }
+
+    fun reloadParticularComponents() {
+        // Recargar solo los componentes que dependen de la red
+        if (networkHelper.isNetworkAvailable()) {
+            // Por ejemplo, recargar las empresas en el AutoCompleteTextView
+            autocompleteManager.loadEmpresas(binding.empresaAutocomplete, this) { empresa ->
+                selectedEmpresa = empresa
+            }
+            // Recarga los componentes que dependen de la red
+            networkErrorLayout.visibility = View.GONE // Oculta el layout de error
+        } else {
+            // Muestra un mensaje al usuario indicando que aún no hay conexión
+            Toast.makeText(this, "Aún no hay conexión a internet", Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -164,7 +164,10 @@ class MainActivity : AppCompatActivity() {
         if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
             gestionUsuariosItem.isVisible = true
         }
-        
+
+        // Marca el ítem de "Inicio" como seleccionado
+        binding.navView.setCheckedItem(R.id.nav_home)
+
         binding.navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_home -> {
@@ -175,25 +178,25 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.nav_cerrar_sesion -> {
                     cerrarSesion()
-                    true
+                    false
                 }
                 R.id.nav_partediario -> {
                     // Acción para nav_partesdiarios
                     findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_partediario) // Reemplaza R.id.nav_partediario con el ID del fragmento destino
                     binding.drawerLayout.closeDrawers()
-                    true
+                    false
                 }
                 R.id.nav_check_update -> {
                     // Acción para nav_check_updates
                     checkUpdates()
                     binding.drawerLayout.closeDrawers()
-                    true
+                    false
                 }
                 R.id.nav_gestion_usuarios -> {
                     // Acción para nav_gestion_usuarios
                     findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_gestion_usuarios) // Reemplaza R.id.nav_partediario con el ID del fragmento destino
                     binding.drawerLayout.closeDrawers()
-                    true
+                    false
                 }
 
                 // Agregar más casos según sea necesario
@@ -249,7 +252,7 @@ class MainActivity : AppCompatActivity() {
                 showUpdateDialog(latestVersion.apkUrl, latestVersion.versionName)
             } else if (!isAutomatic) {
                 // Mostrar mensaje de "no hay actualizaciones disponibles" solo si la llamada es manual
-                Toast.makeText(this@MainActivity, "No hay actualizaciones disponibles", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@MainActivity, "Ya tienes la última versión.", Toast.LENGTH_SHORT).show()
             }
         }
     }

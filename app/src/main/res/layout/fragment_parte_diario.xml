@@ -15,7 +15,6 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -259,6 +258,7 @@
             android:text="Fecha:"
             android:textSize="15sp"
             android:textStyle="bold"
+            android:textColor="@color/light_500"
             app:layout_constraintEnd_toStartOf="@id/ultimoParteHorasInicioTextView"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
             app:layout_constraintStart_toStartOf="parent"
@@ -270,6 +270,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Horas Inicio: 0"
+            android:textColor="@color/light_500"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@id/ultimoParteTituloTextView" />
 
@@ -279,6 +280,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="Equipo: "
+            android:textColor="@color/light_500"
             app:layout_constraintEnd_toStartOf="@id/ultimoParteHorasFinTextView"
             app:layout_constraintHorizontal_chainStyle="spread_inside"
             app:layout_constraintStart_toStartOf="parent"
@@ -290,6 +292,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Horas Fin: 0"
+            android:textColor="@color/light_500"
             app:layout_constraintEnd_toEndOf="@+id/ultimoParteHorasInicioTextView"
             app:layout_constraintTop_toBottomOf="@id/ultimoParteHorasInicioTextView" />
 
