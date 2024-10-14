@@ -6,8 +6,8 @@ plugins {
 
 buildscript {
     dependencies {
-        classpath("com.android.tools.build:gradle:8.6.0") // O una versión superior
+        classpath("com.android.tools.build:gradle:8.6.1") // O una versión superior
         classpath("com.google.dagger:hilt-android-gradle-plugin:2.44")
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.8.0") // Versión actualizada
+        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.8.2") // Versión actualizada
     }
 }

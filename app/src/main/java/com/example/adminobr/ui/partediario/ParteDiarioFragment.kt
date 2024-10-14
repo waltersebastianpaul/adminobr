@@ -2,11 +2,8 @@ package com.example.adminobr.ui.partediario
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.app.DatePickerDialog
-import android.content.Context
 import android.content.res.ColorStateList
 import android.os.Bundle
-
 import android.text.Editable
 import android.text.InputFilter
 import android.text.Spannable
@@ -17,11 +14,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
+import androidx.cardview.widget.CardView
+import androidx.compose.ui.semantics.text
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -38,37 +38,37 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
-
 import androidx.lifecycle.lifecycleScope
-
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.data.Obra
 import com.example.adminobr.ui.adapter.ParteDiarioAdapter
 import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.utils.AutocompleteManager
+import com.example.adminobr.utils.NetworkErrorCallback
+import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.utils.SharedPreferencesHelper
 import com.example.adminobr.viewmodel.ParteDiarioViewModel
 import kotlinx.coroutines.launch
-
 import org.json.JSONException
 import org.json.JSONObject
-
 import java.io.IOException
-
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 
-class ParteDiarioFragment : Fragment() {
+class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
 
     private val baseUrl = Constants.getBaseUrl() //"http://adminobr.site/"
 
+    // Helper para verificar el estado de la conexión de red
+    private lateinit var networkHelper: NetworkStatusHelper
+
     private var _binding: FragmentParteDiarioBinding? = null
     private val binding get() = _binding!! // Binding para acceder a los elementos del layout
+
+    // Layout para mostrar errores de conexión de red
+    private lateinit var networkErrorLayout: View
 
     private lateinit var autocompleteManager: AutocompleteManager
     private val appDataViewModel: AppDataViewModel by activityViewModels()
@@ -88,6 +88,8 @@ class ParteDiarioFragment : Fragment() {
     private lateinit var horasTrabajadasEditText: EditText
     private lateinit var observacionesEditText: EditText
     private lateinit var obraAutocomplete: AutoCompleteTextView
+    private lateinit var mostrarMantenimientoTextView: TextView
+    private lateinit var mantenimientoCardView: CardView
     private lateinit var guardarButton: Button
     private lateinit var sessionManager: SessionManager
 
@@ -101,6 +103,8 @@ class ParteDiarioFragment : Fragment() {
     ): View {
         // Inicializa el SessionManager con el contexto del fragmento
         sessionManager = SessionManager(requireContext())
+        networkHelper = NetworkStatusHelper(requireContext())
+        networkHelper.networkErrorCallback = this // Asignamos el callback
 
         _binding = FragmentParteDiarioBinding.inflate(inflater, container, false) // Mover esta línea aquí
 
@@ -115,6 +119,8 @@ class ParteDiarioFragment : Fragment() {
         horasInicioEditText = binding.horasInicioEditText
         horasFinEditText = binding.horasFinEditText
         horasTrabajadasEditText = binding.horasTrabajadasEditText
+        mostrarMantenimientoTextView = binding.mostrarMantenimientoTextView
+        mantenimientoCardView = binding.mantenimientoCardView
         observacionesEditText = binding.observacionesEditText
         obraAutocomplete = binding.obraAutocomplete
         guardarButton = binding.guardarButton
@@ -165,6 +171,30 @@ class ParteDiarioFragment : Fragment() {
             selectedObra = obra // Guardar equipo seleccionado
         }
 
+        // Verificar el tipo de conexión
+//        if (networkHelper.isWifiConnected()) {
+//            Snackbar.make(binding.root, "Conectado por Wi-Fi", Snackbar.LENGTH_SHORT).show()
+//        } else {
+//            Snackbar.make(binding.root, "Conectado por Datos Moviles", Snackbar.LENGTH_SHORT).show()
+//        }
+
+        // Inicializar networkErrorLayout
+        networkErrorLayout = view.findViewById(R.id.networkErrorLayout) // Usar view.findViewById
+
+        // Capturar el layout incluido
+        val networkErrorLayout = view.findViewById<ConstraintLayout>(R.id.networkErrorLayout)
+
+        // Capturar el botón retry_button dentro de networkErrorLayout
+        val retryButton = networkErrorLayout.findViewById<Button>(R.id.retry_button)
+
+        // Asegúrate de que binding se haya inicializado antes de acceder a networkErrorView
+        networkErrorLayout.visibility = View.GONE // O View.VISIBLE si quieres que se muestre inicialmente
+
+        // Configurar el listener para el botón de retry_button
+        retryButton.setOnClickListener {
+            manageNetworkErrorLayout()
+        }
+
         // Llamar a la función para convertir el texto a mayúsculas
         setEditTextToUppercase(equipoAutocomplete)
         setEditTextToUppercase(obraAutocomplete)
@@ -177,8 +207,13 @@ class ParteDiarioFragment : Fragment() {
         //actualizarHistorialPartes()
         observeViewModels()
 
+        networkHelper.registerNetworkCallback()  // Registrar cuando la actividad esté visible
+        // Verificar el estado de la red, para mostrar el layout de errores
+        manageNetworkErrorLayout()
+
     }
 
+    @SuppressLint("DefaultLocale")
     private fun setupListeners() {
         val userId = sessionManager.getUserId()
 
@@ -193,7 +228,19 @@ class ParteDiarioFragment : Fragment() {
             }
         }
 
+        mostrarMantenimientoTextView.setOnClickListener {
+            if (mantenimientoCardView.visibility == View.VISIBLE) {
+                mantenimientoCardView.visibility = View.GONE
+                mostrarMantenimientoTextView.text = "Mostrar Mantenimiento"
+            } else {
+                mantenimientoCardView.visibility = View.VISIBLE
+                mostrarMantenimientoTextView.text = "Ocultar Mantenimiento"
+            }
+            // Aquí puedes restablecer cualquier otro estado necesario
+        }
+
         guardarButton.setOnClickListener {
+
             guardarParteDiario()
 
             // Actualizar la lista después de guardar
@@ -233,6 +280,10 @@ class ParteDiarioFragment : Fragment() {
     }
 
     private fun guardarParteDiario() {
+        // Forzar pérdida de foco de los EditText
+        horasTrabajadasEditText.clearFocus()
+        horasInicioEditText.clearFocus()
+        horasFinEditText.clearFocus()
 
         // Ocultar el teclado usando AppUtils
         AppUtils.closeKeyboard(requireActivity(), view)
@@ -295,49 +346,6 @@ class ParteDiarioFragment : Fragment() {
         }
     }
 
-//    private fun showDatePickerDialog() {
-//        val locale = Locale.getDefault()
-//        val calendar = Calendar.getInstance(locale)
-//        val dateString = fechaEditText.text.toString()
-//
-//        Log.d("DatePickerDialog", "Fecha actual en EditText: $dateString")
-//
-//        if (dateString.isNotBlank()) {
-//            val formatter = SimpleDateFormat("dd/MM/yyyy", locale)
-//            val date = formatter.parse(dateString)
-//
-//            Log.d("DatePickerDialog", "Fecha parseada: $date")
-//
-//            date?.let {
-//                calendar.time = it
-//                Log.d("DatePickerDialog", "Calendario actualizado con fecha: ${calendar.time}")
-//            }
-//        }
-//
-//        val year = calendar.get(Calendar.YEAR)
-//        val month = calendar.get(Calendar.MONTH)
-//        val day = calendar.get(Calendar.DAY_OF_MONTH)
-//
-//        Log.d("DatePickerDialog", "Año: $year, Mes: $month, Día: $day")
-//
-//        val datePickerDialog = DatePickerDialog(
-//            requireContext(),
-//            { _, selectedYear, selectedMonth, selectedDay ->
-//                val formattedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
-//
-//                Log.d("DatePickerDialog", "Fecha formateada: $formattedDate")
-//
-//                fechaEditText.setText(formattedDate)
-//                equipoAutocomplete.requestFocus()
-//            },
-//            year,
-//            month,
-//            day
-//        )
-//        datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
-//        datePickerDialog.show()
-//    }
-
     private fun setupTextWatchers() {
         // TextWatcher para calcular horas trabajadas
         val horasTextWatcher = object: TextWatcher {
@@ -352,7 +360,7 @@ class ParteDiarioFragment : Fragment() {
         // Configurar TextWatchers para los campos de horas
         horasInicioEditText.addTextChangedListener(horasTextWatcher)
         horasFinEditText.addTextChangedListener(horasTextWatcher)
-        //horasTrabajadasEditText.addTextChangedListener(horasTextWatcher)
+        horasTrabajadasEditText.addTextChangedListener(horasTextWatcher)
 
         // Otros TextWatchers para los campos requeridos
         addTextWatcher(binding.fechaTextInputLayout, "Campo requerido")
@@ -361,28 +369,23 @@ class ParteDiarioFragment : Fragment() {
         addTextWatcher(binding.horasFinTextInputLayout, "Campo requerido")
         addTextWatcher(binding.obraTextInputLayout, "Campo requerido")
 
-
-
-    horasInicioEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
-        if (!hasFocus) {
-            calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+        horasInicioEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
+            if (!hasFocus) {
+                calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+            }
         }
-    }
 
-    horasFinEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
-        if (!hasFocus) {
-            calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+        horasFinEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
+            if (!hasFocus) {
+                calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+            }
         }
-    }
 
-    horasTrabajadasEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
-        if (!hasFocus) {
-            calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+        horasTrabajadasEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
+            if (!hasFocus) {
+                calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+            }
         }
-    }
-
-
-
     }
 
     private fun observeViewModels() {
@@ -512,6 +515,7 @@ class ParteDiarioFragment : Fragment() {
         obraAutocomplete.text?.clear()
         horasInicioEditText.text?.clear()
         horasFinEditText.text?.clear()
+        horasTrabajadasEditText.text?.clear()
         observacionesEditText.text?.clear()
 
         habilitarFormulario()
@@ -544,9 +548,34 @@ class ParteDiarioFragment : Fragment() {
         binding.fechaTextInputLayout.isEndIconVisible = false
     }
 
+    /**
+     * Función que gestiona el layout de errores de red y recarga componentes si la red está disponible.
+     */
+    override fun manageNetworkErrorLayout() {
+        if (networkHelper.isNetworkAvailable()) {
+            networkErrorLayout.visibility = View.GONE
+            reloadComponents() // Recargar componentes que dependen de la red
+            binding.guardarButton.isEnabled = true
+        } else {
+            networkErrorLayout.visibility = View.VISIBLE
+            binding.guardarButton.isEnabled = false
+        }
+    }
+
+    /**
+     * Método que se ejecuta al destruir la actividad. Desregistra los callbacks para evitar fugas de memoria.
+     */
     override fun onDestroyView() {
         super.onDestroyView()
+        // Desregistrar cuando la actividad deje de ser visible
+        networkHelper.unregisterNetworkCallback()
+
+        // Limpiar el binding
         _binding = null
+    }
+
+    private fun reloadComponents() {
+        // Recargar componentes que dependen de la red
     }
 
     private fun validarCampos(): Boolean {

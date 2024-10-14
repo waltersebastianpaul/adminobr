@@ -33,6 +33,9 @@ class NuevoUsuarioFragment : Fragment() {
     private var _binding: FragmentNuevoUsuarioBinding? = null
     private val binding get() = _binding!!
 
+    private var isEditing = false
+    private var userId: Int? = null
+
     private lateinit var legajoEditText: EditText
     private lateinit var nuevoUsuarioIdTextView: EditText
     private lateinit var emailEditText: EditText
@@ -83,6 +86,15 @@ class NuevoUsuarioFragment : Fragment() {
         // Configurar listeners
         setupListeners()
 
+        // Obtener el ID del usuario a editar (si existe)
+        arguments?.let {
+            userId = it.getInt("userId")
+            if (userId != null) {
+                isEditing = true
+                cargarDatosUsuario()
+            }
+        }
+
     }
 
     private fun setupTextWatchers() {
@@ -111,9 +123,24 @@ class NuevoUsuarioFragment : Fragment() {
 
         guardarButton.setOnClickListener {
             if (validarContrasenas()) {
-                guardarNuevoUsuario()
+                if (isEditing) {
+                    actualizarUsuario()
+                } else {
+                    guardarNuevoUsuario()
+                }
             }
         }
+    }
+
+    private fun cargarDatosUsuario() {
+        // Realizar una llamada a la API para obtener los datos del usuario
+        // y completar los campos del formulario
+    }
+
+    private fun actualizarUsuario() {
+        // Crear un objeto Usuario con los datos del formulario
+        // Incluir el ID del usuario
+        // Llamar al endpoint actualizarUsuario de la API
     }
 
     private fun setupFab() {

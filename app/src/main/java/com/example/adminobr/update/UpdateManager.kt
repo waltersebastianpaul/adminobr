@@ -29,6 +29,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 
 import com.example.adminobr.utils.Constants
+import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.utils.SessionManager
 
 class UpdateManager(private val context: Context) {
@@ -38,6 +39,38 @@ class UpdateManager(private val context: Context) {
     private val isDebuggable = sessionManager.getDebuggable()
 
     private var updateUrl = Constants.Update.UPDATE_DIR
+
+//    suspend fun checkForUpdates(): Boolean {
+//        Log.d("UpdateManager", "Iniciando checkForUpdates()")
+//        return try {
+//            val updateService = Retrofit.Builder()
+//                .baseUrl("http://adminobr.site/updates/apk/")
+//                .addConverterFactory(GsonConverterFactory.create())
+//                .build()
+//                .create(UpdateService::class.java)
+//
+//            val latestVersion = updateService.getLatestVersion()
+//            val currentVersionCode = getCurrentVersionCode()
+//            Log.d("UpdateManager", "latestVersion.versionCode ${latestVersion.versionCode}")
+//            Log.d("UpdateManager", "currentVersionCode $currentVersionCode")
+//
+//            if (latestVersion.versionCode > currentVersionCode) {
+//                if (!networkHelper.isWifiConnected()) {
+//                    showWifiWarningDialog(latestVersion.apkUrl)
+//                    return false
+//                } else {
+//                    downloadUpdate(latestVersion.apkUrl)
+//                    return true
+//                }
+//            } else {
+//                return false
+//            }
+//        } catch (e: Exception) {
+//            Log.e("UpdateManager", "Error al comprobar actualizaciones: ${e.message}", e)
+//            Toast.makeText(context, "Error al comprobar actualizaciones", Toast.LENGTH_SHORT).show()
+//            false
+//        }
+//    }
 
     suspend fun checkForUpdates(): Boolean {
 
@@ -63,6 +96,42 @@ class UpdateManager(private val context: Context) {
             false
         }
     }
+
+//    suspend fun downloadUpdate(apkUrl: String): Uri? {
+//        return withContext(Dispatchers.IO) {
+//            var uri: Uri? = null
+//            try {
+//                val resolver = context.applicationContext.contentResolver
+//                val contentValues = ContentValues().apply {
+//                    put(MediaStore.MediaColumns.DISPLAY_NAME, "app-release.apk")
+//                    put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.android.package-archive")
+//                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//                        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+//                    }
+//                }
+//
+//                uri = resolver.insert(getDownloadDirectoryUri()!!, contentValues)
+//                uri?.let {
+//                    resolver.openOutputStream(it)?.use { outputStream ->
+//                        val client = OkHttpClient()
+//                        val request = Request.Builder().url(apkUrl).build()
+//                        val response = client.newCall(request).execute()
+//                        if (response.isSuccessful) {
+//                            response.body?.byteStream()?.use { inputStream ->
+//                                inputStream.copyTo(outputStream)
+//                                Log.d("UpdateManager", "Descarga de APK - Completada")
+//                            }
+//                        } else {
+//                            Log.e("UpdateManager", "Error en la descarga: ${response.code} - ${response.message}")
+//                        }
+//                    }
+//                }
+//            } catch (e: Exception) {
+//                Log.e("UpdateManager", "Error general en downloadAndInstallUpdate: ${e.message}", e)
+//            }
+//            uri
+//        }
+//    }
 
     suspend fun downloadUpdate(apkUrl: String): Uri? {
         return withContext(Dispatchers.IO) {
@@ -99,6 +168,7 @@ class UpdateManager(private val context: Context) {
             uri
         }
     }
+
     suspend fun handleUpdate(apkUri: Uri) {
         if (isAppInForeground()) {
             installApk(apkUri)
@@ -145,7 +215,7 @@ class UpdateManager(private val context: Context) {
         }
     }
 
-    private fun showInstallNotification(apkUri: Uri) {
+    fun showInstallNotification(apkUri: Uri) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "update_channel"
@@ -197,7 +267,7 @@ class UpdateManager(private val context: Context) {
         }
     }
 
-    private fun isAppInForeground(): Boolean {
+    fun isAppInForeground(): Boolean {
         val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
         val appProcesses = activityManager.runningAppProcesses
         if (appProcesses != null) {

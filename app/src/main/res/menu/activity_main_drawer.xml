@@ -25,6 +25,12 @@
             android:visible="false"
             android:title="Gestionar Usuarios" />
 
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings"
+            android:enabled="false"
+            android:title="Configuración General" />
+
     </group>
 
     <group android:id="@+id/grupo_final">

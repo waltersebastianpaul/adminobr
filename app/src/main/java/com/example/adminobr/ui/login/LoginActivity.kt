@@ -9,8 +9,10 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.AutoCompleteTextView
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.adminobr.utils.AutocompleteManager
@@ -26,6 +28,7 @@ import com.example.adminobr.data.LoginRequest
 import com.example.adminobr.data.LoginResponse
 import com.example.adminobr.ui.common.ProgressDialogFragment
 import com.example.adminobr.utils.AppUtils
+import com.example.adminobr.utils.NetworkErrorCallback
 import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.viewmodel.AppDataViewModel
 import com.google.android.material.textfield.TextInputLayout
@@ -39,26 +42,50 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.Locale
 
-class LoginActivity : AppCompatActivity() {
+/**
+ * Módulo LoginActivity
+ *
+ * Esta actividad gestiona el flujo de inicio de sesión en la aplicación, verificando la conectividad de red,
+ * recuperando datos almacenados de usuario y empresa, y permitiendo al usuario autenticarse con sus credenciales.
+ * Incluye funcionalidades para manejar errores de red, validar campos de entrada y gestionar la persistencia de
+ * datos con `SessionManager`.
+ */
 
+class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
+
+    // Servicio de API para realizar solicitudes de login
     private val apiService: ApiService by lazy { ApiUtils.getApiService() }
 
-    // Declaración de variables para verificar la conexión
+    // Helper para verificar el estado de la conexión de red
     private lateinit var networkHelper: NetworkStatusHelper
 
-    // Declaración de variables para cargar los datos
+    // Administrador de autocompletado para cargar empresas
     private lateinit var autocompleteManager: AutocompleteManager
+
+    // ViewModel para gestionar los datos de la aplicación
     private lateinit var appDataViewModel: AppDataViewModel
+
+    // Binding para acceder a las vistas de la interfaz de usuario
     private lateinit var binding: ActivityLoginBinding
 
+    // Layout para mostrar errores de conexión de red
     private lateinit var networkErrorLayout: View
 
-    // Variable para almacenar la empresa seleccionada
+    // Variable para almacenar la empresa seleccionada en el campo de autocompletado
     private var selectedEmpresa: Empresa? = null
 
-    // Instancia de SessionManager solo cuando se acceda a ella
+    // Manager para la gestión de sesiones, carga solo cuando se accede a él
     private val sessionManager by lazy { SessionManager(this) }
 
+    // Variables para verificar si los datos de usuario y empresa ya están cargados
+    var isEmpresaPreloaded = false
+    var isUserPreloaded = false
+
+    /**
+     * Método que se ejecuta al crear la actividad.
+     * Se inicializan los elementos y se cargan los datos necesarios como el estado de la red,
+     * la interfaz de usuario y los datos del usuario y la empresa.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityLoginBinding.inflate(layoutInflater)
@@ -76,16 +103,25 @@ class LoginActivity : AppCompatActivity() {
         // Inicializar networkErrorLayout
         networkErrorLayout = findViewById(R.id.networkErrorLayout)
 
+        // Capturar el layout incluido
+        val networkErrorLayout = findViewById<ConstraintLayout>(R.id.networkErrorLayout)
+
+        // Capturar el botón retry_button dentro de networkErrorLayout
+        val retryButton = networkErrorLayout.findViewById<Button>(R.id.retry_button)
+
         // Asegúrate de que binding se haya inicializado antes de acceder a networkErrorView
         networkErrorLayout.visibility = View.GONE // O View.VISIBLE si quieres que se muestre inicialmente
 
+        retryButton.setOnClickListener {
+            manageNetworkErrorLayout()
+        }
 
         // Verificar si ya existen datos guardados del usuario
         val userDetails = sessionManager.getUserDetails()
         val empresa = sessionManager.getEmpresaData() // Obtener los datos de la empresa
 
         if (!userDetails["legajo"].isNullOrEmpty() && !userDetails["nombre"].isNullOrEmpty()) {
-
+            isUserPreloaded = true
             // Mostrar mensaje de bienvenida
             binding.tvWelcomeMessage.text = "¡Hola ${userDetails["nombre"]?.uppercase(Locale.ROOT)}!"
             binding.tvWelcomeMessage.visibility = View.VISIBLE
@@ -98,9 +134,13 @@ class LoginActivity : AppCompatActivity() {
             binding.usuarioTextInputLayout.visibility = View.GONE
 
             // Si los datos de la empresa existen, mostrar el nombre de la empresa en el campo de autocomplete
-            if (empresa != null && empresa.nombre.isNotEmpty()) {
+            if (empresa != null && empresa.nombre.isNotEmpty() && !empresa.db_name.isNullOrEmpty()) {
+                isEmpresaPreloaded = true
                 Log.d("LoginActivity", "Empresa recuperada: ${empresa.nombre}")
                 binding.empresaAutocomplete.setText(empresa.nombre) // Asignar el nombre de la empresa
+            } else {
+                Log.d("LoginActivity", "No se encontraron datos de empresa en SharedPreferences.")
+                Toast.makeText(this, "No se encontraron datos de empresa en SharedPreferences.", Toast.LENGTH_SHORT).show()
             }
 
             // Asignar el legajo al campo de usuario
@@ -113,16 +153,6 @@ class LoginActivity : AppCompatActivity() {
             // Si no hay datos, mostrar los campos de login
             Log.d("LoginActivity", "No se encontraron datos de usuario en SharedPreferences.")
         }
-
-        // Configurar el enlace de "No soy yo"
-//        binding.tvNotMeLink.setOnClickListener {
-//            binding.empresaAutocomplete.setText("") // Limpiar el campo de empresa
-//            binding.usuarioEditText.setText("")  // Limpiar el campo de usuario
-//
-//            sessionManager.clearUserDetails() // Borrar los datos del usuario
-//            recreate() // Recargar la actividad para mostrar los campos de login nuevamente
-//        }
-
 
         binding.tvNotMeLink.setOnClickListener {
             // Limpiar el campo de empresa
@@ -143,7 +173,6 @@ class LoginActivity : AppCompatActivity() {
 
             // Aquí puedes restablecer cualquier otro estado necesario
         }
-
 
         // Asignar valores por defecto en modo Debug
         val isDebuggable = false // BuildConfig.DEBUG
@@ -187,22 +216,45 @@ class LoginActivity : AppCompatActivity() {
 
         // Listener para el botón de login
         binding.loginButton.setOnClickListener {
+            // Verificar si hay conexión a internet
+            if (!networkHelper.isNetworkAvailable()) {
+                Toast.makeText(this, "No hay conexión a internet", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val usuario = binding.usuarioEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
 
             // Cerrar el teclado usando AppUtils
             AppUtils.closeKeyboard(this, currentFocus)
 
+            // Usar la empresa almacenada en SharedPreferences si existe
+            val empresa = sessionManager.getEmpresaData()
+
             if (validarCampos()) {
 
                 val progressDialog = ProgressDialogFragment.show(supportFragmentManager)
                 lifecycleScope.launch {
                     try {
-                        Log.e("LoginActivity", "DB Name: ${selectedEmpresa?.db_name}")
 
-                        val loginRequest = LoginRequest(usuario, password, selectedEmpresa!!.db_name)
+                        // Usar la empresa guardada si está disponible
+                        val dbName = empresa?.db_name ?: selectedEmpresa?.db_name
+
+                        if (dbName.isNullOrEmpty()) {
+                            Log.e("LoginActivity", "DB Name es nulo o vacío")
+                            Toast.makeText(this@LoginActivity, "DB Name es nulo o vacío", Toast.LENGTH_SHORT).show()
+
+                            return@launch
+                        }
+
+                        val loginRequest = LoginRequest(usuario, password, dbName)
                         val requestBody = Gson().toJson(loginRequest)
                             .toRequestBody("application/json".toMediaTypeOrNull())
+
+                        Log.d("LoginActivity", "Datos a enviar: Usuario = $usuario, Password = $password, DB Name = $dbName")
+                        Log.d("LoginActivity", "Enviando datos al servidor: $requestBody")
+
+                        // Realizar la solicitud de login
                         val response = apiService.login(requestBody)
 
                         Log.d("LoginActivity", "Enviando datos al servidor: $requestBody")
@@ -240,57 +292,67 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
             } else {
-                Toast.makeText(this, "Seleccione una empresa válida", Toast.LENGTH_SHORT).show()
+                // Mostrar un mensaje de error si los campos no son válidos
+                Toast.makeText(this, "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    /**
+     * Método que se ejecuta al iniciar la actividad, registrando los callbacks de red.
+     */
     override fun onStart() {
         super.onStart()
         networkHelper.registerNetworkCallback()  // Registrar cuando la actividad esté visible
+
+        // Verificar el estado de la red, para mostrar el layout de errores
+        manageNetworkErrorLayout()
     }
 
+    /**
+     * Método que se ejecuta al detener la actividad, desregistrando los callbacks de red.
+     */
     override fun onStop() {
         super.onStop()
         networkHelper.unregisterNetworkCallback()  // Desregistrar cuando la actividad deje de ser visible
     }
 
+    /**
+     * Método que se ejecuta al destruir la actividad. Desregistra los callbacks para evitar fugas de memoria.
+     */
     override fun onDestroy() {
         super.onDestroy()
         // Unregister the network callback to prevent leaks
         networkHelper.unregisterNetworkCallback()
     }
 
-    override fun onResume() {
-        super.onResume()
-        networkHelper.registerNetworkCallback()
-
-        if (!networkHelper.isNetworkAvailable()) {
-            networkErrorLayout.visibility = View.VISIBLE
-            // Oculta el contenido principal
-            // ...
-        } else {
-            networkErrorLayout.visibility = View.GONE
-            // Muestra el contenido principal
-            // ...
-        }
-    }
-
-    fun reloadParticularComponents() {
-        // Recargar solo los componentes que dependen de la red
+    /**
+     * Función que gestiona el layout de errores de red y recarga componentes si la red está disponible.
+     */
+    override fun manageNetworkErrorLayout() {
         if (networkHelper.isNetworkAvailable()) {
-            // Por ejemplo, recargar las empresas en el AutoCompleteTextView
-            autocompleteManager.loadEmpresas(binding.empresaAutocomplete, this) { empresa ->
-                selectedEmpresa = empresa
-            }
-            // Recarga los componentes que dependen de la red
-            networkErrorLayout.visibility = View.GONE // Oculta el layout de error
+            networkErrorLayout.visibility = View.GONE
+            reloadComponents() // Recargar componentes que dependen de la red
+            binding.loginButton.isEnabled = true
         } else {
-            // Muestra un mensaje al usuario indicando que aún no hay conexión
-            Toast.makeText(this, "Aún no hay conexión a internet", Toast.LENGTH_SHORT).show()
+            networkErrorLayout.visibility = View.VISIBLE
+            binding.loginButton.isEnabled = false
         }
     }
 
+    /**
+     * Función que recarga los componentes que dependen de la conexión de red.
+     */
+    private fun reloadComponents() {
+        // Si hay conexión, recargar las empresas en el AutoCompleteTextView
+        autocompleteManager.loadEmpresas(binding.empresaAutocomplete, this) { empresa ->
+            selectedEmpresa = empresa
+        }
+    }
+
+    /**
+     * Función que agrega un TextWatcher a un campo de entrada para validar su contenido.
+     */
     private fun addTextWatcher(textInputLayout: TextInputLayout, errorMessage: String) {
         val editText = textInputLayout.editText
         editText?.addTextChangedListener(object : TextWatcher {
@@ -318,41 +380,37 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
+    /**
+     * Función que convierte el texto ingresado en un AutoCompleteTextView a mayúsculas.
+     */
     private fun setEditTextToUppercase(editText: AutoCompleteTextView) {
         editText.filters = arrayOf(InputFilter.AllCaps())
     }
 
+    /**
+     * Función que maneja la respuesta de la solicitud de login.
+     */
     private fun handleLoginResponse(response: Response<LoginResponse>) {
         if (response.isSuccessful) {
             val loginResponse = response.body()
+            val empresa = selectedEmpresa ?: sessionManager.getEmpresaData()
 
-
-            Log.d("LoginActivity", "loginResponse.user: ${loginResponse?.user}")
-            Log.d("LoginActivity", "Roles: ${loginResponse?.user?.roles?.joinToString()}")
-            Log.d("LoginActivity", "Permisos: ${loginResponse?.user?.permisos?.joinToString()}")
-
-            if (loginResponse != null && loginResponse.success) {
-                Log.d("LoginActivity", "Inicio de sesión exitoso")
-
+            if (loginResponse?.success == true && empresa != null) {
                 // Guardar la empresa seleccionada
-                sessionManager.saveEmpresaData(selectedEmpresa!!)
+                sessionManager.saveEmpresaData(empresa)
 
                 // Guardar los datos del usuario en SharedPreferences
-                sessionManager.saveUserDetails(
-                    loginResponse.user.id ?: -1, // Usar -1 como valor predeterminado si es nulo
-                    loginResponse.user.legajo,
-                    loginResponse.user.nombre,
-                    loginResponse.user.apellido,
-                    loginResponse.user.roles,
-                    loginResponse.user.principalRole
-                )
-
-                // Log después de guardar los datos
-                Log.d("LoginActivity", "Datos de usuario guardados en SharedPreferences:")
-                Log.d("LoginActivity", "Legajo: ${loginResponse.user.legajo}")
-                Log.d("LoginActivity", "Nombre: ${loginResponse.user.nombre}")
-                Log.d("LoginActivity", "Apellido: ${loginResponse.user.apellido}")
-                Log.d("LoginActivity", "Roles: ${loginResponse.user.roles}")
+                loginResponse.user.let { user ->
+                    sessionManager.saveUserDetails(
+                        user.id ?: -1,
+                        user.legajo,
+                        user.nombre,
+                        user.apellido,
+                        user.roles,
+                        user.principalRole
+                    )
+                    Log.d("LoginActivity", "Datos de usuario guardados en SharedPreferences.")
+                }
 
                 // Iniciar la actividad principal
                 startActivity(Intent(this, MainActivity::class.java))
@@ -363,13 +421,15 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
             }
         } else {
-            val errorBody = response.errorBody()?.string()
-            val errorMessage = parseErrorMessage(errorBody)
+            val errorMessage = parseErrorMessage(response.errorBody()?.string())
             Log.e("LoginActivity", "Error en la respuesta del servidor: ${response.code()} - $errorMessage")
             Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
         }
     }
 
+    /**
+     * Función que parsea el mensaje de error del servidor.
+     */
     private fun parseErrorMessage(errorBody: String?): String {
         return if (errorBody.isNullOrEmpty()) {
             "Error en la respuesta del servidor"
@@ -383,10 +443,13 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Función para validar los campos de entrada del formulario de login.
+     */
     private fun validarCampos(): Boolean {
         var camposValidos = true
 
-        if (binding.usuarioEditText.text.isNullOrEmpty()) {
+        if (!isUserPreloaded && binding.usuarioEditText.text.isNullOrEmpty()) {
             binding.usuarioTextInputLayout.error = "Campo requerido"
             binding.usuarioTextInputLayout.isErrorEnabled = true
             camposValidos = false
@@ -402,22 +465,20 @@ class LoginActivity : AppCompatActivity() {
             binding.passwordTextInputLayout.isErrorEnabled = false
         }
 
-        if (binding.empresaAutocomplete.text.isNotEmpty()) {
-            if (selectedEmpresa == null) {
-                val empresaName = binding.empresaAutocomplete.text.toString()
-                selectedEmpresa = autocompleteManager.getEmpresaByName(empresaName)
-                if (selectedEmpresa == null) {
-                    binding.empresaTextInputLayout.error = "Seleccione una empresa válida"
-                    binding.empresaTextInputLayout.isErrorEnabled = true
-                    camposValidos = false
-                } else {
-                    binding.empresaTextInputLayout.isErrorEnabled = false
-                }
-            }
-        } else {
+        if (!isEmpresaPreloaded && binding.empresaAutocomplete.text.isEmpty()) {
             binding.empresaTextInputLayout.error = "Campo requerido"
             binding.empresaTextInputLayout.isErrorEnabled = true
             camposValidos = false
+        } else if (selectedEmpresa == null && !isEmpresaPreloaded) {
+            val empresaName = binding.empresaAutocomplete.text.toString()
+            selectedEmpresa = autocompleteManager.getEmpresaByName(empresaName)
+
+            if (selectedEmpresa == null) {
+                binding.empresaTextInputLayout.error = "Seleccione una empresa válida"
+                camposValidos = false
+            } else {
+                binding.empresaTextInputLayout.isErrorEnabled = false
+            }
         }
 
         if (!camposValidos) {

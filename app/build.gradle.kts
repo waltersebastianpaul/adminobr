@@ -12,8 +12,8 @@ android {
         applicationId = "com.example.adminobr"
         minSdk = 24
         targetSdk = 34
-        versionCode = 13
-        versionName = "1.0.13"
+        versionCode = 14
+        versionName = "1.0.14"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -94,8 +94,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 
     implementation ("com.google.android.flexbox:flexbox:3.0.0")
-    implementation ("androidx.gridlayout:gridlayout:1.0.0")
-
 
 }
 

@@ -19,19 +19,24 @@ import com.example.adminobr.ui.login.LoginActivity
 import com.example.adminobr.databinding.ActivityMainBinding
 import com.example.adminobr.viewmodel.AppDataViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.util.Locale
 import androidx.lifecycle.lifecycleScope
 import com.example.adminobr.update.UpdateManager
 import kotlinx.coroutines.launch
 import android.app.AlertDialog
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.green
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.update.DownloadService
+import com.example.adminobr.utils.NetworkStatusHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -40,6 +45,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fab: FloatingActionButton
 
     private lateinit var sessionManager: SessionManager
+
+    private lateinit var networkHelper: NetworkStatusHelper
 
     companion object {
         private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
@@ -50,6 +57,9 @@ class MainActivity : AppCompatActivity() {
 
         // Inicializar SessionManager
         sessionManager = SessionManager(applicationContext)
+
+        // Inicializa NetworkStatusHelper después de que la actividad ha sido creada
+        networkHelper = NetworkStatusHelper(this)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -82,7 +92,12 @@ class MainActivity : AppCompatActivity() {
 
         val versionName = packageManager.getPackageInfo(packageName, 0).versionName
         val versionTextView: TextView = headerView.findViewById(R.id.versionTextView)
-        versionTextView.text = "v $versionName"
+
+        if (BuildConfig.DEBUG) {
+            versionTextView.text = "v $versionName (Debug)"
+        } else {
+            versionTextView.text = "v $versionName"
+        }
 
         // Comprobar y solicitar el permiso de notificaciones
         checkNotificationPermission()
@@ -93,25 +108,45 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        // Verificar si hay una actualización pendiente en Wi-Fi
+        checkPendingUpdateOnWifi()
+    }
+
     // Funcionalidad para solicitar permisos de notificaciones
     private fun checkNotificationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            // Permiso concedido, puedes mostrar notificaciones
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Verificar la versión de Android
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                // Permiso concedido, puedes mostrar notificaciones
+            } else {
+                // Permiso no concedido, solicitar permiso
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST_CODE)
+            }
         } else {
-            // Permiso no concedido, solicitar permiso
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST_CODE)
+            // En versiones anteriores a Android 13, no se necesita solicitar el permiso
+            // Puedes mostrar un mensaje al usuario o simplemente omitir la solicitud
         }
     }
 
+//    private fun checkNotificationPermission() {
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+//            // Permiso concedido, puedes mostrar notificaciones
+//        } else {
+//            // Permiso no concedido, solicitar permiso
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST_CODE)
+//        }
+//    }
+
     private fun cerrarSesion() {
         // Borrar las credenciales del user
-//        val sharedPreferences = getSharedPreferences("mis_preferencias", Context.MODE_PRIVATE)
-//        val editor = sharedPreferences.edit()
-//        editor.clear()
-//        editor.apply()
-//        editor.remove("user_legajo")  // Borrar solo el legajo del usuario
-//        editor.remove("user_nombre")  // Borrar solo el nombre del usuario
-//        editor.remove("user_apellido")  // Borrar solo el apellido del usuario
+        //val sharedPreferences = getSharedPreferences("mis_preferencias", Context.MODE_PRIVATE)
+        //val editor = sharedPreferences.edit()
+        //editor.clear()
+        //editor.apply()
+        //editor.remove("user_legajo")  // Borrar solo el legajo del usuario
+        //editor.remove("user_nombre")  // Borrar solo el nombre del usuario
+        //editor.remove("user_apellido")  // Borrar solo el apellido del usuario
 
         // Limpiar la sesión
         //sessionManager.clearSession()
@@ -148,7 +183,6 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         binding.navView.setupWithNavController(navController)
-
 
 
         // Obtener roles del usuario
@@ -244,30 +278,201 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkUpdates(isAutomatic: Boolean = false) {
-        lifecycleScope.launch {
-            val updateManager = UpdateManager(this@MainActivity)
-            val hasUpdate = updateManager.checkForUpdates()
-            if (hasUpdate) {
-                val latestVersion = updateManager.getLatestVersion()
-                showUpdateDialog(latestVersion.apkUrl, latestVersion.versionName)
-            } else if (!isAutomatic) {
-                // Mostrar mensaje de "no hay actualizaciones disponibles" solo si la llamada es manual
-                Toast.makeText(this@MainActivity, "Ya tienes la última versión.", Toast.LENGTH_SHORT).show()
+
+        if (!checkPendingUpdateOnWifi()) {
+
+            lifecycleScope.launch {
+                val updateManager = UpdateManager(this@MainActivity)
+                val hasUpdate = updateManager.checkForUpdates()
+                if (hasUpdate) {
+                    val latestVersion = updateManager.getLatestVersion()
+                    showUpdateDialog(latestVersion.apkUrl, latestVersion.versionName)
+                } else if (!isAutomatic) {
+                    // Mostrar mensaje de "no hay actualizaciones disponibles" solo si la llamada es manual
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Ya tienes la última versión.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
 
     private fun showUpdateDialog(apkUrl: String, versionName: String) {
-        AlertDialog.Builder(this)
+        val builder = AlertDialog.Builder(this)
             .setTitle("Actualización disponible")
-            .setMessage("Se ha encontrado una nueva versión ($versionName). ¿Desea descargar e instalar la actualización?")
-            .setPositiveButton("Sí") { _, _ ->
-                val intent = Intent(this, DownloadService::class.java)
-                intent.putExtra("apkUrl", apkUrl)
-                startService(intent)
+            .setMessage("La versión $versionName ya está disponible.\n¿Actualizar ahora?") // Salto de línea aquí
+            .setPositiveButton("Actualizar") { _, _ ->
+                if (networkHelper.isWifiConnected()) {
+                    startDownloadService(apkUrl)
+                } else {
+                    showWifiWarningDialog(apkUrl)
+                }
             }
-            .setNegativeButton("No", null)
-            .show()
+            .setNegativeButton("Omitir", null)
+
+        val dialog = builder.create() // Crear el diálogo aquí
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.black))
+        }
+
+        dialog.show()
     }
+
+    private fun showWifiWarningDialog(apkUrl: String) {
+        val builder = AlertDialog.Builder(this) // Cambiar a builder
+            .setTitle("Conexión de datos móviles")
+            .setMessage("Descargar ahora puede consumir tu plan de datos. ¿Desea continuar o descargar con Wi-Fi?")
+            .setPositiveButton("Continuar") { _, _ ->
+                // Continúa con la descarga usando datos móviles
+                startDownloadService(apkUrl)
+            }
+            .setNegativeButton("Descargar con Wi-Fi") { _, _ ->
+                // Guarda la URL para la próxima vez que se conecte a Wi-Fi
+                sessionManager.savePendingUpdateUrl(apkUrl)
+                Toast.makeText(this, "La actualización se descargará cuando estés conectado a Wi-Fi.", Toast.LENGTH_SHORT).show()
+            }
+
+        val dialog = builder.create() // Crear el diálogo aquí
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.black))
+        }
+
+        dialog.show()
+    }
+
+//    private fun showWifiWarningDialog(apkUrl: String) {
+//        AlertDialog.Builder(this)
+//            .setTitle("Conexión de datos móviles")
+//            .setMessage("No estás conectado a una red Wi-Fi. La descarga puede consumir tu plan de datos. ¿Deseas continuar?")
+//            .setPositiveButton("Sí, descargar") { _, _ ->
+//                startDownloadService(apkUrl)
+//            }
+//            .setNegativeButton("Esperar a Wi-Fi") { _, _ ->
+//                sessionManager.savePendingUpdateUrl(apkUrl)
+//                Toast.makeText(this, "La actualización se descargará cuando estés conectado a Wi-Fi.", Toast.LENGTH_SHORT).show()
+//            }
+//            .setNeutralButton("Cancelar", null)
+//            .show()
+//    }
+
+    private fun startDownloadService(apkUrl: String) {
+        val intent = Intent(this, DownloadService::class.java)
+        intent.putExtra("apkUrl", apkUrl)
+        startService(intent)
+    }
+
+    private fun checkPendingUpdateOnWifi():Boolean {
+        val pendingUpdateUrl = sessionManager.getPendingUpdateUrl()
+        pendingUpdateUrl?.let {
+            if (networkHelper.isWifiConnected()) {
+                startDownloadService(it)
+                sessionManager.clearPendingUpdateUrl()
+            }
+            return true
+        }
+        return false
+    }
+
+
+
+
+
+
+
+
+
+//    private fun checkPendingUpdateOnWifi() {
+//        val sessionManager = SessionManager(this)
+//        val pendingUpdateUrl = sessionManager.getPendingUpdateUrl()
+//
+//        pendingUpdateUrl?.let {
+//            // Start the download now that we're on Wi-Fi
+//            lifecycleScope.launch(Dispatchers.IO) {
+//                val updateManager = UpdateManager(this@MainActivity)
+//
+//                // Download the update
+//                val apkUri = updateManager.downloadUpdate(it)
+//
+//                apkUri?.let { uri ->
+//                    // Clear the pending update after downloading
+//                    sessionManager.clearPendingUpdateUrl()
+//
+//                    // Handle installation in the foreground or notify for later
+//                    if (updateManager.isAppInForeground()) {
+//                        updateManager.installApk(uri)
+//                    } else {
+//                        updateManager.showInstallNotification(uri)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//
+//
+//
+//
+//    private fun startDownloadService(apkUrl: String) {
+//        val intent = Intent(this, DownloadService::class.java)
+//        intent.putExtra("apkUrl", apkUrl)
+//        startService(intent)
+//    }
+//
+//
+//    private fun showUpdateDialog(apkUrl: String, versionName: String) {
+//        AlertDialog.Builder(this)
+//            .setTitle("Actualización disponible")
+//            .setMessage("Se ha encontrado una nueva versión ($versionName). ¿Desea descargar e instalar la actualización?")
+//            .setPositiveButton("Sí") { _, _ ->
+//                if (networkHelper.isWifiConnected()) {
+//                    val intent = Intent(this, DownloadService::class.java)
+//                    intent.putExtra("apkUrl", apkUrl)
+//                    startService(intent)
+//                } else {
+//                    showWifiWarningDialog(apkUrl)
+//                }
+//            }
+//            .setNegativeButton("No", null)
+//            .show()
+//    }
+//
+//
+//    private fun showWifiWarningDialog(apkUrl: String) {
+//        withContext(Dispatchers.Main) {
+//            androidx.appcompat.app.AlertDialog.Builder(context)
+//                .setTitle("Conexión de datos móviles")
+//                .setMessage("No estás conectado a una red Wi-Fi. La descarga puede consumir tu plan de datos. ¿Deseas continuar?")
+//                .setPositiveButton("Sí, descargar") { _, _ ->
+//                    val intent = Intent(this, DownloadService::class.java)
+//                    intent.putExtra("apkUrl", apkUrl)
+//                    startService(intent)
+//                }
+//                .setNegativeButton("Esperar a Wi-Fi") { _, _ ->
+//                    sessionManager.savePendingUpdateUrl(apkUrl)
+//                }
+//                .setNeutralButton("Cancelar", null)
+//                .show()
+//        }
+//    }
+//
+//
+//    fun retryPendingDownloadIfWifiConnected() {
+//        val pendingUpdateUrl = sessionManager.getPendingUpdateUrl()
+//        if (pendingUpdateUrl != null && networkHelper.isWifiConnected()) {
+//            // Launch a coroutine to handle the suspend function
+//            CoroutineScope(Dispatchers.IO).launch {
+//                downloadUpdate(pendingUpdateUrl)
+//                sessionManager.clearPendingUpdateUrl()
+//            }
+//        }
+//    }
+
+
+
+
+
 
 }

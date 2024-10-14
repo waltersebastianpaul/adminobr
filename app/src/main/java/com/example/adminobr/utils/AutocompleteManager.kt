@@ -1,5 +1,6 @@
 package com.example.adminobr.utils
 
+//noinspection SuspiciousImport
 import android.R
 import android.content.Context
 import android.text.Editable

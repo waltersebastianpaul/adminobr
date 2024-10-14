@@ -84,9 +84,9 @@
         android:background="@color/danger_100"
         android:textColor="@color/danger_500"
         android:visibility="gone"
-        android:textSize="12dp"
+        android:textSize="12sp"
         android:justificationMode="inter_word"
-        android:text="Atención: Atención: La lista se borrará luego de $TIEMPO_LIMITE_HS horas.\nSe recomienda, COMPARTIR la lista de partes."
+        android:text="Atención: La lista se borrará luego de $TIEMPO_LIMITE_HS horas.\nSe recomienda, COMPARTIR la lista de partes."
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/cargarParteButton" />

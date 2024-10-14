@@ -66,6 +66,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
+            android:focusable="true"
             android:visibility="visible"
             android:paddingTop="8dp"
             android:paddingBottom="8dp"

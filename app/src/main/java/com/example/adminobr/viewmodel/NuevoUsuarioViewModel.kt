@@ -76,6 +76,47 @@ class NuevoUsuarioViewModel(application: Application) : AndroidViewModel(applica
             }
         }
 
+        suspend fun actualizarUsuario(usuario: Usuario, newPassword: String?): Boolean {
+            return withContext(Dispatchers.IO) {
+                try {
+                    val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: return@withContext false
+
+                    val requestBody = FormBody.Builder()
+                        .add("id", usuario.id.toString())
+                        .add("legajo", usuario.legajo)
+                        .add("email", usuario.email)
+                        .add("dni", usuario.dni)
+                        .add("nombre", usuario.nombre)
+                        .add("apellido", usuario.apellido)
+                        .add("telefono", usuario.telefono)
+                        .add("empresaDbName", empresaDbName)
+
+                    // Agregar la nueva contraseña si se proporciona
+                    if (!newPassword.isNullOrEmpty()) {
+                        requestBody.add("newPassword", newPassword)
+                    }
+
+                    val request = Request.Builder()
+                        .url("$baseUrl${Constants.Usuarios.ACTUALIZAR}") // Usar la URL para actualizar
+                        .post(requestBody.build())
+                        .build()
+
+                    val response = client.newCall(request).execute()
+
+                    // Manejar la respuesta para actualizar (solo necesitamos éxito o fracaso)
+                    return@withContext if (response.isSuccessful) {
+                        val responseBody = response.body?.string()
+                        val jsonResponse = responseBody?.let { JSONObject(it) }
+                        jsonResponse?.getBoolean("success") ?: false
+                    } else {
+                        false
+                    }
+                } catch (e: IOException) {
+                    false
+                }
+            }
+        }
+
         private fun handleResponse(response: Response): Pair<Boolean, Int?> {
             return if (response.isSuccessful) {
                 val responseBody = response.body?.string()
@@ -116,6 +157,28 @@ class NuevoUsuarioViewModel(application: Application) : AndroidViewModel(applica
             }
         }
     }
+
+    fun actualizarUsuario(usuario: Usuario, newPassword: String?, callback: (Boolean) -> Unit) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val resultado = api.actualizarUsuario(usuario, newPassword)
+                if (resultado) {
+                    _mensaje.value = Event("Usuario actualizado con éxito")
+                    callback(true)
+                } else {
+                    _error.value = Event("Error al actualizar el usuario")
+                    callback(false)
+                }
+            } catch (e: Exception) {
+                _error.value = Event("Error al actualizar el usuario: ${e.message}")
+                callback(false)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
 }
 
 // Factory para el ViewModel

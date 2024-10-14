@@ -1,5 +1,6 @@
 package com.example.adminobr.ui.utils
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
@@ -22,6 +23,7 @@ class DatePickerRangeDialog(private val context: Context, private val onDateRang
         return DatePickerDialog(context, this, year, month, day)
     }
 
+    @SuppressLint("DefaultLocale")
     override fun onDateSet(view: DatePicker?, year: Int, month: Int, dayOfMonth: Int) {
         val formattedDate = String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year)
         if (isStartDateSelected) {

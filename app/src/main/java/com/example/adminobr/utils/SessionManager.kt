@@ -23,6 +23,7 @@ class SessionManager(context: Context) {
         private const val KEY_USER_PRINCIPAL_ROL = "user_principal_rol"
         private const val KEY_USER_PERMISOS = "user_permisos"
         private const val KEY_DEBUGGABLE = "false"
+        private const val KEY_PENDING_UPDATE_URL = "pending_update_url"
     }
 
     // Métodos para guardar y obtener los datos de la empresa como objeto `Empresa`
@@ -162,6 +163,22 @@ class SessionManager(context: Context) {
 
         // Log para confirmar que los datos se han eliminado
         Log.d("SessionManager", "Datos de usuario eliminados de SharedPreferences")
+    }
+
+    fun savePendingUpdateUrl(url: String) {
+        val editor = prefs.edit()
+        editor.putString(KEY_PENDING_UPDATE_URL, url)
+        editor.apply()
+    }
+
+    fun getPendingUpdateUrl(): String? {
+        return prefs.getString(KEY_PENDING_UPDATE_URL, null)
+    }
+
+    fun clearPendingUpdateUrl() {
+        val editor = prefs.edit()
+        editor.remove(KEY_PENDING_UPDATE_URL)
+        editor.apply()
     }
 
 }
