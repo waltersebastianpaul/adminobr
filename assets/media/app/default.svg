@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="144"
+   height="28"
+   viewBox="0 0 144 28"
+   fill="none"
+   version="1.1"
+   id="svg3"
+   sodipodi:docname="default.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview3"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="6.6634993"
+     inkscape:cx="65.20598"
+     inkscape:cy="42.095"
+     inkscape:window-width="1920"
+     inkscape:window-height="991"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg3" />
+  <g
+     clip-path="url(#clip0)"
+     id="g3">
+    <path
+       d="M25.402 1.37404C25.5367 1.22411 25.6115 1.0288 25.6118 0.826128C25.6118 0.608229 25.5268 0.39915 25.3752 0.24442C25.2236 0.0896895 25.0178 0.00183968 24.8025 0H24.7925L11.277 0.00697453H11.2671C11.0753 0.00694157 10.8855 0.0470626 10.7097 0.124815C10.534 0.202568 10.376 0.316273 10.2457 0.458788C9.3537 1.37016 7.06896 3.67108 2.94663 7.6196C-2.56614 12.8995 1.34716 18.112 1.34716 18.112L6.38905 23.2153C5.2061 21.9358 6.6578 20.2487 6.6578 20.2487L25.3499 1.43371C25.3637 1.42054 25.3775 1.40659 25.3905 1.39264L25.4035 1.37869L25.402 1.37404Z"
+       fill="#0094FF"
+       id="path2" />
+    <path
+       d="M26.0333 26.6213L26.0287 26.6166L15.0078 15.4755C14.9298 15.3977 14.8373 15.3363 14.7358 15.2948C14.6342 15.2533 14.5256 15.2325 14.416 15.2336C14.3065 15.2348 14.1983 15.2578 14.0977 15.3015C13.997 15.3451 13.9058 15.4085 13.8294 15.4879L8.00119 21.3561C6.5227 23.1525 7.4101 24.0778 7.4101 24.0778L10.8433 27.6776C10.9311 27.7782 11.039 27.8586 11.16 27.9136C11.2809 27.9685 11.4121 27.9966 11.5447 27.9961H25.4055C25.4147 27.9961 25.4231 27.9961 25.433 27.9961C25.59 27.9951 25.7433 27.9483 25.8745 27.8613C26.0057 27.7742 26.1093 27.6506 26.1727 27.5053C26.2362 27.36 26.2568 27.1993 26.232 27.0424C26.2073 26.8856 26.1383 26.7393 26.0333 26.6213Z"
+       fill="#3F4254"
+       id="path3" />
+  </g>
+  <defs
+     id="defs3">
+    <clipPath
+       id="clip0">
+      <rect
+         width="26.25"
+         height="28"
+         fill="white"
+         id="rect3" />
+    </clipPath>
+  </defs>
+  <text
+     xml:space="preserve"
+     style="font-size:20px;fill:#3f4254;fill-opacity:1"
+     x="39.367752"
+     y="19.809412"
+     id="text3"><tspan
+       id="tspan3"
+       x="39.367752"
+       y="19.809412"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:20px;font-family:Calibri;-inkscape-font-specification:'Calibri Bold';fill:#3f4254;fill-opacity:1"
+       sodipodi:role="line">Admin<tspan
+   style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;font-family:Calibri;-inkscape-font-specification:'Calibri Light'"
+   id="tspan1">Obr</tspan></tspan></text>
+</svg>

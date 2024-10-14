@@ -1,0 +1,13 @@
+/* Estilos personalizados */
+.capitalize {
+    text-transform: capitalize;
+}
+
+.lowercase {
+    text-transform: lowercase;
+}
+
+/* Estilo para que el placeholder no sea afectado */
+input::placeholder {
+    text-transform: none; /* O puedes usar 'capitalize' si lo prefieres */
+}
