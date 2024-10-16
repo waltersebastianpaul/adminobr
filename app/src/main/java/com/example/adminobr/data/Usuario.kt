@@ -9,7 +9,7 @@ data class Usuario(
     val email: String,
     val telefono: String,
     val userCreated: Int,
-    val password: String,
+    val password: String = "",
     val estadoId: Int,
     val roles: List<String>? = null,
     val principalRole: String? = null,

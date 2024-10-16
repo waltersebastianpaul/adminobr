@@ -16,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -87,6 +88,13 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
     private lateinit var horasFinEditText: EditText
     private lateinit var horasTrabajadasEditText: EditText
     private lateinit var observacionesEditText: EditText
+    private lateinit var combustibleTipoAutocomplete: AutoCompleteTextView
+    private lateinit var combustibleCantEditText: EditText
+    private lateinit var lubricanteMotorCantEditText: EditText
+    private lateinit var lubricanteHidraulicoCantEditText: EditText
+    private lateinit var engraseCheckBox: CheckBox
+
+
     private lateinit var obraAutocomplete: AutoCompleteTextView
     private lateinit var mostrarMantenimientoTextView: TextView
     private lateinit var mantenimientoCardView: CardView
@@ -122,6 +130,11 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         mostrarMantenimientoTextView = binding.mostrarMantenimientoTextView
         mantenimientoCardView = binding.mantenimientoCardView
         observacionesEditText = binding.observacionesEditText
+        combustibleTipoAutocomplete = binding.combustibleTipoAutocomplete
+        combustibleCantEditText = binding.combustibleCantEditText
+        lubricanteMotorCantEditText = binding.lubricanteMotorCantEditText
+        lubricanteHidraulicoCantEditText = binding.lubricanteHidraulicoCantEditText
+        engraseCheckBox = binding.engraseCheckBox
         obraAutocomplete = binding.obraAutocomplete
         guardarButton = binding.guardarButton
 
@@ -517,6 +530,12 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         horasFinEditText.text?.clear()
         horasTrabajadasEditText.text?.clear()
         observacionesEditText.text?.clear()
+        combustibleTipoAutocomplete.text?.clear()
+        combustibleCantEditText.text?.clear()
+        lubricanteMotorCantEditText.text?.clear()
+        lubricanteHidraulicoCantEditText.text?.clear()
+        engraseCheckBox.isChecked = false
+
 
         habilitarFormulario()
 
@@ -529,6 +548,12 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         horasFinEditText.isEnabled = true
         horasTrabajadasEditText.isEnabled = true
         observacionesEditText.isEnabled = true
+        combustibleTipoAutocomplete.isEnabled = true
+        combustibleCantEditText.isEnabled = true
+        lubricanteMotorCantEditText.isEnabled = true
+        lubricanteHidraulicoCantEditText.isEnabled = true
+        engraseCheckBox.isEnabled = true
+
         obraAutocomplete.isEnabled = true
         guardarButton.isEnabled = true
         // Habilita el ícono del calendario
@@ -542,6 +567,9 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         horasFinEditText.isEnabled = false
         horasTrabajadasEditText.isEnabled = false
         observacionesEditText.isEnabled = false
+        combustibleTipoAutocomplete.isEnabled = false
+        combustibleCantEditText.isEnabled = false
+
         obraAutocomplete.isEnabled = false
         guardarButton.isEnabled = false
         // Deshabilita el ícono del calendario

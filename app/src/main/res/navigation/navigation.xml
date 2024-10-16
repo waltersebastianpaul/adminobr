@@ -44,15 +44,56 @@
             app:destination="@id/nav_partediario" />
     </fragment>
 
-    <fragment
-        android:id="@+id/nav_gestion_usuarios"
-        android:name="com.example.adminobr.ui.usuarios.NuevoUsuarioFragment"
-        android:label="Gestion de Usuarios"
-        tools:layout="@layout/fragment_nuevo_usuario" />
+<!--    <fragment-->
+<!--        android:id="@+id/nav_gestion_usuarios2"-->
+<!--        android:name="com.example.adminobr.ui.usuarios.NuevoUsuarioFragment"-->
+<!--        android:label="Gestion de Usuarios"-->
+<!--        tools:layout="@layout/fragment_nuevo_usuario" />-->
 
     <fragment
         android:id="@+id/nav_editar_usuario"
         android:name="com.example.adminobr.ui.usuarios.NuevoUsuarioFragment"
         android:label="Editar Usuario"
         tools:layout="@layout/fragment_nuevo_usuario" />
+
+    <fragment
+        android:id="@+id/nav_gestion_usuarios"
+        android:name="com.example.adminobr.ui.usuarios.UserListFragment"
+        android:label="Lista de Usuarios"
+        tools:layout="@layout/fragment_user_list" >
+        <action
+            android:id="@+id/action_nav_gestion_usuarios_to_nav_userFormFragment_create"
+            app:destination="@id/nav_userFormFragment" >
+            <argument
+                android:name="isEditMode"
+                android:defaultValue="false" />
+        </action>
+
+        <action
+            android:id="@+id/action_nav_gestion_usuarios_to_nav_userFormFragment_edit"
+            app:destination="@id/nav_userFormFragment" >
+            <argument
+                android:name="isEditMode"
+                android:defaultValue="true" />
+            <argument
+                android:name="userId"
+                app:argType="integer" />
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_userFormFragment"
+        android:name="com.example.adminobr.ui.usuarios.UserFormFragment"
+        android:label="Gestion de Usuarios" >
+        <argument
+            android:name="isEditMode"
+            app:argType="boolean"
+            android:defaultValue="false" />
+        <argument
+            android:name="userId"
+            app:argType="integer"
+            android:defaultValue="-1" />
+    </fragment>
+
+
 </navigation>

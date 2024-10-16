@@ -1,35 +1,40 @@
 package com.example.adminobr.ui.usuarios
 
-import android.content.Context
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
+import androidx.compose.ui.semantics.text
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.example.adminobr.R
 import com.example.adminobr.data.Usuario
-import com.example.adminobr.databinding.FragmentNuevoUsuarioBinding
+import com.example.adminobr.databinding.FragmentUserFormBinding
 import com.example.adminobr.ui.common.ProgressDialogFragment
 import com.example.adminobr.utils.SessionManager
-import com.example.adminobr.viewmodel.NuevoUsuarioViewModel
-import com.example.adminobr.viewmodel.NuevoUsuarioViewModelFactory
+import com.example.adminobr.viewmodel.UsuarioViewModel
+import com.example.adminobr.viewmodel.UsuarioViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputLayout
 
-class EditarUsuarioFragment : Fragment() {
-    private val viewModel: NuevoUsuarioViewModel by viewModels {
-        NuevoUsuarioViewModelFactory(requireActivity().application) // Se pasa la aplicación
+class UserFormFragment : Fragment() {
+    private val viewModel: UsuarioViewModel by viewModels {
+        UsuarioViewModelFactory(requireActivity().application) // Se pasa la aplicación
     }
+    private lateinit var _binding: FragmentUserFormBinding
+    private val binding get() = _binding
 
-    private var _binding: FragmentNuevoUsuarioBinding? = null
-    private val binding get() = _binding!!
+    private var userId: Int? = null
+
+    private var isEditMode = false
 
     private lateinit var legajoEditText: EditText
     private lateinit var nuevoUsuarioIdTextView: EditText
@@ -48,7 +53,7 @@ class EditarUsuarioFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentNuevoUsuarioBinding.inflate(inflater, container, false)
+        _binding = FragmentUserFormBinding.inflate(inflater, container, false)
 
         legajoEditText = binding.legajoEditText
         nuevoUsuarioIdTextView = binding.nuevoUsuarioIdTextView
@@ -69,6 +74,10 @@ class EditarUsuarioFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Verificar si estamos en modo edición
+        isEditMode = arguments?.getBoolean("isEditMode", false) ?: false
+        var userId = sessionManager.getUserId()
+        var userIdEdit = arguments?.getInt("userId")
         // Configurar el FloatingActionButton
         setupFab()
 
@@ -81,6 +90,26 @@ class EditarUsuarioFragment : Fragment() {
         // Configurar listeners
         setupListeners()
 
+        // Obtener el ID del usuario y el modo de edición
+//        arguments?.let {
+//            userIdEdit = it.getInt("userId")
+//            isEditMode = userIdEdit != null
+//        }
+
+        arguments?.let {
+            isEditMode = it.getBoolean("isEditMode")
+            userId = it.getInt("userId", -1) // -1 como valor por defecto si no se proporciona
+        }
+
+        // Configurar el título
+        val titleTextView: TextView = view.findViewById(R.id.titleTextView)
+        titleTextView.text = if (isEditMode) "Editar Usuario" else "Nuevo Usuario"
+
+    }
+
+    private fun cargarDatosUsuario(userId: Int?) {
+        // Realizar una llamada a la API para obtener los datos del usuario
+        // y completar los campos del formulario
     }
 
     private fun setupTextWatchers() {
@@ -109,17 +138,40 @@ class EditarUsuarioFragment : Fragment() {
 
         guardarButton.setOnClickListener {
             if (validarContrasenas()) {
-                guardarNuevoUsuario()
+                if (isEditMode) {
+                    actualizarUsuario()
+                } else {
+                    guardarUsuario()
+                }
             }
         }
+    }
+
+    private fun cargarDatosUsuario() {
+        // Realizar una llamada a la API para obtener los datos del usuario
+        // y completar los campos del formulario
+    }
+
+    private fun actualizarUsuario() {
+        // Crear un objeto Usuario con los datos del formulario
+        // Incluir el ID del usuario
+        // Llamar al endpoint actualizarUsuario de la API
     }
 
     private fun setupFab() {
         // Obtener referencia al FAB y configurar su OnClickListener
         val fab: FloatingActionButton? = activity?.findViewById(R.id.fab)
+
+        fab?.visibility = View.GONE
+        fab?.setImageResource(R.drawable.ic_add)
+        fab?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+        fab?.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white)))
+
         fab?.setOnClickListener {
             limpiarFormulario()
+            fab.visibility = View.GONE
         }
+
     }
 
     private fun limpiarFormulario() {
@@ -148,18 +200,13 @@ class EditarUsuarioFragment : Fragment() {
         }
     }
 
-    private fun guardarNuevoUsuario() {
+    private fun guardarUsuario() {
         // Extensión para convertir String a Editable
         fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
 
-
-        //val userId = requireActivity().intent.getIntExtra("id", -1)
-        val userId = sessionManager.getUserId()
-
         if (validarCampos()) {
-
-            val nuevoUsuario = Usuario(
-                id = null,
+            val usuario = Usuario(
+                id = userId, // Si es modo edición, se usa el userId existente
                 legajo = legajoEditText.text.toString(),
                 email = emailEditText.text.toString(),
                 dni = dniEditText.text.toString(),
@@ -167,26 +214,41 @@ class EditarUsuarioFragment : Fragment() {
                 nombre = nombreEditText.text.toString(),
                 apellido = apellidoEditText.text.toString(),
                 telefono = telefonoEditText.text.toString(),
-                userCreated = userId, // Reemplazar con el ID del user actual
+                userCreated = sessionManager.getUserId(), // ID del usuario actual
                 estadoId = 1 // 1 = activo
             )
 
-            viewModel.guardarNuevoUsuario(nuevoUsuario) { success, nuevoId ->
-                if (success) {
-                    deshabilitarFormulario()
-                    val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
-                    fab.visibility = View.VISIBLE
-
-                    nuevoId?.let {
-                        binding.nuevoUsuarioIdTextView.text = it.toString().toEditable()
+            when (isEditMode) {
+                true -> {
+                    val newPassword = if (binding.passwordEditText.text?.isNotEmpty() == true) {
+                        binding.passwordEditText.text.toString()
+                    } else {
+                        null // Si el campo de contraseña está vacío, no se actualiza la contraseña
                     }
+                    viewModel.actualizarUsuario(usuario, newPassword) { success ->
+                        if (success) {
+                            deshabilitarFormulario()
+                            val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
+                            fab.visibility = View.VISIBLE
+                            // Puedes navegar a otro fragmento o realizar otras acciones
+                        } else {
+                            Toast.makeText(requireContext(), "Error al actualizar el usuario", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+                false -> viewModel.guardarNuevoUsuario(usuario) { success, nuevoId ->
+                    if (success) {
+                        deshabilitarFormulario()
+                        val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
+                        fab.visibility = View.VISIBLE
 
-                } else {
-                    Toast.makeText(
-                        requireContext(),
-                        "Error al guardar el parte diario",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                        nuevoId?.let {
+                            binding.nuevoUsuarioIdTextView.text = it.toString().toEditable()
+                        }
+                        // Puedes navegar a otro fragmento o realizar otras acciones
+                    } else {
+                        Toast.makeText(requireContext(), "Error al guardar el usuario", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -292,6 +354,11 @@ class EditarUsuarioFragment : Fragment() {
         telefonoEditText.isEnabled = false
         passwordEditText.isEnabled = false
         password2EditText.isEnabled = false
+
+        // Deshabilitar el icono de la contraseña
+        binding.passwordTextInputLayout.isEndIconVisible = false
+        binding.password2TextInputLayout.isEndIconVisible = false
+
         // Deshabilita el botón
         guardarButton.isEnabled = false
     }
