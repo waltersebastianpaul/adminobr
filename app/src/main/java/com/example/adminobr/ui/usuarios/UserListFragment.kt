@@ -50,13 +50,8 @@ class UserListFragment : Fragment(R.layout.fragment_user_list) {
         binding.userListRecyclerView.adapter = userAdapter
         binding.userListRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        usuarioViewModel.users.observe(viewLifecycleOwner) { users ->
-            userAdapter.submitList(users)
-        }
-
         usuarioViewModel.error.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { errorMessage ->
-                // Mostrar el mensaje de error al usuario (Toast, Snackbar, etc.)
                 Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
             }
         }

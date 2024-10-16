@@ -23,8 +23,11 @@ class UserAdapter(private val onUserClick: (Int) -> Unit) :
             binding.userEmailTextView.text = user.email
 
             binding.root.setOnClickListener {
-                user.id?.let { it1 -> onUserClick(it1) }
+                user.id
             }
+//            binding.root.setOnClickListener {
+//                onUserClick(user.id ?: 0) // Usar 0 como valor predeterminado si user.id es nulo
+//            }
         }
     }
 
