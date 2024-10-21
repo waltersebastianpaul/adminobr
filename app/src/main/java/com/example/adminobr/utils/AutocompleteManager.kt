@@ -126,7 +126,6 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
         }
     }
 
-
     fun loadObras(autoCompleteTextView: AutoCompleteTextView? = null, lifecycleOwner: LifecycleOwner? = null,
                   onObraSelected: ((Obra) -> Unit)? = null
     ) {

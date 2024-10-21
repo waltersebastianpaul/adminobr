@@ -14,19 +14,24 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.cardview.widget.CardView
+import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.text
+
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+
 import com.example.adminobr.R
 import com.example.adminobr.data.ParteDiario
 import com.example.adminobr.databinding.FragmentParteDiarioBinding
@@ -40,6 +45,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import androidx.lifecycle.lifecycleScope
+
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.data.Obra
 import com.example.adminobr.ui.adapter.ParteDiarioAdapter
@@ -88,16 +94,22 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
     private lateinit var horasFinEditText: EditText
     private lateinit var horasTrabajadasEditText: EditText
     private lateinit var observacionesEditText: EditText
+    private lateinit var mantenimientoTitleTextView: TextView
+    private lateinit var mantenimientoContentLayout: LinearLayout
     private lateinit var combustibleTipoAutocomplete: AutoCompleteTextView
     private lateinit var combustibleCantEditText: EditText
     private lateinit var lubricanteMotorCantEditText: EditText
     private lateinit var lubricanteHidraulicoCantEditText: EditText
+    private lateinit var lubricanteOtroCantEditText: EditText
     private lateinit var engraseCheckBox: CheckBox
+    private lateinit var filtroAireCheckBox: CheckBox
+    private lateinit var filtroAceiteCheckBox: CheckBox
+    private lateinit var filtroCombustibleCheckBox: CheckBox
 
+    private lateinit var filtroOtroCheckBox: CheckBox
 
     private lateinit var obraAutocomplete: AutoCompleteTextView
-    private lateinit var mostrarMantenimientoTextView: TextView
-    private lateinit var mantenimientoCardView: CardView
+
     private lateinit var guardarButton: Button
     private lateinit var sessionManager: SessionManager
 
@@ -127,14 +139,24 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         horasInicioEditText = binding.horasInicioEditText
         horasFinEditText = binding.horasFinEditText
         horasTrabajadasEditText = binding.horasTrabajadasEditText
-        mostrarMantenimientoTextView = binding.mostrarMantenimientoTextView
-        mantenimientoCardView = binding.mantenimientoCardView
-        observacionesEditText = binding.observacionesEditText
+
+        // Obtén referencias al TextView del título y al LinearLayout del contenido
+        mantenimientoTitleTextView = binding.mantenimientoTitleTextView
+        mantenimientoContentLayout = binding.mantenimientoContentLayout
+        lubricanteOtroCantEditText = binding.lubricanteOtroCantEditText
+
         combustibleTipoAutocomplete = binding.combustibleTipoAutocomplete
         combustibleCantEditText = binding.combustibleCantEditText
         lubricanteMotorCantEditText = binding.lubricanteMotorCantEditText
         lubricanteHidraulicoCantEditText = binding.lubricanteHidraulicoCantEditText
         engraseCheckBox = binding.engraseCheckBox
+        filtroAireCheckBox = binding.filtroAireCheckBox
+        filtroAceiteCheckBox = binding.filtroAceiteCheckBox
+        filtroCombustibleCheckBox = binding.filtroCombustibleCheckBox
+        filtroOtroCheckBox = binding.filtroOtroCheckBox
+
+        observacionesEditText = binding.observacionesEditText
+
         obraAutocomplete = binding.obraAutocomplete
         guardarButton = binding.guardarButton
 
@@ -184,6 +206,23 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
             selectedObra = obra // Guardar equipo seleccionado
         }
 
+        // Configurar AutoCompleteTextView para combustible
+        val combustibleItems = arrayOf("Diesel", "Nafta")
+        val combustibleAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, combustibleItems)
+        combustibleTipoAutocomplete.setAdapter(combustibleAdapter)
+        val combustibleSeleccionado = binding.combustibleTipoAutocomplete.text.toString()
+
+        val combustibleCant = combustibleCantEditText.text.toString().toIntOrNull() ?: 0
+        val lubricanteMotorCant = lubricanteMotorCantEditText.text.toString().toIntOrNull() ?: 0
+        val lubricanteHidraulicoCant = lubricanteHidraulicoCantEditText.text.toString().toIntOrNull() ?: 0
+        val lubricanteOtroCant = lubricanteOtroCantEditText.text.toString().toIntOrNull() ?: 0
+        val engraseGeneral = engraseCheckBox.isChecked
+        val filtroAire = binding.filtroAireCheckBox.isChecked
+        val filtroAceite = binding.filtroAceiteCheckBox.isChecked
+        val filtroCombustible = binding.filtroCombustibleCheckBox.isChecked
+        val filtroOtro = binding.filtroOtroCheckBox.isChecked
+
+
         // Verificar el tipo de conexión
 //        if (networkHelper.isWifiConnected()) {
 //            Snackbar.make(binding.root, "Conectado por Wi-Fi", Snackbar.LENGTH_SHORT).show()
@@ -223,7 +262,6 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         networkHelper.registerNetworkCallback()  // Registrar cuando la actividad esté visible
         // Verificar el estado de la red, para mostrar el layout de errores
         manageNetworkErrorLayout()
-
     }
 
     @SuppressLint("DefaultLocale")
@@ -241,15 +279,16 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
             }
         }
 
-        mostrarMantenimientoTextView.setOnClickListener {
-            if (mantenimientoCardView.visibility == View.VISIBLE) {
-                mantenimientoCardView.visibility = View.GONE
-                mostrarMantenimientoTextView.text = "Mostrar Mantenimiento"
+        // Configura un OnClickListener para el TextView del título
+        mantenimientoTitleTextView.setOnClickListener {
+            // Alterna la visibilidad del contenido
+            if (mantenimientoContentLayout.visibility == View.VISIBLE) {
+                mantenimientoContentLayout.visibility = View.GONE
+                // Cambiar el icono a flecha abajo
             } else {
-                mantenimientoCardView.visibility = View.VISIBLE
-                mostrarMantenimientoTextView.text = "Ocultar Mantenimiento"
+                mantenimientoContentLayout.visibility = View.VISIBLE
+                // Cambiar el icono a flecha arriba
             }
-            // Aquí puedes restablecer cualquier otro estado necesario
         }
 
         guardarButton.setOnClickListener {
@@ -327,7 +366,19 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
                 observaciones = observacionesEditText.text.toString(),
                 obraId = selectedObra?.id ?: 0,
                 userCreated = userId,
-                estadoId = 1
+                estadoId = 1,
+
+                combustible_tipo = combustibleTipoAutocomplete.text.toString(),
+                combustible_cant = combustibleCantEditText.text.toString().toIntOrNull() ?: 0,
+                aceite_motor_cant = lubricanteMotorCantEditText.text.toString().toIntOrNull() ?: 0,
+                aceite_hidra_cant = lubricanteHidraulicoCantEditText.text.toString().toIntOrNull() ?: 0,
+                aceite_otro_cant = lubricanteOtroCantEditText.text.toString().toIntOrNull() ?: 0,
+                engrase_general = engraseCheckBox.isChecked,
+                filtro_aire = binding.filtroAireCheckBox.isChecked,
+                filtro_aceite = binding.filtroAceiteCheckBox.isChecked,
+                filtro_comb = binding.filtroCombustibleCheckBox.isChecked,
+                filtro_otro = binding.filtroOtroCheckBox.isChecked,
+
             )
             Log.d("ParteDiarioFragment", "ParteDiario: ${parteDiario.fecha}")
 
@@ -378,9 +429,10 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         // Otros TextWatchers para los campos requeridos
         addTextWatcher(binding.fechaTextInputLayout, "Campo requerido")
         addTextWatcher(binding.equipoTextInputLayout, "Campo requerido")
+        addTextWatcher(binding.obraTextInputLayout, "Campo requerido")
         addTextWatcher(binding.horasInicioTextInputLayout, "Campo requerido")
         addTextWatcher(binding.horasFinTextInputLayout, "Campo requerido")
-        addTextWatcher(binding.obraTextInputLayout, "Campo requerido")
+        //addTextWatcher(binding.observacionesTextInputLayout, "Campo requerido")
 
         horasInicioEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
             if (!hasFocus) {
@@ -534,8 +586,12 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         combustibleCantEditText.text?.clear()
         lubricanteMotorCantEditText.text?.clear()
         lubricanteHidraulicoCantEditText.text?.clear()
+        lubricanteOtroCantEditText.text?.clear()
         engraseCheckBox.isChecked = false
-
+        filtroAireCheckBox.isChecked = false
+        filtroAceiteCheckBox.isChecked = false
+        filtroCombustibleCheckBox.isChecked = false
+        filtroOtroCheckBox.isChecked = false
 
         habilitarFormulario()
 
@@ -548,11 +604,9 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         horasFinEditText.isEnabled = true
         horasTrabajadasEditText.isEnabled = true
         observacionesEditText.isEnabled = true
-        combustibleTipoAutocomplete.isEnabled = true
-        combustibleCantEditText.isEnabled = true
-        lubricanteMotorCantEditText.isEnabled = true
-        lubricanteHidraulicoCantEditText.isEnabled = true
-        engraseCheckBox.isEnabled = true
+
+        mantenimientoContentLayout.isEnabled = true
+        mantenimientoContentLayout.visibility = View.GONE
 
         obraAutocomplete.isEnabled = true
         guardarButton.isEnabled = true
@@ -567,8 +621,7 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
         horasFinEditText.isEnabled = false
         horasTrabajadasEditText.isEnabled = false
         observacionesEditText.isEnabled = false
-        combustibleTipoAutocomplete.isEnabled = false
-        combustibleCantEditText.isEnabled = false
+        mantenimientoContentLayout.isEnabled = false
 
         obraAutocomplete.isEnabled = false
         guardarButton.isEnabled = false
@@ -585,6 +638,13 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
             reloadComponents() // Recargar componentes que dependen de la red
             binding.guardarButton.isEnabled = true
         } else {
+            // Verificar si el layout de error está visible
+            if (networkErrorLayout.visibility == View.VISIBLE) {
+                // Cambiar el texto del TextView en el layout de error
+                val textViewError = networkErrorLayout.findViewById<TextView>(R.id.textViewError)
+                textViewError?.text = "Aún no hay conexión a internet" // Cambiar el texto
+            }
+            // Muestra el layout de error de red
             networkErrorLayout.visibility = View.VISIBLE
             binding.guardarButton.isEnabled = false
         }
@@ -668,6 +728,24 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
             binding.obraTextInputLayout.isErrorEnabled = true
             camposValidos = false
         }
+
+
+        // Validación de observaciones para "Otro"
+        val isOtroLubricanteNotEmpty = lubricanteOtroCantEditText.text.toString().isNotEmpty() && observacionesEditText.text.toString().isNotEmpty()
+        val isOtroFiltroChecked = filtroOtroCheckBox.isChecked
+
+        if (isOtroLubricanteNotEmpty || isOtroFiltroChecked) {
+            if (observacionesEditText.text.isNullOrEmpty()) {
+                binding.observacionesTextInputLayout.error = "Por favor, describe el tipo de lubricante (Otro) o filtro (Otro) usado en el mantenimiento."
+                binding.observacionesTextInputLayout.isErrorEnabled = true
+                camposValidos = false
+            } else {
+                binding.observacionesTextInputLayout.isErrorEnabled = false
+            }
+        } else {
+            binding.observacionesTextInputLayout.isErrorEnabled = false // Limpia el error si no se selecciona "Otro"
+        }
+
 
         if (!camposValidos) {
             Toast.makeText(requireContext(), "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()

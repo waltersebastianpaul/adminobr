@@ -1,5 +1,6 @@
 package com.example.adminobr.utils
 
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Context
 import android.util.Log
@@ -15,19 +16,22 @@ object AppUtils {
 
     // Función para cerrar el teclado
 
-        // Llamar la función desde la Activity
-        /* AppUtils.closeKeyboard(this, currentFocus) */
+    // Llamar la función desde la Activity
+    /* AppUtils.closeKeyboard(this, currentFocus) */
 
-        // Llamar la función desde el Fragment
-        /* AppUtils.closeKeyboard(requireActivity(), view) */
+    // Llamar la función desde el Fragment
+    /* AppUtils.closeKeyboard(requireActivity(), view) */
 
-    fun closeKeyboard(context: Context, view: View?) {
-        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        view?.let {
-            imm.hideSoftInputFromWindow(it.windowToken, 0)
+    fun closeKeyboard(context: Context, view: View? = null) {
+        val inputMethodManager = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val targetView = view ?: (context as? Activity)?.currentFocus ?: (context as? Activity)?.window?.decorView
+        targetView?.let {
+            inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
         }
-    }
 
+        // Opcionalmente, puedes quitar el foco de la vista actual
+        (context as? Activity)?.currentFocus?.clearFocus()
+    }
 
     fun showDatePickerDialog(context: Context, editText: EditText, onDateSetListener: DatePickerDialog.OnDateSetListener) {
         val locale = Locale.getDefault()
@@ -54,4 +58,5 @@ object AppUtils {
         datePickerDialog.datePicker.maxDate = System.currentTimeMillis()
         datePickerDialog.show()
     }
+
 }

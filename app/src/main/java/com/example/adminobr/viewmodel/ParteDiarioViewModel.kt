@@ -95,6 +95,24 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
                         .add("obraId", parteDiario.obraId.toString())
                         .add("userCreated", parteDiario.userCreated.toString())
                         .add("estadoId", parteDiario.estadoId.toString())
+
+                        .add("combustible_tipo", parteDiario.combustible_tipo ?: "")
+                        .add("combustible_cant", parteDiario.combustible_cant.toString())
+                        .add("aceite_motor_cant", parteDiario.aceite_motor_cant.toString())
+                        .add("aceite_hidra_cant", parteDiario.aceite_hidra_cant.toString())
+                        .add("aceite_otro_cant", parteDiario.aceite_otro_cant.toString())
+                        .add("engrase_general", parteDiario.engrase_general.toString())
+                        .add("filtro_aire", parteDiario.filtro_aire.toString())
+                        .add("filtro_aceite", parteDiario.filtro_aceite.toString())
+                        .add("filtro_comb", parteDiario.filtro_comb.toString())
+                        .add("filtro_otro", parteDiario.filtro_otro.toString())
+
+                        .add("engrase_general", if (parteDiario.engrase_general == true) "1" else "0")
+                        .add("filtro_aire", if (parteDiario.filtro_aire == true) "1" else "0")
+                        .add("filtro_aceite", if (parteDiario.filtro_aceite == true) "1" else "0")
+                        .add("filtro_comb", if (parteDiario.filtro_comb == true) "1" else "0")
+                        .add("filtro_otro", if (parteDiario.filtro_otro == true) "1" else "0")
+
                         .add("empresaDbName", empresaDbName)  // Agrega empresaDbName al cuerpo de la solicitud
                         .build()
 

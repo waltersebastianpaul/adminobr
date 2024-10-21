@@ -378,14 +378,6 @@ class ParteSimpleFragment : Fragment() {
 
     }
 
-    private fun hideKeyboard() {
-        val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        val view = requireActivity().currentFocus
-        view?.let {
-            inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
-        }
-    }
-
     private fun setupTextWatchers() {
         // Otros TextWatchers para los campos requeridos
         addTextWatcher(equipoTextInputLayout, "Campo requerido")

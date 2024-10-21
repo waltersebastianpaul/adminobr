@@ -13,17 +13,15 @@ data class ParteDiario(
     val userCreated: Int,
     val estadoId: Int,
 
-    var combustible_tipo: String? = null,
-    var combustible_cant: Int? = null,
-    var lubricante1_tipo: String? = null,
-    var lubricante1_cant: Int? = null,
-    var lubricante2_tipo: String? = null,
-    var lubricante2_cant: Int? = null,
-    var engrase: Boolean = false, // Campo booleano
-    var filtro1_tipo: String? = null,
-    var filtro1_cant: Int? = null,
-    var filtro2_tipo: String? = null,
-    var filtro2_cant: Int? = null,
-    var filtro3_tipo: String? = null,
-    var filtro3_cant: Int? = null
+    // Nuevas propiedades para los campos de mantenimiento
+    val combustible_tipo: String?,
+    val combustible_cant: Int?,
+    val aceite_motor_cant: Int?,
+    val aceite_hidra_cant: Int?,
+    val aceite_otro_cant: Int?,
+    val engrase_general: Boolean?,
+    val filtro_aire: Boolean?,
+    val filtro_aceite: Boolean?,
+    val filtro_comb: Boolean?,
+    val filtro_otro: Boolean?
 )

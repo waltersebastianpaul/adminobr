@@ -3,6 +3,7 @@ package com.example.adminobr.api
 import com.example.adminobr.data.ListarPartesDiarios
 import com.example.adminobr.data.LoginResponse
 import com.example.adminobr.data.ParteDiario
+import com.example.adminobr.data.Usuario
 import com.example.adminobr.utils.Constants
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -34,4 +35,17 @@ interface ApiService {
     suspend fun getUltimosPartesDiarios(
         @Body requestBody: RequestBody
     ): Response<List<ListarPartesDiarios>>
+
+
+    @DELETE("api/usuarios/guardar_usuario.php")
+    suspend fun deleteUsuario(
+        @Query("id") idUsuario: Int,
+        @Query("empresaDbName") empresaDbName: String
+    ): Response<Void>
+
+    @PUT("api/usuarios/guardar_usuario.php")
+    suspend fun updateUsuario(
+        @Body usuario: Usuario,
+        @Query("empresaDbName") empresaDbName: String
+    ): Response<Unit>
 }

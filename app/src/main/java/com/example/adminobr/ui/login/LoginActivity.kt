@@ -1,5 +1,7 @@
 package com.example.adminobr.ui.login
 
+import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -8,8 +10,10 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.AutoCompleteTextView
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -226,7 +230,7 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
             val password = binding.passwordEditText.text.toString()
 
             // Cerrar el teclado usando AppUtils
-            AppUtils.closeKeyboard(this, currentFocus)
+            AppUtils.closeKeyboard(this)
 
             // Usar la empresa almacenada en SharedPreferences si existe
             val empresa = sessionManager.getEmpresaData()
@@ -304,7 +308,6 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
     override fun onStart() {
         super.onStart()
         networkHelper.registerNetworkCallback()  // Registrar cuando la actividad esté visible
-
         // Verificar el estado de la red, para mostrar el layout de errores
         manageNetworkErrorLayout()
     }
@@ -335,6 +338,13 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
             reloadComponents() // Recargar componentes que dependen de la red
             binding.loginButton.isEnabled = true
         } else {
+            // Verificar si el layout de error está visible
+            if (networkErrorLayout.visibility == View.VISIBLE) {
+                // Cambiar el texto del TextView en el layout de error
+                val textViewError = networkErrorLayout.findViewById<TextView>(R.id.textViewError)
+                textViewError?.text = "Aún no hay conexión a internet" // Cambiar el texto
+            }
+
             networkErrorLayout.visibility = View.VISIBLE
             binding.loginButton.isEnabled = false
         }

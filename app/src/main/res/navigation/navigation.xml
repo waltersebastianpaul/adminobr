@@ -38,7 +38,7 @@
         android:id="@+id/nav_listarpartes"
         android:name="com.example.adminobr.ui.partediario.ListarPartesFragment"
         android:label="Lista de Partes Diarios"
-        tools:layout="@layout/fragment_lista_partes">
+        tools:layout="@layout/fragment_listar_partes">
         <action
             android:id="@+id/action_editar"
             app:destination="@id/nav_partediario" />
@@ -58,9 +58,9 @@
 
     <fragment
         android:id="@+id/nav_gestion_usuarios"
-        android:name="com.example.adminobr.ui.usuarios.UserListFragment"
+        android:name="com.example.adminobr.ui.usuarios.ListarUsuariosFragment"
         android:label="Lista de Usuarios"
-        tools:layout="@layout/fragment_user_list" >
+        tools:layout="@layout/fragment_listar_usuarios" >
         <action
             android:id="@+id/action_nav_gestion_usuarios_to_nav_userFormFragment_create"
             app:destination="@id/nav_userFormFragment" >
@@ -83,7 +83,7 @@
 
     <fragment
         android:id="@+id/nav_userFormFragment"
-        android:name="com.example.adminobr.ui.usuarios.UserFormFragment"
+        android:name="com.example.adminobr.ui.usuarios.UsuarioFormFragment"
         android:label="Gestion de Usuarios" >
         <argument
             android:name="isEditMode"

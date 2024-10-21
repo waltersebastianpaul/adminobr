@@ -15,7 +15,7 @@
         <item name="android:statusBarColor">?attr/colorPrimary</item>
 
         <!-- Agrega esta línea -->
-        <item name="android:datePickerDialogTheme">@style/MyDatePickerDialogTheme</item>
+        <item name="android:datePickerDialogTheme">@style/DatePickerDialogTheme</item>
     </style>
 
     <style name="Theme.AdminObr.NoActionBar">
@@ -33,7 +33,7 @@
     </style>
 
     <!-- Define el tema para el DatePickerDialog -->
-    <style name="MyDatePickerDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog">
+    <style name="DatePickerDialogTheme" parent="ThemeOverlay.MaterialComponents.Dialog">
         <item name="colorAccent">@color/colorPrimary</item>
         <!-- Cambia el color de acento -->
         <item name="android:headerBackground">@color/colorPrimary</item>

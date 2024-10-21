@@ -123,8 +123,8 @@ class ListarPartesAdapter(private val viewModel: ParteDiarioViewModel, private v
         fun bind(parteDiario: ListarPartesDiarios) {
             binding.fechaTextView.text = "Fecha: ${parteDiario.fecha}"
             binding.equipoTextView.text = "Equipo: ${parteDiario.interno}"
-            binding.horasInicioTextView.text = "Horas: ${parteDiario.horas_inicio}"
-            binding.horasFinTextView.text = "Horas: ${parteDiario.horas_fin}"
+            binding.horasInicioTextView.text = "Ini: ${parteDiario.horas_inicio}"
+            binding.horasFinTextView.text = "Fin: ${parteDiario.horas_fin}"
         }
     }
 

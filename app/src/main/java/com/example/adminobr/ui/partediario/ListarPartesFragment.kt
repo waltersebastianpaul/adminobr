@@ -24,7 +24,7 @@ import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.adminobr.R
 import com.example.adminobr.data.Equipo
-import com.example.adminobr.databinding.FragmentListaPartesBinding
+import com.example.adminobr.databinding.FragmentListarPartesBinding
 import com.example.adminobr.ui.adapter.ListarPartesAdapter
 import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.utils.AutocompleteManager
@@ -40,7 +40,7 @@ import java.util.*
 
 class ListarPartesFragment : Fragment() {
 
-    private var _binding: FragmentListaPartesBinding? = null
+    private var _binding: FragmentListarPartesBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var autocompleteManager: AutocompleteManager
@@ -63,7 +63,7 @@ class ListarPartesFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentListaPartesBinding.inflate(inflater, container, false)
+        _binding = FragmentListarPartesBinding.inflate(inflater, container, false)
 
         equipoAutocomplete = binding.equipoAutocomplete
         equipoTextInputLayout = binding.equipoTextInputLayout

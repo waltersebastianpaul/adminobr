@@ -7,6 +7,7 @@ import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
@@ -110,6 +111,12 @@ class NetworkStatusHelper(private val context: Context) {
             (context as? Activity)?.runOnUiThread {
                 //Toast.makeText(context, "Se ha perdido la conexión a Internet", Toast.LENGTH_SHORT).show()
                 networkErrorCallback?.manageNetworkErrorLayout()
+
+                // Oculta el teclado
+                AppUtils.closeKeyboard(context)
+
+                // Opcionalmente, puedes quitar el foco de la vista actual
+                (context as? Activity)?.currentFocus?.clearFocus()
             }
         }
 

@@ -12,19 +12,38 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.*
+import com.example.adminobr.api.ApiService
+import com.example.adminobr.data.ListarPartesDiarios
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.SessionManager
-
+import okhttp3.MediaType
+import okhttp3.RequestBody
 import okhttp3.FormBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import okhttp3.logging.HttpLoggingInterceptor
+import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.io.IOException
 
 class UsuarioViewModel(application: Application) : AndroidViewModel(application) {
+
+    //private val client = OkHttpClient.Builder().build()
+
+    val loggingInterceptor = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY // Registra el cuerpo de la solicitud y la respuesta
+    }
+
+    val client = OkHttpClient.Builder()
+        .addInterceptor(loggingInterceptor)
+        .build()
 
     private val sessionManager = SessionManager(application)
     private val _isLoading = MutableLiveData<Boolean>()
@@ -37,7 +56,8 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     private val _mensaje = MutableLiveData<Event<String>>()
     val mensaje: LiveData<Event<String>> = _mensaje
 
-
+    private val _users = MutableLiveData<List<Usuario>>()
+    val users: LiveData<List<Usuario>> = _users
 
     private inner class NuevoUsuarioApi {
         private val client = OkHttpClient.Builder().build()
@@ -118,21 +138,6 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
             }
         }
 
-//        private fun handleResponse(response: Response): Pair<Boolean, Int?> {
-//            return if (response.isSuccessful) {
-//                val responseBody = response.body?.string()
-//                Log.d("NuevoUsuarioViewModel", "Respuesta del servidor: ${response.code} - $responseBody")
-//
-//                val jsonResponse = responseBody?.let { JSONObject(it) }
-//                val success = jsonResponse?.getBoolean("success") ?: false
-//                val newId = jsonResponse?.optInt("id")
-//                Pair(success, newId)
-//            } else {
-//                Log.e("NuevoUsuarioViewModel", "Error en la respuesta del servidor: ${response.code}")
-//                Pair(false, null)
-//            }
-//        }
-
         private fun handleResponse(response: Response): Pair<Boolean, Int?> {
             return try {
                 if (response.isSuccessful) {
@@ -169,6 +174,37 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                 Pair(false, null)
             }
         }
+
+        suspend fun obtenerUsuarios(empresaDbName: String): Response {
+            return withContext(Dispatchers.IO) {
+                val jsonObject = JSONObject().apply {
+                    put("empresaDbName", empresaDbName)
+                }
+                val requestBody = jsonObject.toString()
+                    .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+                val request = Request.Builder()
+                    .url("${baseUrl}${Constants.Usuarios.GET_LISTA}") // Elimina el parámetro de la URL
+                    .post(requestBody) // Usa POST en lugar de GET
+                    .build()
+                client.newCall(request).execute()
+            }
+        }
+
+        //        private fun handleResponse(response: Response): Pair<Boolean, Int?> {
+//            return if (response.isSuccessful) {
+//                val responseBody = response.body?.string()
+//                Log.d("NuevoUsuarioViewModel", "Respuesta del servidor: ${response.code} - $responseBody")
+//
+//                val jsonResponse = responseBody?.let { JSONObject(it) }
+//                val success = jsonResponse?.getBoolean("success") ?: false
+//                val newId = jsonResponse?.optInt("id")
+//                Pair(success, newId)
+//            } else {
+//                Log.e("NuevoUsuarioViewModel", "Error en la respuesta del servidor: ${response.code}")
+//                Pair(false, null)
+//            }
+//        }
+
     }
 
 
@@ -217,6 +253,81 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun loadUsers() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { // Mover la llamada a la API a un hilo en segundo plano
+                try {
+                    val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: return@withContext
+                    val response = api.obtenerUsuarios(empresaDbName)
+                    if (response.isSuccessful) {
+                        val users = parseUsers(response)
+                        _users.postValue(users) // Actualizar el LiveData en el hilo principal
+                    } else {
+                        _error.postValue(Event("Error al obtener usuarios: ${response.code}"))
+                    }
+                } catch (e: Exception) {
+                    _error.postValue(Event("Error: ${e.message}"))
+                }
+            }
+        }
+    }
+
+    private fun parseUsers(response: Response): List<Usuario> {
+        val userList = mutableListOf<Usuario>()
+        try {
+            val responseBody = response.body?.string()
+            val jsonArray = JSONArray(responseBody)
+            for (i in 0 until jsonArray.length()) {
+                val jsonObject = jsonArray.getJSONObject(i)
+                val usuario = Usuario(
+                    id = jsonObject.getString("id").toInt(),
+                    legajo = jsonObject.getString("legajo"),
+                    email = jsonObject.getString("email"),
+                    dni = jsonObject.getString("dni"),
+                    nombre = jsonObject.getString("nombre"),
+                    apellido = jsonObject.getString("apellido"),
+                    telefono = jsonObject.getString("telefono"),
+                    estadoId = jsonObject.getInt("estadoId"),
+                    userCreated = jsonObject.optInt("userCreated", 0), // Usar optInt() con valor predeterminado 0
+                    password = ""
+                )
+                userList.add(usuario)
+            }
+        } catch (e: JSONException) {
+            Log.e("UsuarioViewModel", "Error al parsear JSON: ${e.message}", e)
+        } catch (e: IOException) {
+            Log.e("UsuarioViewModel", "Error de E/S: ${e.message}", e)
+        }
+        return userList
+    }
+
+    fun deleteUsuario(usuario: Usuario, empresaDbName: String, callback: (Boolean, Usuario?) -> Unit) = viewModelScope.launch {
+        try {
+            Log.d("UsuarioViewModel", "Eliminando usuario con ID: ${usuario.dni}")
+            val response = apiService.deleteUsuario(usuario.id ?: -1, empresaDbName)
+            Log.d("ParteDiarioViewModel", "Código de respuesta de la API: ${response.code()}")
+            if (response.isSuccessful) {
+                _mensaje.value = Event("Parte diario eliminado correctamente")
+                callback(true, usuario) // Devuelve el parte eliminado en caso de éxito
+                Log.d("ParteDiarioViewModel", "Parte diario eliminado correctamente")
+            } else {
+                _error.value = Event("Error al eliminar el parte diario: ${response.message()}")
+                callback(false, null) // Devuelve null en caso de error
+            }
+        } catch (e: Exception) {
+            _error.value = Event("Error inesperado: ${e.message}")
+            callback(false, null) // Devuelve null en caso de error
+        }
+    }
+
+    val apiService: ApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl("http://adminobr.site/") // Tu URL base
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
+            .build()
+            .create(ApiService::class.java)
+    }
 }
 
 // Factory para el ViewModel

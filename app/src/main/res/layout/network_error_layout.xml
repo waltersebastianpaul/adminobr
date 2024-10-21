@@ -17,16 +17,17 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:src="@drawable/ic_wifi_off" />
 
         <TextView
+            android:id="@+id/textViewError"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:textColor="@color/light_600"
-            android:text="Sin conexión a internet"
+            android:text="Se perdio la conexión a internet"
             android:textSize="18sp" />
 
         <Button
