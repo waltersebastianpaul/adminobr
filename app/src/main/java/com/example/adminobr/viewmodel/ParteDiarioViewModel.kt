@@ -40,8 +40,8 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         .addInterceptor(loggingInterceptor)
         .build()
 
-    private val baseUrl = Constants.getBaseUrl()
-    private val guardarParteDiarioUrl = Constants.PartesDiarios.GUARDAR
+    private val BASE_URL = Constants.getBaseUrl()
+    private val GUARDAR_PARTE_DIARIO = Constants.PartesDiarios.GUARDAR_PARTE_DIARIO
     private val sessionManager = SessionManager(application)
 
     private val _partesList = MutableLiveData<List<ListarPartesDiarios>>()
@@ -71,7 +71,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
         Pager(PagingConfig(pageSize = 20)) {
             ParteDiarioPagingSource(client,
-                baseUrl.toString(), equipo ?: "", fechaInicio ?: "", fechaFin ?: "", empresaDbName)
+                BASE_URL.toString(), equipo ?: "", fechaInicio ?: "", fechaFin ?: "", empresaDbName)
         }.flow.cachedIn(viewModelScope)
     }
 
@@ -117,11 +117,11 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
                         .build()
 
                     val request = Request.Builder()
-                        .url("$baseUrl$guardarParteDiarioUrl")
+                        .url("$BASE_URL$GUARDAR_PARTE_DIARIO")
                         .post(requestBody)
                         .build()
 
-                    Log.d("ParteDiarioPagingSource", "Request URL: \"$baseUrl${guardarParteDiarioUrl}\"")
+                    Log.d("ParteDiarioPagingSource", "Request URL: \"$BASE_URL${GUARDAR_PARTE_DIARIO}\"")
 
                     Log.d("ParteDiarioViewModel", "Enviando datos al servidor: $requestBody")
 
@@ -287,7 +287,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()
-            .baseUrl("http://adminobr.site/") // Tu URL base
+            .baseUrl("$BASE_URL") // Tu URL base
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()

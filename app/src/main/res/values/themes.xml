@@ -48,4 +48,12 @@
         <item name="android:backgroundDimEnabled">true</item>
     </style>
 
+    <style name="SearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <item name="queryBackground">@android:color/transparent</item> <!-- Fondo transparente -->
+        <item name="android:background">@android:color/transparent</item> <!-- Elimina el subrayado -->
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textColorHint">@android:color/darker_gray</item> <!-- Color del hint -->
+
+    </style>
+
 </resources>

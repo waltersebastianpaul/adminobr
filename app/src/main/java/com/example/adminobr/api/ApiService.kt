@@ -5,11 +5,13 @@ import com.example.adminobr.data.LoginResponse
 import com.example.adminobr.data.ParteDiario
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.utils.Constants
+import com.example.adminobr.utils.SessionManager
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.*
 
 interface ApiService {
+
     @POST(Constants.Auth.LOGIN)
     suspend fun login(
         @Body requestBody: RequestBody,
@@ -36,6 +38,11 @@ interface ApiService {
         @Body requestBody: RequestBody
     ): Response<List<ListarPartesDiarios>>
 
+    @GET("api/usuarios/get_usuario_by_id.php") // Ajustar la ruta según tu API
+    suspend fun getUsuarioById(
+        @Query("id") userId: Int,
+        @Query("empresaDbName") empresaDbName: String
+    ): Response<Usuario>
 
     @DELETE("api/usuarios/guardar_usuario.php")
     suspend fun deleteUsuario(
@@ -48,4 +55,5 @@ interface ApiService {
         @Body usuario: Usuario,
         @Query("empresaDbName") empresaDbName: String
     ): Response<Unit>
+
 }

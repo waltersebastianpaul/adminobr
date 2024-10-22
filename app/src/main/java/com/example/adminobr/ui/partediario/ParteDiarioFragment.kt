@@ -66,7 +66,7 @@ import org.json.JSONArray
 
 class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
 
-    private val baseUrl = Constants.getBaseUrl() //"http://adminobr.site/"
+    private val BASE_URL = Constants.getBaseUrl() //"http://adminobr.site/"
 
     // Helper para verificar el estado de la conexión de red
     private lateinit var networkHelper: NetworkStatusHelper
@@ -503,11 +503,11 @@ class ParteDiarioFragment : Fragment(), NetworkErrorCallback {
 
                 // Crea la solicitud POST con JSON
                 val request = Request.Builder()
-                    .url("$baseUrl${Constants.PartesDiarios.GET_ULTIMO_PARTE}")
+                    .url("$BASE_URL${Constants.PartesDiarios.GET_ULTIMO_PARTE}")
                     .post(requestBody)  // POST con JSON
                     .build()
 
-                Log.d("ParteDiarioFragment", "Base URL: $$baseUrl${Constants.PartesDiarios.GET_ULTIMO_PARTE}")
+                Log.d("ParteDiarioFragment", "Base URL: $BASE_URL${Constants.PartesDiarios.GET_ULTIMO_PARTE}")
 
                 // Ejecutar la solicitud
                 val resultado = withContext(Dispatchers.IO) {

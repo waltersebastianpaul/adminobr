@@ -41,7 +41,7 @@ sealed class Constants {
 
     object PartesDiarios {
         const val GET_LISTA = "api/equipos/partes/get_partes_diarios.php"
-        const val GUARDAR = "api/equipos/partes/guardar_parte_diario.php"
+        const val GUARDAR_PARTE_DIARIO = "api/equipos/partes/guardar_parte_diario.php"
         const val GET_ULTIMO_PARTE = "api/equipos/partes/get_ultimo_parte_diario.php"
         const val GET_ULTIMOS_PARTES = "api/equipos/partes/get_ultimo_parte_diario.php"
         // ... otras rutas de obras si es necesario

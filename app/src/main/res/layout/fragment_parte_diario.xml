@@ -386,8 +386,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:text="Engrase General"
-    android:layout_marginTop="0dp"
-    android:buttonTint="@color/colorPrimary"/>
+    android:layout_marginTop="0dp" />
 
 <!-- Cambio de Filtros -->
 <TextView
@@ -416,8 +415,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:text="Filtro Aire"
-            android:buttonTint="@color/colorPrimary"/>
+            android:text="Filtro Aire" />
 
 
         <CheckBox
@@ -425,8 +423,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:text="Filtro Aceite"
-            android:buttonTint="@color/colorPrimary"/>
+            android:text="Filtro Aceite" />
 
 
     </LinearLayout>
@@ -442,8 +439,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
-            android:text="Filtro Combustible"
-            android:buttonTint="@color/colorPrimary"/>
+            android:text="Filtro Combustible" />
 
         <CheckBox
             android:id="@+id/filtroOtroCheckBox"
@@ -451,8 +447,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
             android:visibility="visible"
-            android:text="Otro"
-            android:buttonTint="@color/colorPrimary"/>
+            android:text="Otro" />
 
     </LinearLayout>
 </LinearLayout>

@@ -4,6 +4,7 @@ import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +12,12 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.launch
+import androidx.compose.ui.semantics.setText
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import com.example.adminobr.R
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.databinding.FragmentUserFormBinding
@@ -23,6 +27,8 @@ import com.example.adminobr.viewmodel.UsuarioViewModel
 import com.example.adminobr.viewmodel.UsuarioViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class UsuarioFormFragment : Fragment() {
     private val viewModel: UsuarioViewModel by viewModels {
@@ -76,7 +82,7 @@ class UsuarioFormFragment : Fragment() {
         // Verificar si estamos en modo edición
         isEditMode = arguments?.getBoolean("isEditMode", false) ?: false
         var userId = sessionManager.getUserId()
-        var userIdEdit = arguments?.getInt("userId")
+        val userIdEdit = arguments?.getInt("userId")
         // Configurar el FloatingActionButton
         setupFab()
 
@@ -95,9 +101,19 @@ class UsuarioFormFragment : Fragment() {
 //            isEditMode = userIdEdit != null
 //        }
 
+//        arguments?.let {
+//            isEditMode = it.getBoolean("isEditMode")
+//            userId = it.getInt("userId", -1) // -1 como valor por defecto si no se proporciona
+//        }
+
         arguments?.let {
             isEditMode = it.getBoolean("isEditMode")
             userId = it.getInt("userId", -1) // -1 como valor por defecto si no se proporciona
+            if (isEditMode && userIdEdit != -1) {
+                if (userIdEdit != null) {
+                    cargarDatosUsuario(userIdEdit)
+                } // Cargar datos del usuario si es modo de edición
+            }
         }
 
         // Configurar el título
@@ -106,9 +122,26 @@ class UsuarioFormFragment : Fragment() {
 
     }
 
-    private fun cargarDatosUsuario(userId: Int?) {
-        // Realizar una llamada a la API para obtener los datos del usuario
-        // y completar los campos del formulario
+    private fun cargarDatosUsuario(userId: Int) {
+        viewModel.getUsuarioById(userId) { usuario ->
+            if (usuario != null) {
+                Log.d("UsuarioFormFragment", "Usuario recibido: $usuario") // Log del usuario recibido
+                // Actualizar los campos del formulario con los datos de 'usuario'
+                binding.legajoEditText.setText(usuario.legajo)
+                binding.emailEditText.setText(usuario.email)
+                binding.dniEditText.setText(usuario.dni)
+                binding.nombreEditText.setText(usuario.nombre)
+                binding.apellidoEditText.setText(usuario.apellido)
+                binding.telefonoEditText.setText(usuario.telefono)
+                // ... otros campos ...
+            } else {
+                Log.e("UsuarioFormFragment", "Error al cargar los datos del usuario") // Log del error
+
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Error al cargar los datos del usuario", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun setupTextWatchers() {

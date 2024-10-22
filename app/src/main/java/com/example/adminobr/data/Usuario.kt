@@ -8,14 +8,30 @@ data class Usuario(
     val apellido: String,
     val email: String,
     val telefono: String,
-    val userCreated: Int,
+    val userCreated: Int? = null,
     val password: String = "",
     val estadoId: Int,
-    val roles: List<String>? = null,
-    val principalRole: String? = null,
-    val permisos: List<String>? = null
+    val roles: List<String>? = null, // Asegúrate de que sea List<String>?
+    val principalRole: String? = null, // Asegúrate de que sea String?
+    val permisos: List<String>? = null // Asegúrate de que sea List<String>?
 )
 
+//data class Usuario(
+//    val id: Int? = null,
+//    val legajo: String,
+//    val dni: String,
+//    val nombre: String,
+//    val apellido: String,
+//    val email: String,
+//    val telefono: String,
+//    val userCreated: Int,
+//    val password: String = "",
+//    val estadoId: Int,
+//    val roles: List<String>? = null,
+//    val principalRole: String? = null,
+//    val permisos: List<String>? = null
+//)
+//
 
 // Para agregar algun otro dato del user, se debe agregar el campo
 // no solo en la clase User, sino tambien el el Backend, en la API login.php

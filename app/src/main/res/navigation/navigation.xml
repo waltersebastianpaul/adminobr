@@ -44,18 +44,6 @@
             app:destination="@id/nav_partediario" />
     </fragment>
 
-<!--    <fragment-->
-<!--        android:id="@+id/nav_gestion_usuarios2"-->
-<!--        android:name="com.example.adminobr.ui.usuarios.NuevoUsuarioFragment"-->
-<!--        android:label="Gestion de Usuarios"-->
-<!--        tools:layout="@layout/fragment_nuevo_usuario" />-->
-
-    <fragment
-        android:id="@+id/nav_editar_usuario"
-        android:name="com.example.adminobr.ui.usuarios.NuevoUsuarioFragment"
-        android:label="Editar Usuario"
-        tools:layout="@layout/fragment_nuevo_usuario" />
-
     <fragment
         android:id="@+id/nav_gestion_usuarios"
         android:name="com.example.adminobr.ui.usuarios.ListarUsuariosFragment"

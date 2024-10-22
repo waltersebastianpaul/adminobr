@@ -1,0 +1,10 @@
+<!-- res/menu/menu_item_parte.xml -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_editar"
+        android:enabled="true"
+        android:title="Editar" />
+    <item
+        android:id="@+id/action_eliminar"
+        android:title="Eliminar" />
+</menu>

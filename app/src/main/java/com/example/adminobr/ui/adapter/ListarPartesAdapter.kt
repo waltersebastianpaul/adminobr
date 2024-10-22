@@ -113,7 +113,7 @@ class ListarPartesAdapter(private val viewModel: ParteDiarioViewModel, private v
 
     class ParteDiarioViewHolder(
         val binding: ItemParteDiarioBinding,
-        private val viewModel: ParteDiarioViewModel,
+        val viewModel: ParteDiarioViewModel,
         val context: Context,
         val empresaDbName: String
     ) : RecyclerView.ViewHolder(binding.root) {
