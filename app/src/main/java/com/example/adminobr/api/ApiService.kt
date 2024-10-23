@@ -7,6 +7,7 @@ import com.example.adminobr.data.Usuario
 import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.SessionManager
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -38,10 +39,15 @@ interface ApiService {
         @Body requestBody: RequestBody
     ): Response<List<ListarPartesDiarios>>
 
-    @GET("api/usuarios/get_usuario_by_id.php") // Ajustar la ruta según tu API
+//    @GET("api/usuarios/get_usuario_by_id.php")
+//    suspend fun getUsuarioById(
+//        @Query("id") userId: Int,
+//        @Query("empresaDbName") empresaDbName: String
+//    ): Response<Usuario>
+
+    @POST("api/usuarios/get_usuario_by_id.php") // Cambiar a POST
     suspend fun getUsuarioById(
-        @Query("id") userId: Int,
-        @Query("empresaDbName") empresaDbName: String
+        @Body requestBody: RequestBody // Enviar los parámetros en el cuerpo
     ): Response<Usuario>
 
     @DELETE("api/usuarios/guardar_usuario.php")

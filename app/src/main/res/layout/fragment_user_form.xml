@@ -12,21 +12,12 @@
         android:fillViewport="true"
         android:scrollbars="none">
 
-    <!-- Un LinearLayout que agrupa todos los elementos -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:id="@+id/titleTextView"
+        <!-- Un LinearLayout que agrupa todos los elementos -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Título"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:layout_marginBottom="16dp" />
+            android:orientation="vertical">
+
 
             <LinearLayout
                 android:id="@+id/legajoUsuarioIdLayout"
@@ -90,7 +81,6 @@
                 app:layout_constraintTop_toBottomOf="@id/legajoUsuarioIdLayout"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/emailEditText"
                     android:layout_width="match_parent"
@@ -111,7 +101,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/emailTextInputLayout"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/dniEditText"
@@ -178,7 +167,6 @@
                 app:layout_constraintTop_toBottomOf="@id/apellidoTextInputLayout"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/telefonoEditText"
                     android:layout_width="match_parent"
@@ -190,7 +178,6 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/estadoTextInputLayout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
@@ -198,14 +185,18 @@
                 android:layout_marginEnd="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/telefonoTextInputLayout">
+                app:layout_constraintTop_toBottomOf="@id/telefonoTextInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/estadoEditText"
+                <AutoCompleteTextView
+                    android:id="@+id/estadoAutocomplete"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:hint="Estado"
-                    android:textSize="16sp" />
+                    android:inputType="none"
+                    android:focusable="false"
+                    android:clickable="true" />
+
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Campos de contraseña (visibilidad controlada por código) -->
@@ -221,7 +212,7 @@
                 app:endIconMode="password_toggle"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/estadoTextInputLayout">
+                app:layout_constraintTop_toBottomOf="@id/estadoAutocomplete">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/passwordEditText"
@@ -282,7 +273,7 @@
                 android:text="Modificar Contraseña"
                 android:textAllCaps="true"
                 android:textColor="@color/button_primary_text_color"
-                android:visibility="visible"
+                android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/guardarButton" />

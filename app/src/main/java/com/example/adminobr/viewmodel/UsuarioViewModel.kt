@@ -56,27 +56,27 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
 
     private val baseUrl = Constants.getBaseUrl()
 
-    private inner class NuevoUsuarioApi {
+    private inner class UsuarioApi {
         private val client = OkHttpClient.Builder().build()
         private val guardarUsuarioUrl = Constants.Usuarios.GUARDAR
 
 
-        suspend fun guardarNuevoUsuario(nuevoUsuario: Usuario): Pair<Boolean, Int?> {
+        suspend fun guardarUsuario(usuario: Usuario): Pair<Boolean, Int?> {
             return withContext(Dispatchers.IO) {
                 try{
                     // Obtén empresaDbName de SessionManager
                     val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: return@withContext Pair(false, null)
 
                     val requestBody = FormBody.Builder()
-                        .add("legajo", nuevoUsuario.legajo)
-                        .add("email", nuevoUsuario.email)
-                        .add("dni", nuevoUsuario.dni)
-                        .add("password", nuevoUsuario.password)
-                        .add("nombre", nuevoUsuario.nombre)
-                        .add("apellido", nuevoUsuario.apellido)
-                        .add("telefono", nuevoUsuario.telefono)
-                        .add("userCreated", nuevoUsuario.userCreated.toString())
-                        .add("estado_id", nuevoUsuario.estadoId.toString())
+                        .add("legajo", usuario.legajo)
+                        .add("email", usuario.email)
+                        .add("dni", usuario.dni)
+                        .add("password", usuario.password)
+                        .add("nombre", usuario.nombre)
+                        .add("apellido", usuario.apellido)
+                        .add("telefono", usuario.telefono)
+                        .add("userCreated", usuario.userCreated.toString())
+                        .add("estadoId", usuario.estadoId.toString())
                         .add("empresaDbName", empresaDbName)  // Agrega empresaDbName al cuerpo de la solicitud
                         .build()
 
@@ -97,6 +97,7 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
             return withContext(Dispatchers.IO) {
                 try {
                     val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: return@withContext false
+                    Log.d("UsuarioViewModel", "EmpresaDbName: $empresaDbName")
 
                     val requestBody = FormBody.Builder()
                         .add("id", usuario.id.toString())
@@ -106,39 +107,48 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                         .add("nombre", usuario.nombre)
                         .add("apellido", usuario.apellido)
                         .add("telefono", usuario.telefono)
+                        .add("estado_id", usuario.estadoId.toString()) // Corregido: estado_id
                         .add("empresaDbName", empresaDbName)
-
-                    // Agregar la nueva contraseña si se proporciona
-                    if (!newPassword.isNullOrEmpty()) {
-                        requestBody.add("newPassword", newPassword)
-                    }
+                        .apply {
+                            if (!newPassword.isNullOrEmpty()) {
+                                add("password", newPassword)
+                            }
+                        }
+                        .build()
+                    Log.d("UsuarioViewModel", "RequestBody: ${requestBody.toString()}")
 
                     val request = Request.Builder()
-                        .url("$baseUrl${Constants.Usuarios.ACTUALIZAR}") // Usar la URL para actualizar
-                        .post(requestBody.build())
+                        //.url("$baseUrl${Constants.Usuarios.ACTUALIZAR}")
+                        .url("$baseUrl${Constants.Usuarios.ACTUALIZAR}")
+                        .put(requestBody)
                         .build()
 
                     val response = client.newCall(request).execute()
+                    Log.d("UsuarioViewModel", "ResponseCode: ${response.code}") // Log response code
 
                     // Manejar la respuesta para actualizar (solo necesitamos éxito o fracaso)
                     return@withContext if (response.isSuccessful) {
                         val responseBody = response.body?.string()
                         val jsonResponse = responseBody?.let { JSONObject(it) }
-                        jsonResponse?.getBoolean("success") ?: false
+                        Log.d("UsuarioViewModel", "ResponseBody: $responseBody") // Log response body
+                        val success = jsonResponse?.getBoolean("success") ?: false
+                        success
                     } else {
                         false
                     }
                 } catch (e: IOException) {
+                    Log.e("UsuarioViewModel", "Error en actualizarUsuario: ${e.message}") // Log error
                     false
                 }
             }
         }
 
         private fun handleResponse(response: Response): Pair<Boolean, Int?> {
+            Log.d("UsuarioViewModel", "HandleResponse: ${response.code}") // Log response code
             return try {
                 if (response.isSuccessful) {
                     val responseBody = response.body?.string()
-                    Log.d("NuevoUsuarioViewModel", "Respuesta del servidor: ${response.code} - $responseBody")
+                    Log.d("UsuarioViewModel", "Respuesta del servidor: ${response.code} - $responseBody")
 
                     val jsonResponse = responseBody?.let { JSONObject(it) }
                     val success = jsonResponse?.getBoolean("success") ?: false
@@ -159,14 +169,14 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
 
                     Pair(success, newId)
                 } else {
-                    Log.e("NuevoUsuarioViewModel", "Error en la respuesta del servidor: ${response.code}")
+                    Log.e("UsuarioViewModel", "Error en la respuesta del servidor: ${response.code}")
                     Pair(false, null)
                 }
             } catch (e: JSONException) {
-                Log.e("NuevoUsuarioViewModel", "Error al parsear la respuesta JSON: ${e.message}")
+                Log.e("UsuarioViewModel", "Error al parsear la respuesta JSON: ${e.message}")
                 Pair(false, null)
             } catch (e: IOException) {
-                Log.e("NuevoUsuarioViewModel", "Error de conexión: ${e.message}")
+                Log.e("UsuarioViewModel", "Error de conexión: ${e.message}")
                 Pair(false, null)
             }
         }
@@ -187,22 +197,22 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    private val api = NuevoUsuarioApi()
+    private val api = UsuarioApi()
 
-    fun guardarNuevoUsuario(nuevoUsuario: Usuario, callback: (Boolean, Int?) -> Unit) {
+    fun guardarUsuario(usuario: Usuario, callback: (Boolean, Int?) -> Unit) {
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                val (resultado, nuevoId) = api.guardarNuevoUsuario(nuevoUsuario)
+                val (resultado, nuevoId) = api.guardarUsuario(usuario)
                 if (resultado) {
-                    _mensaje.value = Event("Nuevo usuario guardado con éxito")
+                    _mensaje.value = Event("Usuario guardado con éxito")
                     callback(true, nuevoId)
                 } else {
-                    _error.value = Event("Error al guardar el nuevo usuario")
+                    _error.value = Event("Error al guardar usuario")
                     callback(false, null)
                 }
             } catch (e: Exception) {
-                _error.value = Event("Error al guardar el nuevo usuario: ${e.message}")
+                _error.value = Event("Error al guardar el usuario: ${e.message}")
                 callback(false, null)
             } finally {
                 _isLoading.value = false
@@ -268,81 +278,35 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-//    fun loadUsers(usuarioFiltro: String = "") {
-//        viewModelScope.launch {
-//            withContext(Dispatchers.IO) {
-//                try {
-//                    val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: return@withContext
-//                    // Crear el JSONObject con los parámetros
-//                    val jsonObject = JSONObject().apply {
-//                        put("empresaDbName", empresaDbName)
-//                        if (usuarioFiltro.isNotEmpty()) {
-//                            put("nombreFiltro", usuarioFiltro)
-//                        }
-//                    }
-//                    val requestBody = jsonObject.toString()
-//                        .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-//
-//                    val request = Request.Builder()
-//                        .url("${baseUrl}${Constants.Usuarios.GET_LISTA}")
-//                        .post(requestBody)
-//                        .build()
-//
-//                    val response = client.newCall(request).execute()
-//
-//                    if (response.isSuccessful) {
-//                        val users = parseUsers(response)
-//                        // Aplicar el filtro si nombreFiltro no está vacío
-//                        val filteredUsers = if (usuarioFiltro.isNotEmpty()) {
-//                            users.filter { it.nombre.contains(usuarioFiltro, ignoreCase = true) }
-//                        } else {
-//                            users
-//                        }
-//                        _users.postValue(filteredUsers)
-//                    } else {
-//                        _error.postValue(Event("Error al obtener usuarios: ${response.code}"))
-//                    }
-//                } catch (e: Exception) {
-//                    _error.postValue(Event("Error: ${e.message}"))
-//                }
-//            }
-//        }
-//    }
-//    fun loadUsers() {
-//        viewModelScope.launch {
-//            withContext(Dispatchers.IO) { // Mover la llamada a la API a un hilo en segundo plano
-//                try {
-//                    val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: return@withContext
-//                    val response = api.obtenerUsuarios(empresaDbName)
-//                    if (response.isSuccessful) {
-//                        val users = parseUsers(response)
-//                        _users.postValue(users) // Actualizar el LiveData en el hilo principal
-//                    } else {
-//                        _error.postValue(Event("Error al obtener usuarios: ${response.code}"))
-//                    }
-//                } catch (e: Exception) {
-//                    _error.postValue(Event("Error: ${e.message}"))
-//                }
-//            }
-//        }
-//    }
-
     // Función para obtener un usuario por su ID
     fun getUsuarioById(userId: Int, callback: (Usuario?) -> Unit) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
                     val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
-                    val response = apiService.getUsuarioById(userId, empresaDbName)
+
+                    // Crear el RequestBody con los parámetros
+                    val jsonObject = JSONObject().apply {
+                        put("empresaDbName", empresaDbName)
+                        put("id", userId)
+                    }
+                    val requestBody = jsonObject.toString()
+                        .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+                    val response = apiService.getUsuarioById(requestBody) // Pasar el RequestBody a la función
                     if (response.isSuccessful) {
-                        Log.d("UsuarioViewModel", "Respuesta de la API: ${response.body()}") // Log de la respuesta exitosa
-                        callback(response.body())
+                        val usuario = response.body()
+                        Log.d("UsuarioViewModel", "Usuario: $usuario")
+                        // Ejecutar el callback en el hilo principal
+                        withContext(Dispatchers.Main) {
+                            callback(usuario)
+                        }
                     } else {
-                        Log.e("UsuarioViewModel", "Error en la respuesta de la API: ${response.code()} - ${response.message()}") // Log del error en la respuesta
+                        Log.e("UsuarioViewModel", "Error en la respuesta de la API: ${response.code()} - ${response.message()}")
                         callback(null)
                     }
                 } catch (e: Exception) {
-                    Log.e("UsuarioViewModel", "Error al obtener el usuario por ID", e) // Log del error al obtener el usuario
+                    Log.e("UsuarioViewModel", "Error al obtener el usuario por ID", e)
                     callback(null)
                 }
             }

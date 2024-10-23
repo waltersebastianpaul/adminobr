@@ -3,21 +3,23 @@ package com.example.adminobr.ui.usuarios
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.launch
-import androidx.compose.ui.semantics.setText
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.example.adminobr.R
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.databinding.FragmentUserFormBinding
@@ -27,8 +29,6 @@ import com.example.adminobr.viewmodel.UsuarioViewModel
 import com.example.adminobr.viewmodel.UsuarioViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputLayout
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class UsuarioFormFragment : Fragment() {
     private val viewModel: UsuarioViewModel by viewModels {
@@ -37,8 +37,13 @@ class UsuarioFormFragment : Fragment() {
     private lateinit var _binding: FragmentUserFormBinding
     private val binding get() = _binding
 
-    private var userId: Int? = null
+    private val _usuario = MutableLiveData<Usuario?>()
+    private val usuario: LiveData<Usuario?> = _usuario
 
+    private val estadoItems = arrayOf("Activo", "Inactivo") // Declarar estadoItems como propiedad
+
+    private var userId: Int? = null
+    private var selectedEstado = 1 // Valor por defecto (1 para Activo)
     private var isEditMode = false
 
     private lateinit var legajoEditText: EditText
@@ -48,6 +53,8 @@ class UsuarioFormFragment : Fragment() {
     private lateinit var nombreEditText: EditText
     private lateinit var apellidoEditText: EditText
     private lateinit var telefonoEditText: EditText
+    private lateinit var estadoTextInputLayout: TextInputLayout
+    private lateinit var estadoAutocomplete: AutoCompleteTextView
     private lateinit var passwordEditText: EditText
     private lateinit var password2EditText: EditText
     private lateinit var guardarButton: Button
@@ -67,11 +74,17 @@ class UsuarioFormFragment : Fragment() {
         nombreEditText = binding.nombreEditText
         apellidoEditText = binding.apellidoEditText
         telefonoEditText = binding.telefonoEditText
+        estadoTextInputLayout = binding.estadoTextInputLayout
+        estadoAutocomplete = binding.estadoAutocomplete
         passwordEditText = binding.passwordEditText
         password2EditText = binding.password2EditText
         guardarButton = binding.guardarButton
 
         sessionManager = SessionManager(requireContext())
+
+        // Configurar AutoCompleteTextView para combustible
+        val usuarioAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, estadoItems)
+        estadoAutocomplete.setAdapter(usuarioAdapter)
 
         return binding.root
     }
@@ -81,6 +94,10 @@ class UsuarioFormFragment : Fragment() {
 
         // Verificar si estamos en modo edición
         isEditMode = arguments?.getBoolean("isEditMode", false) ?: false
+
+        // Actualizar el título en la barra superior
+        (activity as? AppCompatActivity)?.supportActionBar?.title = if (isEditMode) "Editar Usuario" else "Nuevo Usuario"
+
         var userId = sessionManager.getUserId()
         val userIdEdit = arguments?.getInt("userId")
         // Configurar el FloatingActionButton
@@ -95,17 +112,17 @@ class UsuarioFormFragment : Fragment() {
         // Configurar listeners
         setupListeners()
 
-        // Obtener el ID del usuario y el modo de edición
-//        arguments?.let {
-//            userIdEdit = it.getInt("userId")
-//            isEditMode = userIdEdit != null
-//        }
-
-//        arguments?.let {
-//            isEditMode = it.getBoolean("isEditMode")
-//            userId = it.getInt("userId", -1) // -1 como valor por defecto si no se proporciona
-//        }
-
+        if (isEditMode && userIdEdit != -1) {
+            if (userIdEdit != null) {
+                cargarDatosUsuario(userIdEdit)
+            } // Cargar datos del usuario si es modo de edición
+        }
+        // Observa los cambios en el usuario
+        _usuario.observe(viewLifecycleOwner) { usuario ->
+            if (usuario != null) {
+                actualizarUiConDatosDeUsuario(usuario)
+            }
+        }
         arguments?.let {
             isEditMode = it.getBoolean("isEditMode")
             userId = it.getInt("userId", -1) // -1 como valor por defecto si no se proporciona
@@ -117,30 +134,48 @@ class UsuarioFormFragment : Fragment() {
         }
 
         // Configurar el título
-        val titleTextView: TextView = view.findViewById(R.id.titleTextView)
-        titleTextView.text = if (isEditMode) "Editar Usuario" else "Nuevo Usuario"
+//        val titleTextView: TextView = view.findViewById(R.id.titleTextView)
+//        titleTextView.text = if (isEditMode) "Editar Usuario" else "Nuevo Usuario"
 
+        // Llamar a la función para convertir el texto a mayúsculas
+        setTextViewToUppercase(nombreEditText)
+        setTextViewToUppercase(apellidoEditText)
+        setTextViewToLowercase(emailEditText)
+
+    }
+
+    private fun actualizarUiConDatosDeUsuario(usuario: Usuario) {
+        nuevoUsuarioIdTextView.setText(usuario.id.toString())
+        legajoEditText.setText(usuario.legajo)
+        emailEditText.setText(usuario.email)
+        dniEditText.setText(usuario.dni)
+        nombreEditText.setText(usuario.nombre)
+        apellidoEditText.setText(usuario.apellido)
+        telefonoEditText.setText(usuario.telefono)
+        val estadoIndex = if (usuario.estadoId == 1) 0 else 1 // Índice del elemento "Activo" o "Inactivo"
+        //estadoAutocomplete.setText(if (usuario.estadoId == 1) "Activo" else "Inactivo") // Mostrar el texto
+        //estadoAutocomplete.setListSelection(estadoIndex) // Seleccionar el elemento por índice
+
+        // Establecer el estado en el AutoCompleteTextView
+        //val estadoIndex = if (usuario.estadoId == 1) 0 else 1 // Índice del elemento "Activo" o "Inactivo"
+        estadoAutocomplete.setText(estadoItems[estadoIndex], false) // Establecer texto sin filtrar
+        // estadoAutocomplete.setListSelection(estadoIndex) // Seleccionar el elemento por índice
+
+    }
+
+    private fun setTextViewToLowercase(textView: TextView) {
+        textView.filters = arrayOf(InputFilter { source, start, end, dest, dstart, dend ->
+            source.toString().lowercase() // Convierte a minúsculas
+        })
+    }
+
+    private fun setTextViewToUppercase(textView: TextView) {
+        textView.filters = arrayOf(InputFilter.AllCaps()) // Convierte a mayúsculas
     }
 
     private fun cargarDatosUsuario(userId: Int) {
         viewModel.getUsuarioById(userId) { usuario ->
-            if (usuario != null) {
-                Log.d("UsuarioFormFragment", "Usuario recibido: $usuario") // Log del usuario recibido
-                // Actualizar los campos del formulario con los datos de 'usuario'
-                binding.legajoEditText.setText(usuario.legajo)
-                binding.emailEditText.setText(usuario.email)
-                binding.dniEditText.setText(usuario.dni)
-                binding.nombreEditText.setText(usuario.nombre)
-                binding.apellidoEditText.setText(usuario.apellido)
-                binding.telefonoEditText.setText(usuario.telefono)
-                // ... otros campos ...
-            } else {
-                Log.e("UsuarioFormFragment", "Error al cargar los datos del usuario") // Log del error
-
-                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) {
-                    Toast.makeText(requireContext(), "Error al cargar los datos del usuario", Toast.LENGTH_SHORT).show()
-                }
-            }
+            _usuario.postValue(usuario) // Actualizar el LiveData con el usuario
         }
     }
 
@@ -161,27 +196,22 @@ class UsuarioFormFragment : Fragment() {
         addTextWatcher(binding.nombreTextInputLayout, "Campo requerido")
         addTextWatcher(binding.apellidoTextInputLayout, "Campo requerido")
         addTextWatcher(binding.telefonoTextInputLayout, "Campo requerido")
-        addTextWatcher(binding.passwordTextInputLayout, "Campo requerido")
-        addTextWatcher(binding.password2TextInputLayout, "Campo requerido")
+        //addTextWatcher(binding.passwordTextInputLayout, "Campo requerido")
+        //addTextWatcher(binding.password2TextInputLayout, "Campo requerido")
     }
 
     private fun setupListeners() {
 
+        estadoAutocomplete.setOnItemClickListener { parent, view, position, id ->
+            val selectedEstadoText = parent.getItemAtPosition(position) as String
+            selectedEstado = if (selectedEstadoText == "Activo") 1 else 0
+        }
 
         guardarButton.setOnClickListener {
             if (validarContrasenas()) {
-                if (isEditMode) {
-                    actualizarUsuario()
-                } else {
-                    guardarUsuario()
-                }
+                guardarUsuario()
             }
         }
-    }
-
-    private fun cargarDatosUsuario() {
-        // Realizar una llamada a la API para obtener los datos del usuario
-        // y completar los campos del formulario
     }
 
     private fun actualizarUsuario() {
@@ -214,6 +244,7 @@ class UsuarioFormFragment : Fragment() {
         nombreEditText.text?.clear()
         apellidoEditText.text?.clear()
         telefonoEditText.text?.clear()
+        estadoAutocomplete.text?.clear()
         passwordEditText.text?.clear()
         password2EditText.text?.clear()
 
@@ -247,13 +278,13 @@ class UsuarioFormFragment : Fragment() {
                 apellido = apellidoEditText.text.toString(),
                 telefono = telefonoEditText.text.toString(),
                 userCreated = sessionManager.getUserId(), // ID del usuario actual
-                estadoId = 1 // 1 = activo
+                estadoId = selectedEstado
             )
 
             when (isEditMode) {
                 true -> {
-                    val newPassword = if (binding.passwordEditText.text?.isNotEmpty() == true) {
-                        binding.passwordEditText.text.toString()
+                    val newPassword = if (passwordEditText.text?.isNotEmpty() == true) {
+                        passwordEditText.text.toString()
                     } else {
                         null // Si el campo de contraseña está vacío, no se actualiza la contraseña
                     }
@@ -268,7 +299,7 @@ class UsuarioFormFragment : Fragment() {
                         }
                     }
                 }
-                false -> viewModel.guardarNuevoUsuario(usuario) { success, nuevoId ->
+                false -> viewModel.guardarUsuario(usuario) { success, nuevoId ->
                     if (success) {
                         deshabilitarFormulario()
                         val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
@@ -337,21 +368,21 @@ class UsuarioFormFragment : Fragment() {
             binding.telefonoTextInputLayout.isErrorEnabled = false
         }
 
-        if (passwordEditText.text.isNullOrEmpty()) {
-            binding.passwordTextInputLayout.error = "Campo requerido"
-            binding.passwordTextInputLayout.isErrorEnabled = true
-            camposValidos = false
-        } else {
-            binding.passwordTextInputLayout.isErrorEnabled = false
-        }
-
-        if (password2EditText.text.isNullOrEmpty()) {
-            binding.password2TextInputLayout.error = "Campo requerido"
-            binding.password2TextInputLayout.isErrorEnabled = true
-            camposValidos = false
-        } else {
-            binding.password2TextInputLayout.isErrorEnabled = false
-        }
+//        if (passwordEditText.text.isNullOrEmpty()) {
+//            binding.passwordTextInputLayout.error = "Campo requerido"
+//            binding.passwordTextInputLayout.isErrorEnabled = true
+//            camposValidos = false
+//        } else {
+//            binding.passwordTextInputLayout.isErrorEnabled = false
+//        }
+//
+//        if (password2EditText.text.isNullOrEmpty()) {
+//            binding.password2TextInputLayout.error = "Campo requerido"
+//            binding.password2TextInputLayout.isErrorEnabled = true
+//            camposValidos = false
+//        } else {
+//            binding.password2TextInputLayout.isErrorEnabled = false
+//        }
 
         if (!camposValidos) {
             Toast.makeText(requireContext(), "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
@@ -369,6 +400,7 @@ class UsuarioFormFragment : Fragment() {
         nombreEditText.isEnabled = true
         apellidoEditText.isEnabled = true
         telefonoEditText.isEnabled = true
+        estadoTextInputLayout.isEnabled = true
         passwordEditText.isEnabled = true
         password2EditText.isEnabled = true
 
@@ -384,6 +416,7 @@ class UsuarioFormFragment : Fragment() {
         nombreEditText.isEnabled = false
         apellidoEditText.isEnabled = false
         telefonoEditText.isEnabled = false
+        estadoTextInputLayout.isEnabled = false
         passwordEditText.isEnabled = false
         password2EditText.isEnabled = false
 

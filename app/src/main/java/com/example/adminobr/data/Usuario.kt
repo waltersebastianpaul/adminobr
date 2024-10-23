@@ -1,6 +1,7 @@
 package com.example.adminobr.data
 
 data class Usuario(
+    var isEditing: Boolean = false,
     val id: Int? = null,
     val legajo: String,
     val dni: String,
@@ -15,23 +16,6 @@ data class Usuario(
     val principalRole: String? = null, // Asegúrate de que sea String?
     val permisos: List<String>? = null // Asegúrate de que sea List<String>?
 )
-
-//data class Usuario(
-//    val id: Int? = null,
-//    val legajo: String,
-//    val dni: String,
-//    val nombre: String,
-//    val apellido: String,
-//    val email: String,
-//    val telefono: String,
-//    val userCreated: Int,
-//    val password: String = "",
-//    val estadoId: Int,
-//    val roles: List<String>? = null,
-//    val principalRole: String? = null,
-//    val permisos: List<String>? = null
-//)
-//
 
 // Para agregar algun otro dato del user, se debe agregar el campo
 // no solo en la clase User, sino tambien el el Backend, en la API login.php

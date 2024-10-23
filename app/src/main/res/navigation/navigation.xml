@@ -72,7 +72,7 @@
     <fragment
         android:id="@+id/nav_userFormFragment"
         android:name="com.example.adminobr.ui.usuarios.UsuarioFormFragment"
-        android:label="Gestion de Usuarios" >
+        android:label="" >
         <argument
             android:name="isEditMode"
             app:argType="boolean"
