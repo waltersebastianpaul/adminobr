@@ -16,15 +16,12 @@ import androidx.core.os.bundleOf
 import androidx.media3.common.util.Log
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.findNavController
-import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.adminobr.R
-import com.example.adminobr.data.ListarPartesDiarios
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.databinding.ItemUsuarioBinding
-
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.viewmodel.UsuarioViewModel
 
@@ -40,7 +37,6 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
 
         val sessionManager = SessionManager(context)
 
-//        fun bind(user: Usuario, onUserClick: (Int) -> Unit) { // Agregar onUserClick como parámetro
         fun bind(user: Usuario) {
             binding.userNameTextView.text = "${user.nombre} ${user.apellido}".uppercase()
             binding.userLegajoTextView.text = "Legajo: ${user.legajo}"
@@ -49,9 +45,6 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
             binding.root.setOnClickListener {
                 user.id
             }
-//            binding.root.setOnClickListener {
-//                onUserClick(user.id ?: 0) // Usar 0 como valor predeterminado si user.id es nulo
-//            }
         }
 
     }
@@ -68,7 +61,6 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
         val usuario = getItem(position)
         usuario?.let { holder.bind(it) }
         Log.d("UserAdapter", "Binding user: $usuario")
-        //holder.bind(usuario, onUserClick) // Pasar onUserClick al método bind
 
         // Control de visibilidad del menú
         val userRoles = holder.sessionManager.getUserRol()
@@ -111,27 +103,15 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
                                 )
 
                                 builder.setPositiveButton(positiveButtonText) { dialog, _ ->
-                                    viewModel.deleteUsuario(usuario, holder.empresaDbName) { success, usuarioEliminado ->
-                                        if (success) {
-                                            Toast.makeText(holder.context, "Usuario eliminado correctamente", Toast.LENGTH_SHORT).show()
-                                        } else {
-                                            Toast.makeText(holder.context, "Error al eliminar el usuario", Toast.LENGTH_SHORT).show()
-                                        }
+                                    usuario.id?.let { userId ->
+                                        viewModel.eliminarUsuario(userId) // Llama al método de eliminación en el ViewModel
+                                        Toast.makeText(context, "Eliminando usuario...", Toast.LENGTH_SHORT).show()
+                                    } ?: run {
+                                        Toast.makeText(context, "Error: ID de usuario no válido.", Toast.LENGTH_SHORT).show()
                                     }
                                     dialog.dismiss()
                                 }
 
-//                                builder.setPositiveButton(positiveButtonText) { dialog, _ ->
-//                                    viewModel.deleteUsuario(usuario, holder.empresaDbName) { success, usuarioEliminado ->
-//                                        if (success) {
-//                                            snapshot().invalidate() // Invalidar el snapshot
-//                                            Toast.makeText(holder.context, "Usuario eliminado correctamente", Toast.LENGTH_SHORT).show()
-//                                        } else {
-//                                            Toast.makeText(holder.context, "Error al eliminar el usuario", Toast.LENGTH_SHORT).show()
-//                                        }
-//                                    }
-//                                    dialog.dismiss()
-//                                }
                                 builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.dismiss() }
                                 builder.create().show()
                             } else {
@@ -163,15 +143,4 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
         super.submitList(list)
     }
 
-//    companion object {
-//        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Usuario>() {
-//            override fun areItemsTheSame(oldItem: Usuario, newItem: Usuario): Boolean {
-//                return oldItem.id == newItem.id
-//            }
-//
-//            override fun areContentsTheSame(oldItem: Usuario, newItem: Usuario): Boolean {
-//                return oldItem == newItem
-//            }
-//        }
-//    }
 }

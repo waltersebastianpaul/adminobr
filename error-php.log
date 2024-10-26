@@ -238,3 +238,17 @@ Stack trace:
             estado_id = '1'
              
             WHERE id_usuario = '15'
+[23-Oct-2024 00:01:08 America/Argentina/Buenos_Aires] PHP Parse error:  syntax error, unexpected token "<", expecting end of file in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 2
+[23-Oct-2024 00:10:23 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET 
+            legajo = '0202', 
+            email = 'updated_email@example.com', 
+            dni = '22222222', 
+            nombre = 'UpdatedName', 
+            apellido = 'UpdatedLastName', 
+            telefono = 'update12312312',
+            estado_id = '1'
+             
+            WHERE id_usuario = '15'
+[23-Oct-2024 00:14:18 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET legajo = '0202', email = 'updated_email@example.com', dni = '22222222', nombre = 'UpdatedName', apellido = 'UpdatedLastName', telefono = 'update12312312', estado_id = '1' WHERE id_usuario = '15'
+[23-Oct-2024 00:14:18 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:1) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 79
+[23-Oct-2024 00:14:33 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET legajo = '0202', email = 'updated_email@example.com', dni = '22222222', nombre = 'UpdatedName', apellido = 'UpdatedLastName', telefono = 'update12312312', estado_id = '1' WHERE id_usuario = '15'

@@ -8,13 +8,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.Toast
-import androidx.activity.result.launch
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.adminobr.R
@@ -23,13 +21,16 @@ import com.example.adminobr.ui.adapter.UsuarioAdapter
 import com.example.adminobr.viewmodel.UsuarioViewModel
 import com.example.adminobr.viewmodel.UsuarioViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.coroutines.launch
 
 class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
 
     private var _binding: FragmentListarUsuariosBinding? = null
     private val binding get() = _binding!!
     private lateinit var userAdapter: UsuarioAdapter
+
+    private val usuarioViewModel: UsuarioViewModel by viewModels {
+        UsuarioViewModelFactory(requireActivity().application)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,31 +41,20 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
         return binding.root
     }
 
-    private val usuarioViewModel: UsuarioViewModel by viewModels {
-        UsuarioViewModelFactory(requireActivity().application)
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         userAdapter = UsuarioAdapter(usuarioViewModel, requireContext())
 
-        // Obtener la referencia al SearchView
-        val searchView = binding.searchView  // Asumiendo que tienes el SearchView en tu layout
-
-        // Llamar a la función para convertir el texto a mayúsculas
-        //setSearchViewToUppercase(searchView)
+        val searchView = binding.searchView
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                // No es necesario hacer nada aquí, ya que onQueryTextChange se llama en cada cambio
-                return true
+                return true  // No es necesario hacer nada aquí
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                viewLifecycleOwner.lifecycleScope.launch { // Usar viewLifecycleOwner.lifecycleScope
-                    usuarioViewModel.loadUsers(usuarioFiltro = newText ?: "")
-                }
+                usuarioViewModel.loadUsers(usuarioFiltro = newText ?: "")
                 return true
             }
         })
@@ -72,9 +62,15 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
         binding.userListRecyclerView.adapter = userAdapter
         binding.userListRecyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        usuarioViewModel.error.observe(viewLifecycleOwner) { event ->
+        usuarioViewModel.errorMessage.observe(viewLifecycleOwner) { event -> // Cambia error a errorMessage
             event.getContentIfNotHandled()?.let { errorMessage ->
                 Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        usuarioViewModel.mensaje.observe(viewLifecycleOwner) { event ->
+            event.getContentIfNotHandled()?.let { mensaje ->
+                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -82,19 +78,17 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
             userAdapter.submitList(users)
         }
 
-        usuarioViewModel.loadUsers() // Llamar a loadUsers() aquí
+        usuarioViewModel.cargarUsuarios() // Cambia loadUsers a cargarUsuarios
 
-        // Configurar el FloatingActionButton
         setupFab()
     }
 
     private fun setSearchViewToUppercase(searchView: SearchView) {
-        val searchEditText = searchView.findViewById<EditText>(androidx.appcompat.R.id.search_src_text)
+        val searchEditText = searchView.findViewById<EditText>(R.id.searchView)
         searchEditText?.filters = arrayOf(InputFilter.AllCaps())
     }
 
     private fun setupFab() {
-        // Obtener referencia al FAB y configurar su OnClickListener
         val fab: FloatingActionButton? = activity?.findViewById(R.id.fab)
 
         fab?.visibility = View.VISIBLE
@@ -104,10 +98,8 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
 
         fab?.setOnClickListener {
             navigateToCreateUserForm()
-            //limpiarFormulario()
             fab.visibility = View.GONE
         }
-
     }
 
     override fun onDestroyView() {
