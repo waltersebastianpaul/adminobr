@@ -53,7 +53,7 @@
             android:id="@+id/action_nav_gestion_usuarios_to_nav_userFormFragment_create"
             app:destination="@id/nav_userFormFragment" >
             <argument
-                android:name="isEditMode"
+                android:name="editUserMode"
                 android:defaultValue="false" />
         </action>
 
@@ -61,7 +61,7 @@
             android:id="@+id/action_nav_gestion_usuarios_to_nav_userFormFragment_edit"
             app:destination="@id/nav_userFormFragment" >
             <argument
-                android:name="isEditMode"
+                android:name="editUserMode"
                 android:defaultValue="true" />
             <argument
                 android:name="userId"
@@ -72,15 +72,15 @@
     <fragment
         android:id="@+id/nav_userFormFragment"
         android:name="com.example.adminobr.ui.usuarios.UsuarioFormFragment"
+        tools:layout="@layout/fragment_user_form"
         android:label="" >
         <argument
-            android:name="isEditMode"
-            app:argType="boolean"
-            android:defaultValue="false" />
+            android:name="editMode"
+            app:argType="string"
+            android:defaultValue="EDIT_ALL" />
         <argument
             android:name="userId"
-            app:argType="integer"
-            android:defaultValue="-1" />
+            app:argType="integer" />
     </fragment>
 
 

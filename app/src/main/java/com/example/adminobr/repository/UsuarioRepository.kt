@@ -66,6 +66,52 @@ class UsuarioRepository(
         }
     }
 
+    // Actualizar datos parciales del perfil
+    suspend fun updateProfile(usuario: Usuario, newPassword: String?): Result<Usuario> = withContext(Dispatchers.IO) {
+        try {
+            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+                ?: return@withContext Result.failure<Usuario>(Exception("Empresa DB no especificado."))
+
+            val jsonObject = JSONObject().apply {
+                put("empresaDbName", empresaDbName)
+                put("id_usuario", usuario.id)
+                put("email", usuario.email)
+                put("dni", usuario.dni)
+                put("nombre", usuario.nombre)
+                put("apellido", usuario.apellido)
+                put("telefono", usuario.telefono)
+                if (!newPassword.isNullOrEmpty()) put("password", newPassword)
+            }
+
+            val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+            val response = apiService.actualizarUsuario(requestBody)
+            handleResponse(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Actualizar solo la contraseña
+    suspend fun updatePassword(usuario: Usuario, nuevaContrasena: String): Result<Usuario> = withContext(Dispatchers.IO) {
+        try {
+            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+                ?: return@withContext Result.failure<Usuario>(Exception("Empresa DB no especificado."))
+
+            val jsonObject = JSONObject().apply {
+                put("empresaDbName", empresaDbName)
+                put("id_usuario", usuario.id)
+                put("password", nuevaContrasena)
+            }
+
+            val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+            val response = apiService.actualizarUsuario(requestBody)
+            handleResponse(response)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+
     // Eliminar usuario
     suspend fun deleteUser(idUsuario: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {

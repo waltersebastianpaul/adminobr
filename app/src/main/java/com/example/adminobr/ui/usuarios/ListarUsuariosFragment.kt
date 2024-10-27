@@ -110,14 +110,14 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
     private fun navigateToCreateUserForm() {
         findNavController().navigate(
             R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_create,
-            bundleOf("isEditMode" to false)
+            bundleOf("editUserMode" to false)
         )
     }
 
     private fun navigateToEditUserForm(userId: Int) {
         findNavController().navigate(
             R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_edit,
-            bundleOf("isEditMode" to true, "userId" to userId)
+            bundleOf("editUserMode" to true, "userId" to userId)
         )
     }
 }

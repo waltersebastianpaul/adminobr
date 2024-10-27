@@ -36,10 +36,11 @@ class UsuarioFormFragment : Fragment() {
     private val _usuario = MutableLiveData<Usuario?>()
     private val usuario: LiveData<Usuario?> = _usuario
 
-    private val estadoItems = arrayOf("Activo", "Inactivo")
+    private val estadoItems = arrayOf("Activo", "Inactivo", "Suspendido")
     private var userId: Int? = null
     private var selectedEstado = 1
-    private var isEditMode = false
+    private var editUserMode = false
+    private var editMode: EditMode = EditMode.EDIT_ALL
 
     private lateinit var sessionManager: SessionManager
 
@@ -61,23 +62,132 @@ class UsuarioFormFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        isEditMode = arguments?.getBoolean("isEditMode", false) ?: false
-        (activity as? AppCompatActivity)?.supportActionBar?.title = if (isEditMode) "Editar Usuario" else "Nuevo Usuario"
+        // Obtener el modo de edición del argumento
+        editUserMode = arguments?.getBoolean("editUserMode", false) ?: false
 
-        val userIdEdit = arguments?.getInt("userId", -1) ?: -1
-        if (isEditMode && userIdEdit != -1) {
-            cargarDatosUsuario(userIdEdit)
+        // Obtener el modo de edición del argumento (EDIT_PROFILE, CHANGE_PASSWORD, EDIT_ALL)
+        editMode = arguments?.getString("editMode")?.let { EditMode.valueOf(it) } ?: EditMode.EDIT_ALL
+
+        // Cargar el usuario si es un modo de edición, independientemente del tipo de edición
+        val userId = arguments?.getInt("userId", -1) ?: -1
+        if (userId != -1) {
+            cargarDatosUsuario(userId)
         }
 
+        // Configura el título y visibilidad de los campos basados en `editMode`
+        setFormTitleAndVisibility()
         setupFab()
         observeViewModels()
         setupTextWatchers()
         setupListeners()
 
+// Ver de implementar para nombre y apellido, tipo Titulo, solo primera de cada palabra en mayuscula
         setTextViewToUppercase(binding.nombreEditText)
         setTextViewToUppercase(binding.apellidoEditText)
         setTextViewToLowercase(binding.emailEditText)
     }
+
+    private fun setFormTitleAndVisibility() {
+        when (editMode) {
+            EditMode.EDIT_PROFILE -> {
+                (activity as? AppCompatActivity)?.supportActionBar?.title = "Editar Perfil"
+                configureFieldsForProfileEdit()
+            }
+            EditMode.CHANGE_PASSWORD -> {
+                (activity as? AppCompatActivity)?.supportActionBar?.title = "Cambiar Contraseña"
+                configureFieldsForPasswordChange()
+            }
+            EditMode.EDIT_ALL -> {
+                val title = if (editUserMode) "Editar Usuario" else "Nuevo Usuario"
+                (activity as? AppCompatActivity)?.supportActionBar?.title = title
+                configureFieldsForFullEdit()
+            }
+        }
+    }
+
+    private fun configureFieldsForProfileEdit() {
+        binding.apply {
+            // Mostrar solo los campos de perfil editables
+            legajoEditText.isEnabled = false
+            estadoTextInputLayout.visibility = View.GONE
+        }
+    }
+
+    private fun configureFieldsForPasswordChange() {
+        binding.apply {
+            // Mostrar solo los campos de cambio de contraseña
+            legajoTextInputLayout.visibility = View.GONE
+            nuevoUsuarioIdTextInputLayout.visibility = View.GONE
+            emailTextInputLayout.visibility = View.GONE
+            dniTextInputLayout.visibility = View.GONE
+            nombreTextInputLayout.visibility = View.GONE
+            apellidoTextInputLayout.visibility = View.GONE
+            telefonoTextInputLayout.visibility = View.GONE
+            estadoTextInputLayout.visibility = View.GONE
+        }
+    }
+
+    private fun configureFieldsForFullEdit() {
+        binding.apply {
+            // Mostrar todos los campos para crear o editar usuario
+            legajoEditText.isEnabled = true
+            legajoTextInputLayout.visibility = View.VISIBLE
+            nuevoUsuarioIdTextInputLayout.visibility = View.VISIBLE
+            emailTextInputLayout.visibility = View.VISIBLE
+            dniTextInputLayout.visibility = View.VISIBLE
+            nombreTextInputLayout.visibility = View.VISIBLE
+            apellidoTextInputLayout.visibility = View.VISIBLE
+            telefonoTextInputLayout.visibility = View.VISIBLE
+            passwordTextInputLayout.visibility = View.VISIBLE
+            password2TextInputLayout.visibility = View.VISIBLE
+            estadoTextInputLayout.visibility = View.VISIBLE
+        }
+    }
+
+
+//    private fun configureFields() {
+//        when (editMode) {
+//            EditMode.EDIT_PROFILE -> {
+//                binding.apply {
+//                    // Ocultar campos innecesarios para edición de perfil
+//                    passwordTextInputLayout.visibility = View.GONE
+//                    password2TextInputLayout.visibility = View.GONE
+//                    legajoEditText.isEnabled = false
+//                }
+//            }
+//            EditMode.CHANGE_PASSWORD -> {
+//                binding.apply {
+//                    // Mostrar solo campos de contraseña
+//                    passwordTextInputLayout.visibility = View.VISIBLE
+//                    password2TextInputLayout.visibility = View.VISIBLE
+//                    legajoTextInputLayout.visibility = View.GONE
+//                    nuevoUsuarioIdTextInputLayout.visibility = View.GONE
+//                    emailTextInputLayout.visibility = View.GONE
+//                    dniTextInputLayout.visibility = View.GONE
+//                    nombreTextInputLayout.visibility = View.GONE
+//                    apellidoTextInputLayout.visibility = View.GONE
+//                    telefonoTextInputLayout.visibility = View.GONE
+//                    estadoTextInputLayout.visibility = View.GONE
+//                }
+//            }
+//            EditMode.EDIT_ALL -> {
+//                // Mostrar todos los campos para crear o editar usuario
+//                binding.apply {
+//                    passwordTextInputLayout.visibility = View.VISIBLE
+//                    password2TextInputLayout.visibility = View.VISIBLE
+//                    legajoTextInputLayout.visibility = View.VISIBLE
+//                    legajoEditText.isEnabled = true
+//                    nuevoUsuarioIdTextInputLayout.visibility = View.VISIBLE
+//                    emailTextInputLayout.visibility = View.VISIBLE
+//                    dniTextInputLayout.visibility = View.VISIBLE
+//                    nombreTextInputLayout.visibility = View.VISIBLE
+//                    apellidoTextInputLayout.visibility = View.VISIBLE
+//                    telefonoTextInputLayout.visibility = View.VISIBLE
+//                    estadoTextInputLayout.visibility = View.VISIBLE
+//                }
+//            }
+//        }
+//    }
 
     private fun actualizarUiConDatosDeUsuario(usuario: Usuario) {
         binding.apply {
@@ -124,7 +234,20 @@ class UsuarioFormFragment : Fragment() {
     private fun setupListeners() {
         binding.estadoAutocomplete.setOnItemClickListener { parent, _, position, _ ->
             val selectedEstadoText = parent.getItemAtPosition(position) as String
-            selectedEstado = if (selectedEstadoText == "Activo") 1 else 0
+
+//            selectedEstado = when (selectedEstadoText) {
+//                "Activo" -> 1
+//                "Inactivo" -> 2
+//                "Suspendido" -> 3
+//                else -> 0 // Valor por defecto si no coincide con ninguna opción
+//            }
+
+            selectedEstado = when (selectedEstadoText) {
+                "Activo" -> 1
+                "Inactivo" -> 2
+                "Suspendido" -> 3
+                else -> throw IllegalArgumentException("Estado desconocido: $selectedEstadoText")
+            }
         }
 
         binding.guardarButton.setOnClickListener {
@@ -146,31 +269,102 @@ class UsuarioFormFragment : Fragment() {
     }
 
     private fun guardarUsuario() {
-        if (validarCampos()) {
-            val usuario = Usuario(
-                id = userId,
-                legajo = binding.legajoEditText.text.toString(),
-                email = binding.emailEditText.text.toString(),
-                dni = binding.dniEditText.text.toString(),
-                password = binding.passwordEditText.text.toString(),
-                nombre = binding.nombreEditText.text.toString(),
-                apellido = binding.apellidoEditText.text.toString(),
-                telefono = binding.telefonoEditText.text.toString(),
-                userCreated = sessionManager.getUserId(),
-                estadoId = selectedEstado
-            )
+        when (editMode) {
+            EditMode.EDIT_PROFILE -> {
+                if (validarCamposPerfil()) {
+                    val usuario = Usuario(
+                        id = userId,
+                        email = binding.emailEditText.text.toString(),
+                        dni = binding.dniEditText.text.toString(),
+                        nombre = binding.nombreEditText.text.toString(),
+                        apellido = binding.apellidoEditText.text.toString(),
+                        telefono = binding.telefonoEditText.text.toString()
+                    )
 
-            if (isEditMode) {
-                Toast.makeText(context, "Guardando cambios...", Toast.LENGTH_SHORT).show()
-                val newPassword = if (binding.passwordEditText.text?.isNotEmpty() == true) binding.passwordEditText.text.toString() else null
-                viewModel.actualizarUsuario(usuario, newPassword)
-            } else {
-                viewModel.crearUsuario(usuario)
+                    val nuevaContrasena = if (binding.passwordEditText.text.isNullOrEmpty()) {
+                        null // Si la contraseña está vacía, se pasa como null
+                    } else {
+                        binding.passwordEditText.text.toString()
+                    }
+
+                    viewModel.actualizarPerfilUsuario(usuario, nuevaContrasena)
+                    Toast.makeText(requireContext(), "Actualizando perfil...", Toast.LENGTH_SHORT).show()
+                }
+            }
+            EditMode.CHANGE_PASSWORD -> {
+                val nuevaContrasena = binding.passwordEditText.text.toString()
+                if (nuevaContrasena != "") {
+                    val usuario = Usuario(
+                        id = userId
+                    )
+                    viewModel.actualizarContrasenaUsuario(usuario, binding.passwordEditText.text.toString())
+                    Toast.makeText(requireContext(), "Actualizando contraseña...", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), "Contraseña vacía", Toast.LENGTH_SHORT).show()
+                }
+
+            }
+
+            EditMode.EDIT_ALL -> {
+                if (validarCamposCompletos()) {
+                    val usuario = Usuario(
+                        id = userId,
+                        legajo = binding.legajoEditText.text.toString(),
+                        email = binding.emailEditText.text.toString(),
+                        dni = binding.dniEditText.text.toString(),
+                        password = binding.passwordEditText.text.toString(),
+                        nombre = binding.nombreEditText.text.toString(),
+                        apellido = binding.apellidoEditText.text.toString(),
+                        telefono = binding.telefonoEditText.text.toString(),
+                        userCreated = sessionManager.getUserId(),
+                        estadoId = selectedEstado
+                    )
+                    if (editUserMode) {
+                        viewModel.actualizarUsuario(usuario, binding.passwordEditText.text?.toString())
+                        Toast.makeText(requireContext(), "Actualizando usuario...", Toast.LENGTH_SHORT).show()
+                        deshabilitarFormulario()
+                    } else {
+                        viewModel.crearUsuario(usuario)
+                        Toast.makeText(requireContext(), "Creando usuario...", Toast.LENGTH_SHORT).show()
+                        deshabilitarFormulario()
+                    }
+                }
             }
         }
     }
 
-    private fun validarCampos(): Boolean {
+    private fun validarCamposPerfil(): Boolean {
+        var camposValidos = true
+        binding.apply {
+            if (emailEditText.text.isNullOrEmpty()) {
+                emailTextInputLayout.error = "Campo requerido"
+                camposValidos = false
+            }
+            if (dniEditText.text.isNullOrEmpty()) {
+                dniTextInputLayout.error = "Campo requerido"
+                camposValidos = false
+            }
+            if (nombreEditText.text.isNullOrEmpty()) {
+                nombreTextInputLayout.error = "Campo requerido"
+                camposValidos = false
+            }
+            if (apellidoEditText.text.isNullOrEmpty()) {
+                apellidoTextInputLayout.error = "Campo requerido"
+                camposValidos = false
+            }
+            if (telefonoEditText.text.isNullOrEmpty()) {
+                telefonoTextInputLayout.error = "Campo requerido"
+                camposValidos = false
+            }
+        }
+        if (!camposValidos) {
+            Toast.makeText(requireContext(), "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
+        }
+        return camposValidos
+    }
+
+
+    private fun validarCamposCompletos(): Boolean {
         var camposValidos = true
         binding.apply {
             if (legajoEditText.text.isNullOrEmpty()) {

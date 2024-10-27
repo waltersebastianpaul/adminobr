@@ -1,6 +1,5 @@
 package com.example.adminobr
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -30,13 +29,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.green
+import androidx.core.os.bundleOf
+import com.example.adminobr.ui.usuarios.EditMode
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.update.DownloadService
 import com.example.adminobr.utils.NetworkStatusHelper
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
 
@@ -129,15 +126,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-//    private fun checkNotificationPermission() {
-//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-//            // Permiso concedido, puedes mostrar notificaciones
-//        } else {
-//            // Permiso no concedido, solicitar permiso
-//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFICATION_PERMISSION_REQUEST_CODE)
-//        }
-//    }
-
     private fun cerrarSesion() {
         // Borrar las credenciales del user
         //val sharedPreferences = getSharedPreferences("mis_preferencias", Context.MODE_PRIVATE)
@@ -193,15 +181,22 @@ class MainActivity : AppCompatActivity() {
 
         // Obtener el elemento del menú específico
         val gestionUsuariosItem = navMenu.findItem(R.id.nav_gestion_usuarios)
+        val changePasswordItem = navMenu.findItem(R.id.nav_change_password)
+        val editProfileItem = navMenu.findItem(R.id.nav_edit_profile)
 
         // Controlar la visibilidad del elemento según los roles del usuario
         if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
             gestionUsuariosItem.isVisible = true
         }
 
+        // Sin restrinccion de rol, para su visivilidad
+        changePasswordItem.isVisible = true
+        editProfileItem.isVisible = true
+
         // Marca el ítem de "Inicio" como seleccionado
         binding.navView.setCheckedItem(R.id.nav_home)
 
+        // Manejar eventos de clic en los elementos del menú
         binding.navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_home -> {
@@ -232,9 +227,23 @@ class MainActivity : AppCompatActivity() {
                     binding.drawerLayout.closeDrawers()
                     false
                 }
-
+                R.id.nav_change_password -> {
+                    // Acción para nav_change_password
+                    val userId = sessionManager.getUserId()
+                    val bundle = bundleOf("userId" to userId, "editMode" to EditMode.CHANGE_PASSWORD.name)
+                    findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_userFormFragment, bundle)
+                    binding.drawerLayout.closeDrawers()
+                    false
+                }
+                R.id.nav_edit_profile -> {
+                    // Acción para nav_edit_profile
+                    val userId = sessionManager.getUserId()
+                    val bundle = bundleOf("userId" to userId, "editMode" to EditMode.EDIT_PROFILE.name)
+                    findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_userFormFragment, bundle)
+                    binding.drawerLayout.closeDrawers()
+                    false
+                }
                 // Agregar más casos según sea necesario
-
                 else -> {
                     // Manejar otros elementos del menú si es necesario
                     false
@@ -344,21 +353,6 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
     }
 
-//    private fun showWifiWarningDialog(apkUrl: String) {
-//        AlertDialog.Builder(this)
-//            .setTitle("Conexión de datos móviles")
-//            .setMessage("No estás conectado a una red Wi-Fi. La descarga puede consumir tu plan de datos. ¿Deseas continuar?")
-//            .setPositiveButton("Sí, descargar") { _, _ ->
-//                startDownloadService(apkUrl)
-//            }
-//            .setNegativeButton("Esperar a Wi-Fi") { _, _ ->
-//                sessionManager.savePendingUpdateUrl(apkUrl)
-//                Toast.makeText(this, "La actualización se descargará cuando estés conectado a Wi-Fi.", Toast.LENGTH_SHORT).show()
-//            }
-//            .setNeutralButton("Cancelar", null)
-//            .show()
-//    }
-
     private fun startDownloadService(apkUrl: String) {
         val intent = Intent(this, DownloadService::class.java)
         intent.putExtra("apkUrl", apkUrl)
@@ -376,103 +370,5 @@ class MainActivity : AppCompatActivity() {
         }
         return false
     }
-
-
-
-
-
-
-
-
-
-//    private fun checkPendingUpdateOnWifi() {
-//        val sessionManager = SessionManager(this)
-//        val pendingUpdateUrl = sessionManager.getPendingUpdateUrl()
-//
-//        pendingUpdateUrl?.let {
-//            // Start the download now that we're on Wi-Fi
-//            lifecycleScope.launch(Dispatchers.IO) {
-//                val updateManager = UpdateManager(this@MainActivity)
-//
-//                // Download the update
-//                val apkUri = updateManager.downloadUpdate(it)
-//
-//                apkUri?.let { uri ->
-//                    // Clear the pending update after downloading
-//                    sessionManager.clearPendingUpdateUrl()
-//
-//                    // Handle installation in the foreground or notify for later
-//                    if (updateManager.isAppInForeground()) {
-//                        updateManager.installApk(uri)
-//                    } else {
-//                        updateManager.showInstallNotification(uri)
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//
-//
-//
-//    private fun startDownloadService(apkUrl: String) {
-//        val intent = Intent(this, DownloadService::class.java)
-//        intent.putExtra("apkUrl", apkUrl)
-//        startService(intent)
-//    }
-//
-//
-//    private fun showUpdateDialog(apkUrl: String, versionName: String) {
-//        AlertDialog.Builder(this)
-//            .setTitle("Actualización disponible")
-//            .setMessage("Se ha encontrado una nueva versión ($versionName). ¿Desea descargar e instalar la actualización?")
-//            .setPositiveButton("Sí") { _, _ ->
-//                if (networkHelper.isWifiConnected()) {
-//                    val intent = Intent(this, DownloadService::class.java)
-//                    intent.putExtra("apkUrl", apkUrl)
-//                    startService(intent)
-//                } else {
-//                    showWifiWarningDialog(apkUrl)
-//                }
-//            }
-//            .setNegativeButton("No", null)
-//            .show()
-//    }
-//
-//
-//    private fun showWifiWarningDialog(apkUrl: String) {
-//        withContext(Dispatchers.Main) {
-//            androidx.appcompat.app.AlertDialog.Builder(context)
-//                .setTitle("Conexión de datos móviles")
-//                .setMessage("No estás conectado a una red Wi-Fi. La descarga puede consumir tu plan de datos. ¿Deseas continuar?")
-//                .setPositiveButton("Sí, descargar") { _, _ ->
-//                    val intent = Intent(this, DownloadService::class.java)
-//                    intent.putExtra("apkUrl", apkUrl)
-//                    startService(intent)
-//                }
-//                .setNegativeButton("Esperar a Wi-Fi") { _, _ ->
-//                    sessionManager.savePendingUpdateUrl(apkUrl)
-//                }
-//                .setNeutralButton("Cancelar", null)
-//                .show()
-//        }
-//    }
-//
-//
-//    fun retryPendingDownloadIfWifiConnected() {
-//        val pendingUpdateUrl = sessionManager.getPendingUpdateUrl()
-//        if (pendingUpdateUrl != null && networkHelper.isWifiConnected()) {
-//            // Launch a coroutine to handle the suspend function
-//            CoroutineScope(Dispatchers.IO).launch {
-//                downloadUpdate(pendingUpdateUrl)
-//                sessionManager.clearPendingUpdateUrl()
-//            }
-//        }
-//    }
-
-
-
-
-
 
 }

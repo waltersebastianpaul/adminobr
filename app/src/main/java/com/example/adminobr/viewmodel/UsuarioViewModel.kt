@@ -58,6 +58,40 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun actualizarPerfilUsuario(usuario: Usuario, nuevaContrasena: String?) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { repository.updateProfile(usuario, nuevaContrasena) }
+            _isLoading.value = false
+            if (result.isSuccess) {
+                _mensaje.value = Event("Perfil actualizado con éxito")
+            } else {
+                _errorMessage.value = Event("Error al actualizar perfil: ${result.exceptionOrNull()?.message}")
+            }
+        }
+    }
+
+    fun actualizarContrasenaUsuario(usuario: Usuario, nuevaContrasena: String) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { repository.updatePassword(usuario, nuevaContrasena) }
+            _isLoading.value = false
+            if (result.isSuccess) {
+                _mensaje.value = Event("Contraseña actualizada con éxito")
+            } else {
+                _errorMessage.value = Event("Error al actualizar contraseña: ${result.exceptionOrNull()?.message}")
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
     fun eliminarUsuario(idUsuario: Int) {
         _isLoading.value = true
         viewModelScope.launch {

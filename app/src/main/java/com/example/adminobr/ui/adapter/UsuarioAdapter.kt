@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.adminobr.R
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.databinding.ItemUsuarioBinding
+import com.example.adminobr.ui.usuarios.EditMode
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.viewmodel.UsuarioViewModel
 
@@ -78,7 +79,7 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
                             val usuario = getItem(position)
                             if (usuario != null) {
                                 val userId = usuario.id
-                                val bundle = bundleOf("userId" to userId, "isEditMode" to true) // Pasar isEditMode como true
+                                val bundle = bundleOf("userId" to userId, "editMode" to EditMode.EDIT_ALL.name)
                                 view.findNavController().navigate(R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_edit, bundle)
                             }
                             true
