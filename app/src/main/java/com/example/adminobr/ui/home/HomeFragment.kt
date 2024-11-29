@@ -10,9 +10,6 @@ import androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
 import android.content.res.ColorStateList
 import android.net.Uri
 import android.os.Bundle
-import android.text.Spannable
-import android.text.SpannableString
-import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -27,6 +24,7 @@ import com.example.adminobr.databinding.FragmentHomeBinding
 import com.example.adminobr.viewmodel.HomeViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import com.example.adminobr.utils.SessionManager
 
 class HomeFragment : Fragment() {
@@ -70,7 +68,8 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.parteDiarioCardView.setOnClickListener {
-            findNavController().navigate(R.id.nav_partediario)
+            val bundle = bundleOf("editMode" to false)
+            findNavController().navigate(R.id.nav_parteDiarioFormFragment, bundle) // Reemplaza R.id.nav_parteDiarioFormFragment con el ID del fragmento destino
         }
 
         binding.parteSimpleCardView.setOnClickListener {
@@ -83,11 +82,12 @@ class HomeFragment : Fragment() {
 
         // Obtener roles del usuario
         val userRoles = sessionManager.getUserRol()
-Log.d("HomeFragment", "Roles del usuario: $userRoles")
+        Log.d("HomeFragment", "Roles del usuario: $userRoles")
         // Constrol de visivilidad segun roles
         if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
             binding.parteSimpleCardView.visibility = View.VISIBLE
         }
+
     }
 
     override fun onResume() {
@@ -101,10 +101,11 @@ Log.d("HomeFragment", "Roles del usuario: $userRoles")
         fab.visibility = View.VISIBLE
         fab.setImageResource(R.drawable.ic_add)
         fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
-        fab.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white))
+        fab.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorWhite))
 
         fab.setOnClickListener {
-            findNavController().navigate(R.id.nav_partediario)
+            val bundle = bundleOf("editMode" to false)
+            findNavController().navigate(R.id.nav_parteDiarioFormFragment, bundle) // Reemplaza R.id.nav_partediario con el ID del fragmento destino
         }
 
         // Registrar el BroadcastReceiver
@@ -137,6 +138,9 @@ Log.d("HomeFragment", "Roles del usuario: $userRoles")
 
     }
 
+    override fun onStop() {
+        super.onStop()
+    }
     private fun installApk(uri: Uri) {
         val intent = Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, "application/vnd.android.package-archive")

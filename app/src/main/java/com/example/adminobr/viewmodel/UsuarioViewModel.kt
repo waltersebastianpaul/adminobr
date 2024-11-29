@@ -19,9 +19,6 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
 
     private val repository = UsuarioRepository(ApiService.create(), SessionManager(application))
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
-
     private val _errorMessage = MutableLiveData<Event<String>>()
     val errorMessage: LiveData<Event<String>> get() = _errorMessage
 
@@ -31,72 +28,95 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     private val _users = MutableLiveData<List<Usuario>?>()
     val users: LiveData<List<Usuario>?> get() = _users
 
-    fun crearUsuario(usuario: Usuario) {
-        _isLoading.value = true
+    fun crearUsuario(usuario: Usuario, callback: (Boolean, Int?) -> Unit) {
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) { repository.createUser(usuario) }
-            _isLoading.value = false
             if (result.isSuccess) {
-                _mensaje.value = Event("Usuario creado exitosamente")
-                cargarUsuarios()
+                val (success, nuevoId) = result.getOrNull() ?: Pair(false, null)
+                Log.d("UsuarioViewModel", "Callback de creación: success=$success, nuevoId=$nuevoId")
+                if (success) {
+                    _mensaje.value = Event("Usuario creado exitosamente")
+                    callback(true, nuevoId) // Llamada a la función de callback
+                    cargarUsuarios() // Cargar lista actualizada de usuarios
+                } else {
+                    _errorMessage.value = Event("Error al crear usuario")
+                    callback(false, null)
+                }
             } else {
                 _errorMessage.value = Event("Error al crear usuario: ${result.exceptionOrNull()?.message}")
+                callback(false, null)
             }
         }
     }
 
-    fun actualizarUsuario(usuario: Usuario, newPassword: String?) {
-        _isLoading.value = true
+    fun asignarRol(usuarioId: Int, rolId: Int) {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { repository.updateUser(usuario, newPassword) }
-            _isLoading.value = false
+            val result = withContext(Dispatchers.IO) { repository.assignRole(usuarioId, rolId) }
             if (result.isSuccess) {
-                _mensaje.value = Event("Usuario actualizado con éxito")
+                _mensaje.value = Event("Rol asignado exitosamente")
             } else {
-                _errorMessage.value = Event("Error al actualizar usuario: ${result.exceptionOrNull()?.message}")
+                _errorMessage.value = Event("Error al asignar rol: ${result.exceptionOrNull()?.message}")
             }
         }
     }
 
-    fun actualizarPerfilUsuario(usuario: Usuario, nuevaContrasena: String?) {
-        _isLoading.value = true
+    fun actualizarUsuario(usuario: Usuario, newPassword: String?, callback: (success: Boolean) -> Unit) {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { repository.updateProfile(usuario, nuevaContrasena) }
-            _isLoading.value = false
-            if (result.isSuccess) {
-                _mensaje.value = Event("Perfil actualizado con éxito")
-            } else {
-                _errorMessage.value = Event("Error al actualizar perfil: ${result.exceptionOrNull()?.message}")
+            try {
+                val result = withContext(Dispatchers.IO) { repository.updateUser(usuario, newPassword) }
+                if (result.isSuccess) {
+                    _mensaje.value = Event("Usuario actualizado exitosamente")
+                    callback(true) // Notifica éxito al callback
+                } else {
+                    _errorMessage.value = Event("Error al actualizar usuario: ${result.exceptionOrNull()?.message}")
+                    callback(false) // Notifica error al callback
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = Event("Error al actualizar usuario: ${e.message}")
+                callback(false) // Notifica error al callback
             }
         }
     }
 
-    fun actualizarContrasenaUsuario(usuario: Usuario, nuevaContrasena: String) {
-        _isLoading.value = true
+    fun actualizarPerfilUsuario(usuario: Usuario, nuevaContrasena: String?, callback: (success: Boolean) -> Unit) {
         viewModelScope.launch {
-            val result = withContext(Dispatchers.IO) { repository.updatePassword(usuario, nuevaContrasena) }
-            _isLoading.value = false
-            if (result.isSuccess) {
-                _mensaje.value = Event("Contraseña actualizada con éxito")
-            } else {
-                _errorMessage.value = Event("Error al actualizar contraseña: ${result.exceptionOrNull()?.message}")
+            try {
+                val result = withContext(Dispatchers.IO) { repository.updateProfile(usuario, nuevaContrasena) }
+                if (result.isSuccess) {
+                    _mensaje.value = Event("Perfil actualizado exitosamente")
+                    callback(true) // Notifica éxito al callback
+                } else {
+                    _errorMessage.value = Event("Error al actualizar perfil: ${result.exceptionOrNull()?.message}")
+                    callback(false) // Notifica error al callback
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = Event("Error al actualizar perfil: ${e.message}")
+                callback(false) // Notifica error al callback
             }
         }
     }
 
-
-
-
-
-
-
-
+    fun actualizarContrasenaUsuario(usuario: Usuario, nuevaContrasena: String, callback: (success: Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val result = withContext(Dispatchers.IO) { repository.updatePassword(usuario, nuevaContrasena) }
+                if (result.isSuccess) {
+                    _mensaje.value = Event("Contraseña actualizada exitosamente")
+                    callback(true) // Notifica éxito al callback
+                } else {
+                    _errorMessage.value = Event("Error al actualizar contraseña: ${result.exceptionOrNull()?.message}")
+                    callback(false) // Notifica error al callback
+                }
+            } catch (e: Exception) {
+                _errorMessage.value = Event("Error al actualizar contraseña: ${e.message}")
+                callback(false) // Notifica error al callback
+            }
+        }
+    }
 
     fun eliminarUsuario(idUsuario: Int) {
-        _isLoading.value = true
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) { repository.deleteUser(idUsuario) }
-            _isLoading.value = false
 
             if (result.isSuccess) {
                 Log.d("UsuarioViewModel", "Eliminación exitosa: ${result.getOrNull()}")
@@ -111,10 +131,8 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun obtenerUsuarioPorId(idUsuario: Int) {
-        _isLoading.value = true
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) { repository.fetchUserById(idUsuario) }
-            _isLoading.value = false
             if (result.isSuccess) {
                 result.getOrNull()?.let { _users.value = listOf(it) }
             } else {
@@ -124,11 +142,9 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun cargarUsuarios(usuarioFiltro: String = "") {
-        _isLoading.value = true
         viewModelScope.launch {
             Log.d("UsuarioViewModel", "Iniciando carga de usuarios con filtro '$usuarioFiltro'...")
             val result = withContext(Dispatchers.IO) { repository.fetchUsers(usuarioFiltro) }
-            _isLoading.value = false
 
             if (result.isSuccess) {
                 _users.value = result.getOrNull()
@@ -143,7 +159,6 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
 
     // Método loadUsers para cargar usuarios con filtro de búsqueda
     fun loadUsers(usuarioFiltro: String = "") {
-        _isLoading.value = true
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 try {
@@ -159,7 +174,7 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                     val requestBody = jsonObject.toString()
                         .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
 
-                    val response = repository.apiService.getAllUsers(requestBody)
+                    val response = repository.apiService.obtenerUsuarios(requestBody)
 
                     if (response.isSuccessful) {
                         val users = response.body()?.data ?: emptyList()
@@ -170,8 +185,6 @@ class UsuarioViewModel(application: Application) : AndroidViewModel(application)
                     }
                 } catch (e: Exception) {
                     _errorMessage.postValue(Event("Error: ${e.message}"))
-                } finally {
-                    _isLoading.postValue(false)
                 }
             }
         }

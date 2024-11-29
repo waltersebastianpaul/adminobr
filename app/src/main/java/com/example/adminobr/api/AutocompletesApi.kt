@@ -2,11 +2,12 @@ package com.example.adminobr.api
 
 import android.app.Application
 import android.util.Log
-
 import com.example.adminobr.utils.Constants
 import com.example.adminobr.data.Empresa
 import com.example.adminobr.data.Equipo
+import com.example.adminobr.data.Estado
 import com.example.adminobr.data.Obra
+import com.example.adminobr.data.Rol
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
@@ -24,9 +25,6 @@ interface AutocompletesApi {
 
     @POST(Constants.Obras.GET_LISTA)
     suspend fun getObras(@Body requestBody: RequestBody): List<Obra>
-
-//    @POST(Constants.Empresas.GET_LISTA)
-//    suspend fun getEmpresas(@Body requestBody: RequestBody): List<Empresa>
 
     @GET(Constants.Empresas.GET_LISTA) // Ruta corregida
     suspend fun getEmpresas(): List<Empresa>
@@ -56,4 +54,10 @@ interface AutocompletesApi {
             return retrofit.create(AutocompletesApi::class.java)
         }
     }
+
+    @POST(Constants.Roles.GET_LISTA)
+    suspend fun getRoles(@Body requestBody: RequestBody): List<Rol>
+
+    @POST(Constants.Estados.GET_LISTA)
+    suspend fun getEstados(@Body requestBody: RequestBody): List<Estado>
 }

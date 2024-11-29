@@ -8,14 +8,18 @@ sealed class Constants {
 
     companion object {
 
-        // Configuración de la URL base
+        // Establece el modo de depuración
         private const val DEBUG = true // Cambiar a true en desarrollo, false en producción
+        // Establece el modo de red de depuración
+        private const val NETWORK_STATUS_HELPER = true // Cambiar a true en desarrollo, false en producción
 
+        // Configuración de la URL base
         private const val BASE_URL = "http://adminobr.site"
         private const val DEBUG_DIR = "/debug/"
         private const val RELEASE_DIR = "/"
         private var CURRENT_DIR = ""
 
+        // Inicializa la dirección actual según el modo de depuración
         init {
             CURRENT_DIR = if (BuildConfig.DEBUG && DEBUG) DEBUG_DIR else RELEASE_DIR
         }
@@ -32,56 +36,57 @@ sealed class Constants {
             Log.d("Constants", "Built URL: $url")
             return url
         }
+
+        fun getNetworkStatusHelper(): Boolean {
+            return NETWORK_STATUS_HELPER
+        }
     }
 
     object Update {
         val UPDATE_DIR = buildUrl("updates/apk/")
-        // ... otras rutas de obras si es necesario
     }
 
     object PartesDiarios {
-        const val GET_LISTA = "api/equipos/partes/get_partes_diarios.php"
-        const val GUARDAR_PARTE_DIARIO = "api/equipos/partes/guardar_parte_diario.php"
-        const val GET_ULTIMO_PARTE = "api/equipos/partes/get_ultimo_parte_diario.php"
-        const val GET_ULTIMOS_PARTES = "api/equipos/partes/get_ultimo_parte_diario.php"
-        // ... otras rutas de obras si es necesario
+        const val CREATE = "api/equipos/partes/create.php"
+        const val UPDATE = "api/equipos/partes/update.php"
+        const val DELETE = "api/equipos/partes/delete.php"
+        const val GET_BY_EQUIPO = "api/equipos/partes/getByEquipoId.php"
+        const val GET_BY_USER = "api/equipos/partes/getByUserId.php"
+        const val GET_BY_ID = "api/equipos/partes/getById.php"
+        const val GET_ALL = "api/equipos/partes/getAll.php"
     }
 
     object Equipos {
-        const val GET_LISTA = "api/equipos/get_equipos.php"
-        // ... otras rutas de obras si es necesario
+        const val GET_LISTA = "api/equipos/getEquipos.php"
     }
 
     object Obras {
-        const val GET_LISTA = "api/obras/get_obras.php"
-        // ... otras rutas de obras si es necesario
+        const val GET_LISTA = "api/obras/getObras.php"
     }
 
     object Estados {
-        const val GET_LISTA = "api/estados/get_estados.php"
-        // ... otras rutas de obras si es necesario
+        const val GET_LISTA = "api/estados/getEstados.php"
     }
 
     object Empresas {
-        const val GET_LISTA = "api/empresas/get_empresas.php"
-        // ... otras rutas de obras si es necesario
+        const val GET_LISTA = "api/empresas/getEmpresas.php"
     }
 
     object Auth {
         const val LOGIN = "api/auth/login.php"
         const val LOGOUT = "api/auth/logout.php"
-        // ... otras rutas de obras si es necesario
     }
 
     object Roles {
-        const val GET_LISTA = "api/roles/get_roles.php"
-        // ... otras rutas de obras si es necesario
+        const val GET_LISTA = "api/roles/getRoles.php"
+        const val SET_ROL = "api/roles/asignarRolUsuario.php"
     }
 
     object Usuarios {
-        const val GET_LISTA = "api/usuarios/get_usuarios.php"
-        const val GUARDAR = "api/usuarios/guardar_usuario.php" // Nueva ruta
-        const val ACTUALIZAR = "api/usuarios/actualizar_usuario.php" // Nueva ruta
-        // ... otras rutas para actualizar, eliminar, etc.
+        const val GET_ALL = "api/usuarios/getAll.php"
+        const val CREATE = "api/usuarios/create.php"
+        const val UPDATE = "api/usuarios/update.php"
+        const val DELETE = "api/usuarios/delete.php"
+        const val GET_BY_ID = "api/usuarios/getById.php"
     }
 }

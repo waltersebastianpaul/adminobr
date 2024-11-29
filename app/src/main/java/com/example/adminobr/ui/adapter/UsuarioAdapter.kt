@@ -5,6 +5,7 @@ import android.content.Context
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,8 +14,6 @@ import android.widget.Toast
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
-import androidx.media3.common.util.Log
-import androidx.media3.common.util.UnstableApi
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -22,7 +21,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.adminobr.R
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.databinding.ItemUsuarioBinding
-import com.example.adminobr.ui.usuarios.EditMode
+import com.example.adminobr.ui.usuarios.EditType
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.viewmodel.UsuarioViewModel
 
@@ -57,11 +56,9 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
         return UserViewHolder(binding, viewModel, parent.context, empresaDbName)
     }
 
-    @OptIn(UnstableApi::class)
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val usuario = getItem(position)
         usuario?.let { holder.bind(it) }
-        Log.d("UserAdapter", "Binding user: $usuario")
 
         // Control de visibilidad del menú
         val userRoles = holder.sessionManager.getUserRol()
@@ -79,7 +76,7 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
                             val usuario = getItem(position)
                             if (usuario != null) {
                                 val userId = usuario.id
-                                val bundle = bundleOf("userId" to userId, "editMode" to EditMode.EDIT_ALL.name)
+                                val bundle = bundleOf("userId" to userId, "editType" to EditType.EDIT_ALL.name)
                                 view.findNavController().navigate(R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_edit, bundle)
                             }
                             true
@@ -89,34 +86,27 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
                             val usuario = getItem(position)
                             if (usuario != null) {
                                 // Mostrar diálogo de confirmación
-                                val builder = AlertDialog.Builder(context) // Usar context del adaptador
-                                builder.setTitle("Eliminar Usuario")
-                                builder.setMessage("¿Estás seguro de que quieres eliminar este usuario?")
-
-                                // Personalizar el texto del botón positivo
-                                val positiveButtonText = SpannableString("Eliminar")
-                                val colorRojo = ContextCompat.getColor(context, R.color.danger_500)
-                                positiveButtonText.setSpan(
-                                    ForegroundColorSpan(colorRojo),
-                                    0,
-                                    positiveButtonText.length,
-                                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                                )
-
-                                builder.setPositiveButton(positiveButtonText) { dialog, _ ->
-                                    usuario.id?.let { userId ->
-                                        viewModel.eliminarUsuario(userId) // Llama al método de eliminación en el ViewModel
-                                        Toast.makeText(context, "Eliminando usuario...", Toast.LENGTH_SHORT).show()
-                                    } ?: run {
-                                        Toast.makeText(context, "Error: ID de usuario no válido.", Toast.LENGTH_SHORT).show()
+                                AlertDialog.Builder(context) // Usar context del adaptador
+                                    .setTitle("Eliminar Usuario")
+                                    .setMessage("¿Estás seguro de que quieres eliminar este usuario?")
+                                    // Botón positivo ("Eliminar") con color rojo (danger_500)
+                                    .setPositiveButton(SpannableString("Eliminar").apply {
+                                        setSpan(ForegroundColorSpan(ContextCompat.getColor(context, R.color.danger_500)), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                                    }) { _, _ ->
+                                        usuario.id?.let { userId ->
+                                            viewModel.eliminarUsuario(userId) // Llama al método de eliminación en el ViewModel
+//                                            Toast.makeText(context, "Eliminando usuario...", Toast.LENGTH_SHORT).show()
+                                        } ?: run {
+                                            Toast.makeText(context, "Error: ID de usuario no válido.", Toast.LENGTH_SHORT).show()
+                                        }
                                     }
-                                    dialog.dismiss()
-                                }
-
-                                builder.setNegativeButton("Cancelar") { dialog, _ -> dialog.dismiss() }
-                                builder.create().show()
+                                    // Botón negativo ("Cancelar") con color negro (colorBlack)
+                                    .setNegativeButton(SpannableString("Cancelar").apply {
+                                        setSpan(ForegroundColorSpan(ContextCompat.getColor(context, R.color.colorBlack)), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                                    }, null)
+                                    .show()
                             } else {
-                                android.util.Log.e("UsuarioViewHolder", "Error: usuario es nulo")
+                                Log.e("UsuarioViewHolder", "Error: usuario es nulo")
                             }
                             true
                         }

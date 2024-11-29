@@ -3,176 +3,57 @@ package com.example.adminobr.ui.partediario
 import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import com.example.adminobr.data.ListarPartesDiarios
-import com.example.adminobr.utils.Constants
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.example.adminobr.api.ApiService
+import com.example.adminobr.data.ParteDiario
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONArray
 import org.json.JSONObject
-import java.io.IOException
 
 class ParteDiarioPagingSource(
-    private val client: OkHttpClient,
-    private val baseUrl: String,
-    private val equipo: String,
+    private val apiService: ApiService,
+    private val empresaDbName: String,
+    private val equipoId: Int,
     private val fechaInicio: String,
-    private val fechaFin: String,
-    private val empresaDbName: String // Incluye este nuevo parámetro
-) : PagingSource<Int, ListarPartesDiarios>() {
+    private val fechaFin: String
+) : PagingSource<Int, ParteDiario>() {
 
-    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ListarPartesDiarios> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val page = params.key ?: 1
-                val pageSize = params.loadSize
-
-                // Crear el objeto JSON con los parámetros
-                val jsonBody = JSONObject().apply {
-                    put("empresaDbName", empresaDbName)
-                    put("equipo", equipo)
-                    put("fechaInicio", fechaInicio)
-                    put("fechaFin", fechaFin)
-                    put("page", page)
-                    put("pageSize", pageSize)
-                }
-
-                // Convertir el objeto JSON a un cuerpo de solicitud
-                val requestBody = jsonBody.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-
-                // Crear la solicitud POST
-                val request = Request.Builder()
-                    .url("$baseUrl${Constants.PartesDiarios.GET_LISTA}")
-                    .post(requestBody)  // Enviar el JSON
-                    .build()
-                Log.d("ParteDiarioPagingSource", "Request URL: $request")
-                Log.d("ParteDiarioPagingSource", "Request Body: $requestBody")
-                Log.d("ParteDiarioPagingSource", "Url: \"$baseUrl${Constants.PartesDiarios.GET_LISTA}\"")
-
-                val response = client.newCall(request).execute()
-
-                val jsonData = response.body?.string() ?: ""
-                val jsonArray = JSONArray(jsonData)
-
-                val partesDiarios = mutableListOf<ListarPartesDiarios>()
-
-                for (i in 0 until jsonArray.length()) {
-                    val jsonObject = jsonArray.getJSONObject(i)
-                    val parteDiario = ListarPartesDiarios(
-                        id_parte_diario = jsonObject.getInt("id_parte_diario"),
-                        fecha = jsonObject.getString("fecha"),
-                        equipo_id = jsonObject.getInt("equipo_id"),
-                        interno = jsonObject.getString("interno"),
-                        horas_inicio = jsonObject.getInt("horas_inicio"),
-                        horas_fin = jsonObject.getInt("horas_fin"),
-                        horas_trabajadas = jsonObject.getInt("horas_trabajadas"),
-                        observaciones = jsonObject.optString("observaciones"),
-                        obra_id = jsonObject.getInt("obra_id"),
-                        user_created = jsonObject.getInt("user_created"),
-                        estado_id = jsonObject.getInt("estado_id")
-                    )
-                    partesDiarios.add(parteDiario)
-                }
-
-                val nextKey = if (partesDiarios.size < pageSize) {
-                    null
-                } else {
-                    page + 1
-                }
-
-                LoadResult.Page(
-                    data = partesDiarios,
-                    prevKey = if (page == 1) null else page - 1,
-                    nextKey = nextKey
-                )
-            } catch (e: IOException) {
-                LoadResult.Error(e)
-            } catch (e: Exception) {
-                LoadResult.Error(e)
+    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ParteDiario> {
+        return try {
+            val page = params.key ?: 1
+            val jsonBody = JSONObject().apply {
+                put("empresaDbName", empresaDbName)
+                put("equipoId", equipoId)  // Cambiado a equipoId para consistencia
+                put("fechaInicio", fechaInicio)
+                put("fechaFin", fechaFin)
+                put("page", page)
+                put("pageSize", params.loadSize)
             }
+            val requestBody = jsonBody.toString().toRequestBody("application/json".toMediaTypeOrNull())
+
+            Log.d("ParteDiarioPagingSource", "Enviando datos a la API: $jsonBody")
+            val response = apiService.getAllPartesDiarios(requestBody)
+
+            if (response.isSuccessful) {
+                val partes = response.body()?.data ?: emptyList()
+                Log.d("ParteDiarioPagingSource", "Respuesta de la API: ${response.body()}")
+                LoadResult.Page(
+                    data = partes,
+                    prevKey = if (page == 1) null else page - 1,
+                    nextKey = if (partes.isEmpty()) null else page + 1
+                )
+            } else {
+                Log.e("ParteDiarioPagingSource", "Error en la respuesta de la API: ${response.errorBody()?.string()}")
+                LoadResult.Error(Throwable(response.errorBody()?.string()))
+            }
+        } catch (e: Exception) {
+            Log.e("ParteDiarioPagingSource", "Error de red o procesamiento: ${e.message}")
+            LoadResult.Error(e)
         }
     }
 
-    override fun getRefreshKey(state: PagingState<Int, ListarPartesDiarios>): Int? {
-        return state.anchorPosition?.let { anchorPosition ->
+    override fun getRefreshKey(state: PagingState<Int, ParteDiario>): Int? =
+        state.anchorPosition?.let { anchorPosition ->
             state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
                 ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
         }
-    }
 }
-
-//    override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ListarPartesDiarios> {
-//        return withContext(Dispatchers.IO) {
-//            try {
-//                val page = params.key ?: 1
-//                val pageSize = params.loadSize
-//
-//                // Crea el cuerpo de la solicitud con todos los parámetros
-//                val requestBody = FormBody.Builder()
-//                    .add("equipo", equipo)
-//                    .add("fechaInicio", fechaInicio)
-//                    .add("fechaFin", fechaFin)
-//                    .add("empresaDbName", empresaDbName)
-//                    .add("page", page.toString())
-//                    .add("pageSize", pageSize.toString())
-//                    .build()
-//
-//                val request = Request.Builder()
-//                    .url("$baseUrl${Constants.PartesDiarios.GET_LISTA}")
-//                    .post(requestBody)  // Usa POST en lugar de GET
-//                    .build()
-//
-//                val response = client.newCall(request).execute()
-//
-//                val jsonData = response.body?.string() ?: ""
-//                val jsonArray = JSONArray(jsonData)
-//
-//                val partesDiarios = mutableListOf<ListarPartesDiarios>()
-//
-//                for (i in 0 until jsonArray.length()) {
-//                    val jsonObject = jsonArray.getJSONObject(i)
-//                    val parteDiario = ListarPartesDiarios(
-//                        id_parte_diario = jsonObject.getInt("id_parte_diario"),
-//                        fecha = jsonObject.getString("fecha"),
-//                        equipo_id = jsonObject.getInt("equipo_id"),
-//                        interno = jsonObject.getString("interno"),
-//                        horas_inicio = jsonObject.getInt("horas_inicio"),
-//                        horas_fin = jsonObject.getInt("horas_fin"),
-//                        horas_trabajadas = jsonObject.getInt("horas_trabajadas"),
-//                        observaciones = jsonObject.optString("observaciones"),
-//                        obra_id = jsonObject.getInt("obra_id"),
-//                        user_created = jsonObject.getInt("user_created"),
-//                        estado_id = jsonObject.getInt("estado_id")
-//                    )
-//                    partesDiarios.add(parteDiario)
-//                }
-//
-//                val nextKey = if (partesDiarios.size < pageSize) {
-//                    null
-//                } else {
-//                    page + 1
-//                }
-//
-//                LoadResult.Page(
-//                    data = partesDiarios,
-//                    prevKey = if (page == 1) null else page - 1,
-//                    nextKey = nextKey
-//                )
-//            } catch (e: IOException) {
-//                LoadResult.Error(e)
-//            } catch (e: Exception) {
-//                LoadResult.Error(e)
-//            }
-//        }
-//    }
-//
-//    override fun getRefreshKey(state: PagingState<Int, ListarPartesDiarios>): Int? {
-//        return state.anchorPosition?.let { anchorPosition ->
-//            state.closestPageToPosition(anchorPosition)?.prevKey?.plus(1)
-//                ?: state.closestPageToPosition(anchorPosition)?.nextKey?.minus(1)
-//        }
-//    }
-//}

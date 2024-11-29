@@ -15,33 +15,54 @@
             android:title="@string/menu_partediario" />
 
         <item
-            android:id="@+id/nav_check_update"
-            android:icon="@drawable/ic_update"
-            android:title="Buscar Actualizaciones" />
-
-        <item
-            android:id="@+id/nav_gestion_usuarios"
-            android:icon="@drawable/ic_manage_users"
-            android:visible="false"
-            android:title="Gestionar Usuarios" />
-
-        <item
-            android:id="@+id/nav_change_password"
-            android:icon="@drawable/ic_manage_users"
-            android:visible="true"
-            android:title="Cambiar Contraseña" />
-
-        <item
-            android:id="@+id/nav_edit_profile"
-            android:icon="@drawable/ic_manage_users"
-            android:visible="true"
-            android:title="Editar Perfil" />
+            android:id="@+id/nav_configuracion"
+            android:title="Cuenta de Usuario"
+            tools:ignore="HardcodedText">
+            <menu>
+                <item
+                    android:id="@+id/nav_edit_profile"
+                    android:icon="@drawable/ic_user"
+                    android:visible="true"
+                    android:title="Editar Perfil" />
+                <item
+                    android:id="@+id/nav_change_password"
+                    android:icon="@drawable/ic_password"
+                    android:visible="true"
+                    android:title="Cambiar Contraseña" />
+            </menu>
+        </item>
 
         <item
             android:id="@+id/nav_settings"
-            android:icon="@drawable/ic_settings"
+            android:enabled="true"
+            android:title="Configuración General"
+            tools:ignore="HardcodedText">
+            <menu>
+                <item
+                    android:id="@+id/nav_gestion_usuarios"
+                    android:icon="@drawable/ic_manage_users"
+                    android:visible="false"
+                    android:title="Gestionar Usuarios"
+                    tools:ignore="HardcodedText" />
+                <item
+                    android:id="@+id/nav_check_update"
+                    android:icon="@drawable/ic_update"
+                    android:title="Buscar Actualizaciones"
+                    tools:ignore="HardcodedText" />
+            </menu>
+        </item>
+
+        <item
+            android:id="@+id/nav_help"
             android:enabled="false"
-            android:title="Configuración General" />
+            android:title="Ayuda"
+            tools:ignore="HardcodedText" />
+
+        <item
+            android:id="@+id/nav_about"
+            android:enabled="false"
+            android:title="Acerca de"
+            tools:ignore="HardcodedText" />
 
     </group>
 
@@ -50,6 +71,7 @@
         <item
             android:id="@+id/nav_cerrar_sesion"
             android:icon="@drawable/ic_menu_logout"
-            android:title="Cerrar sesion" />
+            android:title="Cerrar sesion"
+            tools:ignore="HardcodedText" />
     </group>
 </menu>

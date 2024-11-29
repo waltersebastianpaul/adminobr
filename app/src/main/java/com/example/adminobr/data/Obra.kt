@@ -1,10 +1,13 @@
 package com.example.adminobr.data
 
+import android.util.Log
+
 data class Obra(
     val id: Int,
-    val centro_costo: String,
+    val centroCosto: String,
     val nombre: String) {
     override fun toString(): String {
-        return "$centro_costo - $nombre"
+        Log.d("Obra", "Obra: $centroCosto - $nombre")
+        return "$centroCosto - $nombre"
     }
 }

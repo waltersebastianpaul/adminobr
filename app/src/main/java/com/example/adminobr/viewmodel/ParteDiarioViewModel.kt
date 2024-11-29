@@ -1,297 +1,255 @@
 package com.example.adminobr.viewmodel
 
 import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import kotlinx.coroutines.flow.*
+
 import android.util.Log
 import androidx.lifecycle.*
-import androidx.paging.*
 import com.example.adminobr.api.ApiService
-import com.example.adminobr.data.ListarPartesDiarios
 import com.example.adminobr.data.ParteDiario
-import com.example.adminobr.utils.Event
+import com.example.adminobr.repository.ParteDiarioRepository
 import com.example.adminobr.ui.partediario.ParteDiarioPagingSource
+import com.example.adminobr.utils.Event
+import com.example.adminobr.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.FormBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import org.json.JSONObject
-import java.io.IOException
-
-import com.example.adminobr.utils.Constants
-import com.example.adminobr.utils.SessionManager
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import org.json.JSONObject
 
 class ParteDiarioViewModel(application: Application) : AndroidViewModel(application) {
 
-    //private val client = OkHttpClient.Builder().build()
+    private val repository = ParteDiarioRepository(ApiService.create(), SessionManager(application))
 
-    val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = HttpLoggingInterceptor.Level.BODY // Registra el cuerpo de la solicitud y la respuesta
-    }
+    private val _errorMessage = MutableLiveData<Event<String>>()
+    val errorMessage: LiveData<Event<String>> get() = _errorMessage
 
-    val client = OkHttpClient.Builder()
-        .addInterceptor(loggingInterceptor)
-        .build()
+    private val _mensaje = MutableLiveData<Event<String>>()
+    val mensaje: LiveData<Event<String>> get() = _mensaje
 
-    private val BASE_URL = Constants.getBaseUrl()
-    private val GUARDAR_PARTE_DIARIO = Constants.PartesDiarios.GUARDAR_PARTE_DIARIO
+    private val _recargarListaPartesPorUsuario = MutableLiveData<Boolean>()
+    val recargarListaPartesPorUsuario: LiveData<Boolean> get() = _recargarListaPartesPorUsuario
+
+    private val _recargarListaPartes = MutableLiveData<Boolean>()
+    val recargarListaPartes: LiveData<Boolean> get() = _recargarListaPartes
+
+    private val _partes = MutableLiveData<List<ParteDiario>?>()
+    val partes: LiveData<List<ParteDiario>?> get() = _partes
+
+    private val _ultimosPartes = MutableLiveData<List<ParteDiario>?>()
+    val ultimosPartes: LiveData<List<ParteDiario>?> get() = _ultimosPartes
+
+    private val _ultimoPartePorEquipo = MutableLiveData<ParteDiario?>()
+    val ultimoPartePorEquipo: LiveData<ParteDiario?> get() = _ultimoPartePorEquipo
+
+    private val apiService = ApiService.create()
     private val sessionManager = SessionManager(application)
+    private val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
 
-    private val _partesList = MutableLiveData<List<ListarPartesDiarios>>()
-    val partesList: LiveData<List<ListarPartesDiarios>> = _partesList
+    private val filterState = MutableStateFlow(ParteDiarioFilter())
 
-    private val _mensaje = MutableLiveData<Event<String?>>()
-    val mensaje: LiveData<Event<String?>> = _mensaje
-
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
-
-    private val _error = MutableLiveData<Event<String?>>()
-    val error: LiveData<Event<String?>> = _error
-
-    private val _filterEquipo = MutableLiveData<String>()
-    private val _filterFechaInicio = MutableLiveData<String>()
-    private val _filterFechaFin = MutableLiveData<String>()
-
-    val partesDiarios: Flow<PagingData<ListarPartesDiarios>> = combine(
-        _filterEquipo.asFlow(),
-        _filterFechaInicio.asFlow(),
-        _filterFechaFin.asFlow()
-    ) { equipo, fechaInicio, fechaFin ->
-        Triple(equipo, fechaInicio, fechaFin)
-    }.flatMapLatest { (equipo, fechaInicio, fechaFin) ->
-        Log.d("ParteDiarioViewModel", "Fetching data with filter - Equipo: $equipo, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
-        val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
-        Pager(PagingConfig(pageSize = 20)) {
-            ParteDiarioPagingSource(client,
-                BASE_URL.toString(), equipo ?: "", fechaInicio ?: "", fechaFin ?: "", empresaDbName)
-        }.flow.cachedIn(viewModelScope)
+    val partesDiarios: Flow<PagingData<ParteDiario>> = filterState.flatMapLatest { filter ->
+        Log.d("ParteDiarioViewModel", "Filtrando con Equipo: ${filter.equipoId}, FechaInicio: ${filter.fechaInicio}, FechaFin: ${filter.fechaFin}")
+        Pager(
+            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+            pagingSourceFactory = {
+                ParteDiarioPagingSource(
+                    apiService,
+                    empresaDbName,
+                    filter.equipoId,
+                    filter.fechaInicio,
+                    filter.fechaFin
+                )
+            }
+        ).flow.cachedIn(viewModelScope)
     }
 
-    private inner class NuevoParteDiarioApi {
+    fun updateFilters(equipoId: Int, fechaInicio: String, fechaFin: String) {
+        filterState.value = ParteDiarioFilter(equipoId, fechaInicio, fechaFin)
+    }
 
-        suspend fun guardarParteDiario(parteDiario: ParteDiario): Pair<Boolean, Int?> {
-            return withContext(Dispatchers.IO) {
-                try{
-                    // Obtén empresaDbName de SessionManager
-                    val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: return@withContext Pair(false, null)
-//                    val empresaDbName = sessionManager.getEmpresaDbName()
-                    Log.d("ParteDiarioViewModel", "empresaDbName: $empresaDbName")
+    data class ParteDiarioFilter(
+        val equipoId: Int = 0,
+        val fechaInicio: String = "",
+        val fechaFin: String = ""
+    )
 
-                    val requestBody = FormBody.Builder()
-                        .add("fecha", parteDiario.fecha)
-                        .add("equipoId", parteDiario.equipoId.toString())
-                        .add("horasInicio", parteDiario.horasInicio.toString())
-                        .add("horasFin", parteDiario.horasFin.toString())
-                        .add("horasTrabajadas", parteDiario.horasTrabajadas.toString())
-                        .add("observaciones", parteDiario.observaciones ?: "")
-                        .add("obraId", parteDiario.obraId.toString())
-                        .add("userCreated", parteDiario.userCreated.toString())
-                        .add("estadoId", parteDiario.estadoId.toString())
-
-                        .add("combustible_tipo", parteDiario.combustible_tipo ?: "")
-                        .add("combustible_cant", parteDiario.combustible_cant.toString())
-                        .add("aceite_motor_cant", parteDiario.aceite_motor_cant.toString())
-                        .add("aceite_hidra_cant", parteDiario.aceite_hidra_cant.toString())
-                        .add("aceite_otro_cant", parteDiario.aceite_otro_cant.toString())
-                        .add("engrase_general", parteDiario.engrase_general.toString())
-                        .add("filtro_aire", parteDiario.filtro_aire.toString())
-                        .add("filtro_aceite", parteDiario.filtro_aceite.toString())
-                        .add("filtro_comb", parteDiario.filtro_comb.toString())
-                        .add("filtro_otro", parteDiario.filtro_otro.toString())
-
-                        .add("engrase_general", if (parteDiario.engrase_general == true) "1" else "0")
-                        .add("filtro_aire", if (parteDiario.filtro_aire == true) "1" else "0")
-                        .add("filtro_aceite", if (parteDiario.filtro_aceite == true) "1" else "0")
-                        .add("filtro_comb", if (parteDiario.filtro_comb == true) "1" else "0")
-                        .add("filtro_otro", if (parteDiario.filtro_otro == true) "1" else "0")
-
-                        .add("empresaDbName", empresaDbName)  // Agrega empresaDbName al cuerpo de la solicitud
-                        .build()
-
-                    val request = Request.Builder()
-                        .url("$BASE_URL$GUARDAR_PARTE_DIARIO")
-                        .post(requestBody)
-                        .build()
-
-                    Log.d("ParteDiarioPagingSource", "Request URL: \"$BASE_URL${GUARDAR_PARTE_DIARIO}\"")
-
-                    Log.d("ParteDiarioViewModel", "Enviando datos al servidor: $requestBody")
-
-                    val response = client.newCall(request).execute()
-                    return@withContext handleResponse(response)
-                } catch (e: IOException) {
-                    Pair(false, null)
-                }
-            }
-        }
-
-        private fun handleResponse(response: Response): Pair<Boolean, Int?> {
-            val responseBody = response.body?.string()
-            Log.d("ParteDiarioViewModel", "Respuesta del servidor: ${response.code} - $responseBody")
-
-            return if (response.isSuccessful) {
-                val jsonResponse = responseBody?.let { JSONObject(it) }
-                val success = jsonResponse?.getBoolean("success") ?: false
-                val newId = jsonResponse?.optInt("id")
-                Pair(success, newId)
+    fun obtenerUltimoPartePorEquipo(equipoId: Int) {
+        viewModelScope.launch {
+            Log.d("ParteDiarioViewModel", "Iniciando obtenerUltimoPartePorEquipo con equipoId: $equipoId")
+            val result = repository.getUltimoPartePorEquipo(equipoId)
+            Log.d("ParteDiarioViewModel", "Resultado de obtenerUltimoPartePorEquipo: $result")
+            if (result.isSuccess) {
+                _ultimoPartePorEquipo.value = result.getOrNull()
             } else {
-                Log.e("ParteDiarioViewModel", "Error en la respuesta del servidor: ${response.code} - $responseBody")
-                Pair(false, null)
+                _ultimoPartePorEquipo.value = null
             }
         }
     }
 
-    private val api = NuevoParteDiarioApi()
-
-    fun setFilter(equipo: String, fechaInicio: String, fechaFin: String) {
-        Log.d("ParteDiarioViewModel", "Setting filter - Equipo: $equipo, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
-        _filterEquipo.value = equipo
-        _filterFechaInicio.value = fechaInicio
-        _filterFechaFin.value = fechaFin
-    }
-
-    fun getUltimosPartesDiarios(userId: Int): LiveData<List<ListarPartesDiarios>> {
-        val liveData = MutableLiveData<List<ListarPartesDiarios>>() // Corregir el tipo de liveData
+    fun crearParteDiario(parte: ParteDiario, callback: (Boolean, Int?) -> Unit) {
         viewModelScope.launch {
-            try {
-                val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
-
-                // Crear el objeto JSON para la solicitud
-                val jsonBody = JSONObject().apply {
-                    put("empresaDbName", empresaDbName)
-                    put("limit", 5)
-                    put("user_created", userId)
-                    // Agregar otros parámetros opcionales si es necesario
-                }
-
-                // Define el MediaType para JSON
-                val mediaType = "application/json; charset=utf-8".toMediaTypeOrNull()
-                val requestBody = jsonBody.toString().toRequestBody(mediaType)
-
-                // Realizar la solicitud POST
-                val response = apiService.getUltimosPartesDiarios(requestBody) // Pasar el requestBody
-
-                if (response.isSuccessful) {
-                    liveData.value = response.body()
+            val result = withContext(Dispatchers.IO) { repository.createParteDiario(parte) }
+            if (result.isSuccess) {
+                val (success, nuevoId) = result.getOrNull() ?: Pair(false, null)
+                Log.d("UsuarioViewModel", "Callback de creación: success=$success, nuevoId=$nuevoId")
+                if (success) {
+                    _mensaje.value = Event("Parte diario creado exitosamente")
+                    callback(true, nuevoId) // Llamada a la función de callback
+                    // Cargar partes después de crear uno nuevo
+                    cargarPartes()
                 } else {
-                    _error.value = Event("Error al obtener los últimos partes diarios: ${response.message()}")
-                }
-            } catch (e: Exception) {
-                _error.value = Event("Error inesperado: ${e.message}")
-            }
-        }
-        return liveData
-    }
-
-    fun guardarParteDiario(parteDiario: ParteDiario, callback: (Boolean, Int?) -> Unit) {
-        _isLoading.value = true
-        viewModelScope.launch {
-            try {
-                //val fechaConvertida = convertirFecha(parteDiario.fecha)
-                //val parteDiarioConvertido = parteDiario.copy(fecha = fechaConvertida)
-//                val (resultado, nuevoId) = withContext(Dispatchers.IO) {
-//                    guardarParteDiarioEnBaseDeDatos(parteDiarioConvertido)
-//                }
-
-                val (resultado, nuevoId) = api.guardarParteDiario(parteDiario)
-                if (resultado) {
-                    _mensaje.value = Event("Parte diario guardado con éxito")
-                    callback(true, nuevoId)
-                } else {
-                    _error.value = Event("Error al guardar el parte diario")
+                    _errorMessage.value = Event("Error al crear parte")
                     callback(false, null)
                 }
-            } catch (e: Exception) {
-                _error.value = Event("Error al guardar el parte diario: ${e.message}")
-                callback(false, null)
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
-
-    private fun convertirFecha(fechaOriginal: String): String {
-        val parts = fechaOriginal.split("/")
-        return if (parts.size == 3) {
-            "${parts[2]}/${parts[1]}/${parts[0]}"
-        } else {
-            fechaOriginal
-        }
-    }
-
-    fun clearPartesList() {
-        _partesList.value = emptyList()
-    }
-
-    fun updateParteDiario(parteDiario: ListarPartesDiarios, empresaDbName: String) = viewModelScope.launch {
-        try {
-            val response = apiService.updateParteDiario(parteDiario, empresaDbName)
-            if (response.isSuccessful) {
-                // Actualizar la lista de partes diarios (opcional, si quieres una actualización inmediata)
-                // ...
-                _mensaje.value = Event("Parte diario actualizado correctamente")
             } else {
-                _error.value = Event("Error al actualizar el parte diario: ${response.message()}")
+                _errorMessage.value = Event("Error al crear parte: ${result.exceptionOrNull()?.message}")
+                callback(false, null)
             }
-        } catch (e: Exception) {
-            _error.value = Event("Error inesperado: ${e.message}")
         }
     }
 
-//    fun deleteParteDiario(idParteDiario: Int, empresaDbName: String, callback: (Boolean) -> Unit) = viewModelScope.launch {
-//        try {
-//            Log.d("ParteDiarioViewModel", "Eliminando parte diario con ID: $idParteDiario")
-//            val response = apiService.deleteParteDiario(idParteDiario, empresaDbName)
-//            Log.d("ParteDiarioViewModel", "Código de respuesta de la API: ${response.code()}")
-//            if (response.isSuccessful) {
-//                // Invalida la fuente de datos para refrescar la lista
-//                //pager.value?.refresh()
-//                _mensaje.value = Event("Parte diario eliminado correctamente")
-//                callback(true)
-//                Log.d("ParteDiarioViewModel", "Parte diario eliminado correctamente") // Log de éxito
+    fun actualizarParteDiario(parte: ParteDiario, callback: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val result = withContext(Dispatchers.IO) { repository.updateParteDiario(parte) } // Realiza la operación de actualización en el repositorio
+                if (result.isSuccess) {
+                    _mensaje.postValue(Event("Parte actualizado exitosamente"))
+                    callback(true) // Notifica éxito
+                } else {
+                    _errorMessage.postValue(Event("Error al actualizar parte: ${result.exceptionOrNull()?.message}"))
+                    callback(false) // Notifica error
+                }
+            } catch (e: Exception) {
+                _errorMessage.postValue(Event("Error al actualizar parte: ${e.message}"))
+                callback(false) // Notifica error
+            }
+        }
+    }
+
+//
+//    fun actualizarParteDiario(parte: ParteDiario) {
+//        viewModelScope.launch {
+//            val result = withContext(Dispatchers.IO) { repository.updateParteDiario(parte) }
+//            if (result.isSuccess) {
+//                _mensaje.value = Event("Parte actualizado exitosamente")
 //            } else {
-//                _error.value = Event("Error al eliminar el parte diario: ${response.message()}") // Log de error con mensaje
-//                callback(false)
+//                _errorMessage.value = Event("Error al actualizar parte: ${result.exceptionOrNull()?.message}")
 //            }
-//        } catch (e: Exception) {
-//            _error.value = Event("Error inesperado: ${e.message}")
-//            callback(false)
 //        }
 //    }
-    fun deleteParteDiario(parteDiario: ListarPartesDiarios, empresaDbName: String, callback: (Boolean, ListarPartesDiarios?) -> Unit) = viewModelScope.launch {
-        try {
-            Log.d("ParteDiarioViewModel", "Eliminando parte diario con ID: ${parteDiario.id_parte_diario}")
-            val response = apiService.deleteParteDiario(parteDiario.id_parte_diario, empresaDbName)
-            Log.d("ParteDiarioViewModel", "Código de respuesta de la API: ${response.code()}")
-            if (response.isSuccessful) {
-                _mensaje.value = Event("Parte diario eliminado correctamente")
-                callback(true, parteDiario) // Devuelve el parte eliminado en caso de éxito
-                Log.d("ParteDiarioViewModel", "Parte diario eliminado correctamente")
+
+    fun eliminarParteDiario(idParteDiario: Int, origen: String) {
+        viewModelScope.launch {
+            val result = repository.deleteParteDiario(idParteDiario)
+
+            if (result.isSuccess) {
+                _mensaje.value = Event("Parte eliminado correctamente")
+
+                // Emitir el evento específico según el fragmento de origen
+                if (origen == "form") {
+                    _recargarListaPartesPorUsuario.value = true
+                } else if (origen == "listar") {
+                    _recargarListaPartes.value = true
+                }
             } else {
-                _error.value = Event("Error al eliminar el parte diario: ${response.message()}")
-                callback(false, null) // Devuelve null en caso de error
+                val error = result.exceptionOrNull()?.message ?: "Error desconocido"
+                _errorMessage.value = Event("Error al eliminar parte: $error")
             }
-        } catch (e: Exception) {
-            _error.value = Event("Error inesperado: ${e.message}")
-            callback(false, null) // Devuelve null en caso de error
         }
     }
 
-    val apiService: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl("$BASE_URL") // Tu URL base
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(client)
-            .build()
-            .create(ApiService::class.java)
+
+    fun obtenerParteDiarioPorId(idParteDiario: Int) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) { repository.fetchParteById(idParteDiario) }
+            if (result.isSuccess) {
+                result.getOrNull()?.let { _partes.value = listOf(it) }
+            } else {
+                _errorMessage.value = Event("Error al obtener parte: ${result.exceptionOrNull()?.message}")
+            }
+        }
+    }
+
+    fun cargarPartes(parteFiltro: String = "") {
+        viewModelScope.launch {
+            Log.d("ParteDiarioViewModel", "Iniciando carga de parte con filtro '$parteFiltro'...")
+            val result = withContext(Dispatchers.IO) { repository.fetchPartes(parteFiltro) }
+
+            if (result.isSuccess) {
+                _partes.value = result.getOrNull()
+                Log.d("ParteDiarioViewModel", "Partes cargados correctamente.")
+            } else {
+                val error = result.exceptionOrNull()?.message ?: "Error desconocido"
+                _errorMessage.value = Event("Error al cargar partes: $error")
+                Log.e("ParteDiarioViewModel", "Error al cargar partes: $error")
+            }
+        }
+    }
+
+    fun cargarUltimosPartesPorUsuario(userId: Int) {
+        viewModelScope.launch {
+            Log.d("ParteDiarioViewModel", "Cargando últimos partes del usuario con ID: $userId")
+            val result = repository.getUltimosPartesPorUsuario(userId)
+
+            if (result.isSuccess) {
+                _ultimosPartes.value = result.getOrNull()
+                Log.d("ParteDiarioViewModel", "Datos cargados: ${_ultimosPartes.value?.size} partes.")
+            } else {
+                val errorMessage = result.exceptionOrNull()?.message ?: "Error desconocido"
+                _errorMessage.value = Event("Error al cargar partes: $errorMessage")
+                Log.e("ParteDiarioViewModel", "Error al cargar partes: $errorMessage")
+            }
+        }
+    }
+
+
+    // Método loadPartes para cargar partes con filtro de búsqueda
+    fun loadPartes(parteFiltro: String = "") {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    val empresaDbName = repository.sessionManager.getEmpresaData()?.db_name ?: return@withContext
+
+                    val jsonObject = JSONObject().apply {
+                        put("empresaDbName", empresaDbName)
+                        if (parteFiltro.isNotEmpty()) {
+                            put("parteFiltro", parteFiltro)
+                        }
+                    }
+
+                    val requestBody = jsonObject.toString()
+                        .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+                    val response = repository.apiService.getAllPartesDiarios(requestBody)
+
+                    if (response.isSuccessful) {
+                        val partes = response.body()?.data ?: emptyList()
+                        _partes.postValue(partes)
+                        Log.d("ParteDiarioViewModel", "Partes cargados con filtro correctamente.")
+                    } else {
+                        _errorMessage.postValue(Event("Error al obtener partes: ${response.code()}"))
+                    }
+                } catch (e: Exception) {
+                    _errorMessage.postValue(Event("Error: ${e.message}"))
+                }
+            }
+        }
+    }
+
+    fun resetRecargarListaPartesPorUsuario() {
+        _recargarListaPartesPorUsuario.value = false
+    }
+
+    fun resetRecargarListaPartes() {
+        _recargarListaPartes.value = false
     }
 
 }

@@ -13,14 +13,12 @@ class ParteSimpleAdapter(private var viewModel: ParteSimpleViewModel) : ListAdap
     ParteSimpleDiffCallback()
 ) {
 
-    // No necesitas lateinit var viewModel aquí
-
-
     class ViewHolder(val binding: ItemParteSimpleBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(parte: ParteSimple, position: Int, viewModel: ParteSimpleViewModel, adapter: ParteSimpleAdapter) { // Agrega adapter como parámetro
             binding.fechaTextView.text = "Fecha: ${parte.fecha}"
             binding.equipoTextView.text = "Equipo: ${parte.equipo}"
             binding.horasTextView.text = "Horas: ${parte.horas}"
+            binding.observacionesTextView.text = "Observaciones: ${parte.observaciones}"
         }
     }
 
@@ -33,18 +31,6 @@ class ParteSimpleAdapter(private var viewModel: ParteSimpleViewModel) : ListAdap
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val parte = getItem(position)
         holder.bind(parte, position, viewModel, this) // Pasa el adaptador al ViewHolder
-//        if (position > 0) {
-//            val divider = View(holder.itemView.context)
-//            divider.layoutParams = RelativeLayout.LayoutParams(
-//                RelativeLayout.LayoutParams.MATCH_PARENT,
-//                1
-//            ).apply {
-//                addRule(RelativeLayout.BELOW, R.id.horasTextView)
-//                setMargins(0, 20, 0, 4)
-//            }
-//            divider.setBackgroundColor(ContextCompat.getColor(holder.itemView.context, android.R.color.darker_gray))
-//            (holder.itemView as RelativeLayout).addView(divider)
-//        }
     }
 
     class ParteSimpleDiffCallback : DiffUtil.ItemCallback<ParteSimple>() {

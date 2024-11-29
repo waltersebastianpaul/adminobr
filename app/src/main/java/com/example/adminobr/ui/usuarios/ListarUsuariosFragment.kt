@@ -83,6 +83,11 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
         setupFab()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+    }
+
     private fun setSearchViewToUppercase(searchView: SearchView) {
         val searchEditText = searchView.findViewById<EditText>(R.id.searchView)
         searchEditText?.filters = arrayOf(InputFilter.AllCaps())
@@ -94,7 +99,7 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
         fab?.visibility = View.VISIBLE
         fab?.setImageResource(R.drawable.ic_add)
         fab?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
-        fab?.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white)))
+        fab?.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorWhite)))
 
         fab?.setOnClickListener {
             navigateToCreateUserForm()
@@ -108,16 +113,17 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
     }
 
     private fun navigateToCreateUserForm() {
+        val bundle = bundleOf("editMode" to false)
         findNavController().navigate(
-            R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_create,
-            bundleOf("editUserMode" to false)
+            R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_create,bundle
         )
     }
 
     private fun navigateToEditUserForm(userId: Int) {
+        val bundle = bundleOf("editMode" to true, "userId" to userId)
         findNavController().navigate(
-            R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_edit,
-            bundleOf("editUserMode" to true, "userId" to userId)
+            R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_edit,bundle
         )
     }
+
 }

@@ -1,5 +1,6 @@
 package com.example.adminobr.ui.partesimple
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
@@ -36,7 +37,6 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
-import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.ui.adapter.ParteSimpleAdapter
@@ -64,7 +64,9 @@ class ParteSimpleFragment : Fragment() {
     private lateinit var horasEditText: TextInputEditText
     private lateinit var equipoTextInputLayout: TextInputLayout
     private lateinit var horasTextInputLayout: TextInputLayout
+    private lateinit var observacionesEditText: TextInputEditText
 
+    @SuppressLint("SetTextI18n")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -80,6 +82,7 @@ class ParteSimpleFragment : Fragment() {
         horasEditText = binding.horasActualesEditText
         equipoTextInputLayout = binding.equipoTextInputLayout // Asegúrate de tener este ID en tu XML
         horasTextInputLayout = binding.horasActualesTextInputLayout // Asegúrate de tener este ID en tu XML
+        observacionesEditText = binding.observacionesEditText
 
         binding.cargarParteButton.setOnClickListener {
             // Ocultar el teclado usando AppUtils
@@ -93,14 +96,17 @@ class ParteSimpleFragment : Fragment() {
 
             val currentDate = getCurrentDate()
 
+            val observaciones = observacionesEditText.text.toString() // Obtener observaciones
+
             if (validarCampos()) {
                 try {
-                    val parte = ParteSimple(currentDate, equipoInterno, horas) // Ahora horas es Int
+                    val parte = ParteSimple(currentDate, equipoInterno, horas, observaciones) // Ahora horas es Int
                     viewModel.addParte(parte)
 
                     // Limpiar campos y poner foco en equipo
                     equipoAutocomplete.text = null
                     horasEditText.text = null
+                    observacionesEditText.text = null
                     equipoAutocomplete.requestFocus()
 
                 } catch (e: NumberFormatException) {
@@ -112,29 +118,22 @@ class ParteSimpleFragment : Fragment() {
         }
 
         binding.clearHistorialPartesTextView.setOnClickListener {
-            val builder = AlertDialog.Builder(requireContext())
-            builder.setTitle("Borrar Historial")
-            builder.setMessage("¿Estás seguro de que quieres borrar el historial de partes simples?")
-
-            val positiveButtonText = SpannableString("Borrar")
-            val colorRojo = ContextCompat.getColor(requireContext(), R.color.danger_500) // Reemplaza 'rojo' con el nombre de tu color en colors.xml
-            positiveButtonText.setSpan(
-                ForegroundColorSpan(colorRojo),
-                0,
-                positiveButtonText.length,
-                Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-
-            builder.setPositiveButton(positiveButtonText) { dialog, _ ->
-                viewModel.clearPartesList() // Limpiar la lista
-                // actualizarHistorialPartes()
-                dialog.dismiss()
-            }
-            builder.setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
-            val dialog = builder.create()
-            dialog.show()
+            AlertDialog.Builder(context)
+                .setTitle("Borrar Historial")
+                .setMessage("¿Estás seguro de que quieres borrar el historial de partes simples?")
+                .setPositiveButton(SpannableString("Eliminar").apply {
+                    setSpan(ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.colorDanger)), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }) { dialog, _ ->
+                    viewModel.clearPartesList() // Limpiar la lista
+                    // actualizarHistorialPartes()
+                    dialog.dismiss()
+                }
+                .setNegativeButton(SpannableString("Cancelar").apply {
+                    setSpan(ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.colorBlack)), 0, length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+                }) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .show()
         }
 
         binding.compartirIcon.setOnClickListener {
@@ -161,7 +160,12 @@ class ParteSimpleFragment : Fragment() {
             partesText.append("Fecha: $fecha\n")
             partesText.append("Equipos:\n")
             for (parte in partesDeFecha) {
-                partesText.append(" - ${parte.equipo}, Horas: ${parte.horas}\n")
+                partesText.append(" -> ${parte.equipo} - Hs/Km: ${parte.horas}")
+                // Agregar observaciones si no están vacías
+                if (parte.observaciones.isNotEmpty()) {
+                    partesText.append(" - Obs: ${parte.observaciones}")
+                }
+                partesText.append("\n") // Agregar salto de línea al final de cada parte
             }
         }
 

@@ -1,7 +1,5 @@
 package com.example.adminobr.ui.login
 
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
@@ -10,13 +8,10 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.AutoCompleteTextView
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.example.adminobr.utils.AutocompleteManager
@@ -32,7 +27,6 @@ import com.example.adminobr.data.LoginRequest
 import com.example.adminobr.data.LoginResponse
 import com.example.adminobr.ui.common.ProgressDialogFragment
 import com.example.adminobr.utils.AppUtils
-import com.example.adminobr.utils.NetworkErrorCallback
 import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.viewmodel.AppDataViewModel
 import com.google.android.material.textfield.TextInputLayout
@@ -45,6 +39,12 @@ import retrofit2.Response
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.Locale
+import android.graphics.Rect
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.adminobr.utils.Constants
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 
 /**
  * Módulo LoginActivity
@@ -55,13 +55,10 @@ import java.util.Locale
  * datos con `SessionManager`.
  */
 
-class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
+class LoginActivity : AppCompatActivity() {
 
     // Servicio de API para realizar solicitudes de login
     private val apiService: ApiService by lazy { ApiUtils.getApiService() }
-
-    // Helper para verificar el estado de la conexión de red
-    private lateinit var networkHelper: NetworkStatusHelper
 
     // Administrador de autocompletado para cargar empresas
     private lateinit var autocompleteManager: AutocompleteManager
@@ -72,14 +69,15 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
     // Binding para acceder a las vistas de la interfaz de usuario
     private lateinit var binding: ActivityLoginBinding
 
-    // Layout para mostrar errores de conexión de red
-    private lateinit var networkErrorLayout: View
-
     // Variable para almacenar la empresa seleccionada en el campo de autocompletado
     private var selectedEmpresa: Empresa? = null
 
     // Manager para la gestión de sesiones, carga solo cuando se accede a él
     private val sessionManager by lazy { SessionManager(this) }
+
+    // Layout para mostrar errores de conexión de red
+    private lateinit var networkErrorLayout: View
+    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
 
     // Variables para verificar si los datos de usuario y empresa ya están cargados
     var isEmpresaPreloaded = false
@@ -90,35 +88,12 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
      * Se inicializan los elementos y se cargan los datos necesarios como el estado de la red,
      * la interfaz de usuario y los datos del usuario y la empresa.
      */
+    @OptIn(FlowPreview::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        // Inicializa NetworkStatusHelper después de que la actividad ha sido creada
-        networkHelper = NetworkStatusHelper(this)
-
-//        if (networkHelper.isWifiConnected()) {
-//            Snackbar.make(binding.root, "Conectado por Wi-Fi", Snackbar.LENGTH_SHORT).show()
-//        } else {
-//            Snackbar.make(binding.root, "Conectado por Datos Moviles", Snackbar.LENGTH_SHORT).show()
-//        }
-
-        // Inicializar networkErrorLayout
-        networkErrorLayout = findViewById(R.id.networkErrorLayout)
-
-        // Capturar el layout incluido
-        val networkErrorLayout = findViewById<ConstraintLayout>(R.id.networkErrorLayout)
-
-        // Capturar el botón retry_button dentro de networkErrorLayout
-        val retryButton = networkErrorLayout.findViewById<Button>(R.id.retry_button)
-
-        // Asegúrate de que binding se haya inicializado antes de acceder a networkErrorView
-        networkErrorLayout.visibility = View.GONE // O View.VISIBLE si quieres que se muestre inicialmente
-
-        retryButton.setOnClickListener {
-            manageNetworkErrorLayout()
-        }
 
         // Verificar si ya existen datos guardados del usuario
         val userDetails = sessionManager.getUserDetails()
@@ -185,7 +160,6 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
         sessionManager.saveDebuggable(isDebuggable)
         Log.d("LoginActivity", "Debuggable: $isDebuggable")
 
-
         // Obtener el ViewModel
         appDataViewModel = ViewModelProvider(this).get(AppDataViewModel::class.java)
 
@@ -194,11 +168,8 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
 
         // Cargar empresas y capturar el objeto Empresa seleccionado
         autocompleteManager.loadEmpresas(
-            binding.empresaAutocomplete,
-            this
-        ) { empresa ->
+            binding.empresaAutocomplete, this) { empresa ->
             Log.d("LoginActivity", "Empresa selecionada: $empresa")
-
             selectedEmpresa = empresa // Guardar empresa seleccionada
         }
 
@@ -220,11 +191,6 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
 
         // Listener para el botón de login
         binding.loginButton.setOnClickListener {
-            // Verificar si hay conexión a internet
-            if (!networkHelper.isNetworkAvailable()) {
-                Toast.makeText(this, "No hay conexión a internet", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
 
             val usuario = binding.usuarioEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
@@ -236,6 +202,15 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
             val empresa = sessionManager.getEmpresaData()
 
             if (validarCampos()) {
+
+                // Verificar si hay conexión a internet
+                if (!NetworkStatusHelper.isNetworkAvailable()) {
+                    // Opcionalmente, puedes quitar el foco de la vista actual
+                    AppUtils.clearFocus(this)
+
+                    Toast.makeText(this, "No hay conexión a internet", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
 
                 val progressDialog = ProgressDialogFragment.show(supportFragmentManager)
                 lifecycleScope.launch {
@@ -266,11 +241,13 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
                         handleLoginResponse(response)
 
                     } catch (e: HttpException) {
+                        progressDialog.dismiss()
                         val errorBody = e.response()?.errorBody()?.string()
                         val errorMessage = parseErrorMessage(errorBody)
                         Log.e("LoginActivity", "Error HTTP: ${e.code()} - $errorMessage")
                         Toast.makeText(this@LoginActivity, errorMessage, Toast.LENGTH_SHORT).show()
                     } catch (e: UnknownHostException) {
+                        progressDialog.dismiss()
                         Log.e("LoginActivity", "Error de conexión a internet: ${e.message}")
                         Toast.makeText(
                             this@LoginActivity,
@@ -278,6 +255,7 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
                             Toast.LENGTH_SHORT
                         ).show()
                     } catch (e: SocketTimeoutException) {
+                        progressDialog.dismiss()
                         Log.e("LoginActivity", "Timeout de la petición: ${e.message}")
                         Toast.makeText(
                             this@LoginActivity,
@@ -285,6 +263,7 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
                             Toast.LENGTH_SHORT
                         ).show()
                     } catch (e: Exception) {
+                        progressDialog.dismiss()
                         Log.e("LoginActivity", "Error en la autenticación: ${e.message}", e)
                         Toast.makeText(
                             this@LoginActivity,
@@ -295,69 +274,118 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
                         progressDialog.dismiss()
                     }
                 }
-            } else {
-                // Mostrar un mensaje de error si los campos no son válidos
-                Toast.makeText(this, "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
             }
         }
-    }
 
-    /**
-     * Método que se ejecuta al iniciar la actividad, registrando los callbacks de red.
-     */
-    override fun onStart() {
-        super.onStart()
-        networkHelper.registerNetworkCallback()  // Registrar cuando la actividad esté visible
-        // Verificar el estado de la red, para mostrar el layout de errores
-        manageNetworkErrorLayout()
-    }
+        // Detecta el tamaño de la ventana y ajusta el formulario si el teclado está visible
+        binding.root.viewTreeObserver.addOnGlobalLayoutListener {
+            val rect = Rect()
+            binding.root.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = binding.root.rootView.height
 
-    /**
-     * Método que se ejecuta al detener la actividad, desregistrando los callbacks de red.
-     */
-    override fun onStop() {
-        super.onStop()
-        networkHelper.unregisterNetworkCallback()  // Desregistrar cuando la actividad deje de ser visible
-    }
+            val keypadHeight = screenHeight - rect.bottom
+            if (keypadHeight > screenHeight * 0.15) { // Teclado visible
+                binding.scrollView.scrollTo(0, binding.loginButton.bottom)
+            } else {
+                // Teclado oculto, opcionalmente puedes restablecer la vista aquí si es necesario
+            }
+        }
 
-    /**
-     * Método que se ejecuta al destruir la actividad. Desregistra los callbacks para evitar fugas de memoria.
-     */
-    override fun onDestroy() {
-        super.onDestroy()
-        // Unregister the network callback to prevent leaks
-        networkHelper.unregisterNetworkCallback()
+        networkErrorLayout = findViewById(R.id.networkErrorLayout) // Enlaza con el layout de error de red
+
+        // Observa los cambios en la conectividad de red
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                NetworkStatusHelper.networkAvailable
+//                .debounce(3000) // Evita fluctuaciones rápidas en la red
+                    .collect { isConnected ->
+                        if (isNetworkCheckEnabled) {
+                            if (isConnected) {
+                                hideNetworkErrorLayout()
+                                val adapter = binding.empresaAutocomplete.adapter
+                                if (adapter == null || adapter.count == 0) {
+                                    // Si el adaptador está vacío, recargar empresas
+                                    autocompleteManager.loadEmpresas(
+                                        binding.empresaAutocomplete,
+                                        this@LoginActivity
+                                    ) { empresa ->
+                                        Log.d(
+                                            "LoginActivity",
+                                            "Empresa cargada tras reconexión: $empresa"
+                                        )
+                                        selectedEmpresa = empresa
+                                    }
+                                }
+                            } else {
+                                showNetworkErrorLayout()
+                            }
+                        }
+                }
+            }
+        }
+
+        // Configuración del botón "Reintentar" dentro del layout de error
+        val retryButton = findViewById<TextView>(R.id.retry_button)
+        retryButton.setOnClickListener {
+            // Intenta recargar si hay conexión
+            if (NetworkStatusHelper.isNetworkAvailable()) {
+                NetworkStatusHelper.refreshNetworkStatus()
+            } else {
+                val textViewError = networkErrorLayout.findViewById<TextView>(R.id.textViewError)
+                textViewError?.text = "Sigue sin conexión a internet :("
+            }
+        }
+
+
+        binding.root.viewTreeObserver.addOnGlobalLayoutListener {
+            val rect = Rect()
+            binding.root.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = binding.root.rootView.height
+            val keypadHeight = screenHeight - rect.bottom
+
+            if (keypadHeight > screenHeight * 0.15) { // El teclado está visible
+                val focusedView = currentFocus
+                if (focusedView != null) {
+                    binding.scrollView.post {
+                        binding.scrollView.smoothScrollTo(0, focusedView.bottom)
+                    }
+                }
+            }
+        }
     }
 
     /**
      * Función que gestiona el layout de errores de red y recarga componentes si la red está disponible.
      */
-    override fun manageNetworkErrorLayout() {
-        if (networkHelper.isNetworkAvailable()) {
-            networkErrorLayout.visibility = View.GONE
-            reloadComponents() // Recargar componentes que dependen de la red
-            binding.loginButton.isEnabled = true
-        } else {
-            // Verificar si el layout de error está visible
-            if (networkErrorLayout.visibility == View.VISIBLE) {
-                // Cambiar el texto del TextView en el layout de error
-                val textViewError = networkErrorLayout.findViewById<TextView>(R.id.textViewError)
-                textViewError?.text = "Aún no hay conexión a internet" // Cambiar el texto
-            }
+    private fun showNetworkErrorLayout() {
+        val networkErrorLayout = findViewById<View>(R.id.networkErrorLayout)
 
-            networkErrorLayout.visibility = View.VISIBLE
-            binding.loginButton.isEnabled = false
+        // Cerrar el teclado usando AppUtils
+        AppUtils.closeKeyboard(this)
+
+        if (networkErrorLayout.visibility != View.VISIBLE) {
+            networkErrorLayout.animate()
+                .alpha(1f)
+                .setDuration(300)
+                .withStartAction { networkErrorLayout.visibility = View.VISIBLE }
+                .start()
         }
+        networkErrorLayout.isClickable = true
+        networkErrorLayout.isFocusable = true
     }
 
-    /**
-     * Función que recarga los componentes que dependen de la conexión de red.
-     */
-    private fun reloadComponents() {
-        // Si hay conexión, recargar las empresas en el AutoCompleteTextView
-        autocompleteManager.loadEmpresas(binding.empresaAutocomplete, this) { empresa ->
-            selectedEmpresa = empresa
+    private fun hideNetworkErrorLayout() {
+        val networkErrorLayout = findViewById<View>(R.id.networkErrorLayout)
+        val textViewError = networkErrorLayout.findViewById<TextView>(R.id.textViewError)
+//        networkErrorLayout.visibility = View.GONE
+        if (networkErrorLayout.visibility == View.VISIBLE) {
+            networkErrorLayout.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction { networkErrorLayout.visibility = View.GONE }
+                .start()
         }
+        textViewError?.text="Se perdio la conexión a internet"
     }
 
     /**
@@ -422,9 +450,15 @@ class LoginActivity : AppCompatActivity(), NetworkErrorCallback {
                     Log.d("LoginActivity", "Datos de usuario guardados en SharedPreferences.")
                 }
 
-                // Iniciar la actividad principal
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
+                // Iniciar la actividad principa
+//                startActivity(Intent(this, MainActivity::class.java))
+//                finish()
+
+                val intent = Intent(this, MainActivity::class.java)
+                intent.putExtra("CHECK_UPDATES_ON_STARTUP", true) // Indicar que se debe verificar actualizaciones
+                startActivity(intent)
+                finish() // Finaliza LoginActivity para limpiar la pila
+
             } else {
                 val errorMessage = loginResponse?.message ?: "Error de autenticación desconocido"
                 Log.e("LoginActivity", "Error de autenticación: $errorMessage")

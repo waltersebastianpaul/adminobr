@@ -7,7 +7,8 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import androidx.compose.ui.semantics.text
+import androidx.core.net.ParseException
+import androidx.fragment.app.Fragment
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -33,15 +34,36 @@ object AppUtils {
         (context as? Activity)?.currentFocus?.clearFocus()
     }
 
+    fun clearFocus(context: Context) {
+        // En tu Activity:
+        // AppUtils.clearFocus(this)
+
+        // En tu Fragment:
+        // AppUtils.clearFocus(requireContext())
+
+        val view = when (context) {
+            is Activity -> context.currentFocus
+            is Fragment -> context.view?.findFocus()
+            else -> null
+        }
+        view?.clearFocus()
+    }
+
     fun showDatePickerDialog(context: Context, editText: EditText, onDateSetListener: DatePickerDialog.OnDateSetListener) {
         val locale = Locale.getDefault()
         val calendar = Calendar.getInstance(locale)
-        val dateString = editText.text.toString() // Usar editText en lugar de fechaEditText
+        val dateString = editText.text.toString()
 
-        if (dateString.isNotBlank()) {
-            val formatter = SimpleDateFormat("dd/MM/yyyy", locale)
-            val date = formatter.parse(dateString)
-            date?.let { calendar.time = it }
+        // Intenta analizar la fecha solo si no está vacía y tiene el formato correcto
+        if (dateString.isNotBlank() && dateString.matches(Regex("\\d{2}/\\d{2}/\\d{4}"))) {
+            try {
+                val formatter = SimpleDateFormat("dd/MM/yyyy", locale)
+                val date = formatter.parse(dateString)
+                date?.let { calendar.time = it }
+            } catch (e: ParseException) {
+                Log.e("AppUtils", "Error al analizar la fecha: ${e.message}")
+                // Si hay un error al analizar, usa la fecha actual
+            }
         }
 
         val year = calendar.get(Calendar.YEAR)
@@ -50,7 +72,7 @@ object AppUtils {
 
         val datePickerDialog = DatePickerDialog(
             context,
-            onDateSetListener, // Pasar el listener como parámetro
+            onDateSetListener,
             year,
             month,
             day

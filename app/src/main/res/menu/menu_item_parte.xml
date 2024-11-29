@@ -1,8 +1,11 @@
 <!-- res/menu/menu_item_parte.xml -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
+        android:id="@+id/action_detalles"
+        android:title="Detalles" />
+    <item
         android:id="@+id/action_editar"
-        android:enabled="false"
+        android:enabled="true"
         android:title="Editar" />
     <item
         android:id="@+id/action_eliminar"

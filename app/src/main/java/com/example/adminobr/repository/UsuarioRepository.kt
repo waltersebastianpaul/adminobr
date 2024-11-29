@@ -18,25 +18,71 @@ class UsuarioRepository(
     val apiService: ApiService,
     val sessionManager: SessionManager
 ) {
-    val isLoading = MutableLiveData<Boolean>()
     val errorMessage = MutableLiveData<String>()
 
     // Crear usuario
-    suspend fun createUser(usuario: Usuario): Result<Usuario> = withContext(Dispatchers.IO) {
+    // UsuarioRepository.kt
+    suspend fun createUser(usuario: Usuario): Result<Pair<Boolean, Int?>> = withContext(Dispatchers.IO) {
         try {
             val empresaDbName = sessionManager.getEmpresaData()?.db_name
-                ?: return@withContext Result.failure<Usuario>(Exception("Empresa DB no especificado."))
+                ?: return@withContext Result.failure<Pair<Boolean, Int?>>(Exception("Empresa DB no especificado."))
 
             val response = apiService.crearUsuario(
-                usuario.legajo, usuario.email, usuario.dni, usuario.password,
-                usuario.nombre, usuario.apellido, usuario.telefono,
-                usuario.userCreated ?: 0, usuario.estadoId, empresaDbName
+                usuario.legajo,
+                usuario.email,
+                usuario.dni,
+                usuario.password,
+                usuario.nombre,
+                usuario.apellido,
+                usuario.telefono,
+                usuario.userCreated ?: 0,
+                usuario.estadoId,
+                empresaDbName
             )
-            handleResponse(response)
+
+            if (response.isSuccessful) {
+                val responseBody = response.body()
+                Log.d("UsuarioRepository", "Respuesta de creación: success=${responseBody?.success}, id=${responseBody?.id}")
+                if (responseBody?.success == true) {
+                    val nuevoId = responseBody.id // Obtener el ID del usuario creado
+                    return@withContext Result.success(Pair(true, nuevoId))
+                } else {
+                    // Log detallado si `success` es `false`
+                    Log.e("UsuarioRepository", "Error en la respuesta: ${responseBody?.message}")
+                    return@withContext Result.failure<Pair<Boolean, Int?>>(Exception("Error en la creación de usuario"))
+                }
+            } else {
+                Log.e("UsuarioRepository", "Error en la respuesta HTTP: ${response.errorBody()?.string()}")
+                return@withContext Result.failure<Pair<Boolean, Int?>>(Exception("Error en la respuesta HTTP"))
+            }
         } catch (e: Exception) {
-            Result.failure(e)
+            Log.e("UsuarioRepository", "Error al crear usuario: ${e.localizedMessage}")
+            return@withContext Result.failure<Pair<Boolean, Int?>>(e)
         }
     }
+
+//    suspend fun createUser(usuario: Usuario): Result<Usuario> = withContext(Dispatchers.IO) {
+//        try {
+//            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+//                ?: return@withContext Result.failure<Usuario>(Exception("Empresa DB no especificado."))
+//
+//            val response = apiService.crearUsuario(
+//                usuario.legajo,
+//                usuario.email,
+//                usuario.dni,
+//                usuario.password,
+//                usuario.nombre,
+//                usuario.apellido,
+//                usuario.telefono,
+//                usuario.userCreated ?: 0,
+//                usuario.estadoId,
+//                empresaDbName
+//            )
+//            handleResponse(response)
+//        } catch (e: Exception) {
+//            Result.failure(e)
+//        }
+//    }
 
     // Actualizar usuario
     suspend fun updateUser(usuario: Usuario, newPassword: String?): Result<Usuario> = withContext(Dispatchers.IO) {
@@ -58,7 +104,7 @@ class UsuarioRepository(
             }
 
             val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-            val response = apiService.actualizarUsuario(requestBody)
+            val response = apiService.editarUsuario(requestBody)
             handleResponse(response)
         } catch (e: Exception) {
             Log.e("UsuarioRepository", "Error al actualizar usuario: ${e.localizedMessage}")
@@ -84,7 +130,7 @@ class UsuarioRepository(
             }
 
             val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-            val response = apiService.actualizarUsuario(requestBody)
+            val response = apiService.editarUsuario(requestBody)
             handleResponse(response)
         } catch (e: Exception) {
             Result.failure(e)
@@ -104,7 +150,7 @@ class UsuarioRepository(
             }
 
             val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-            val response = apiService.actualizarUsuario(requestBody)
+            val response = apiService.editarUsuario(requestBody)
             handleResponse(response)
         } catch (e: Exception) {
             Result.failure(e)
@@ -138,7 +184,7 @@ class UsuarioRepository(
             }
             val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
 
-            val response = apiService.getAllUsers(requestBody)
+            val response = apiService.obtenerUsuarios(requestBody)
             handleResponse(response)
         } catch (e: Exception) {
             Result.failure(e)
@@ -149,9 +195,41 @@ class UsuarioRepository(
     suspend fun fetchUserById(idUsuario: Int): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
             val requestBody = createRequestBody(idUsuario)
-            val response = apiService.getUsuarioById(requestBody)
+            val response = apiService.obtenerUsuario(requestBody)
             handleResponse(response)
         } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    // Asignar rol al usuario
+    suspend fun assignRole(usuarioId: Int, rolId: Int): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+                ?: return@withContext Result.failure<Unit>(Exception("Empresa DB no especificada."))
+
+            // Crear el JSON para el cuerpo de la solicitud
+            val jsonObject = JSONObject().apply {
+                put("empresaDbName", empresaDbName)
+                put("usuario_id", usuarioId)
+                put("rol_id", rolId)
+            }
+            //Log.d("UsuarioRepository", "URL para asignar rol: ${apiService.asignarRolUsuario}")
+            Log.d("UsuarioRepository", "JSON para asignar rol: $jsonObject")
+            val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+
+            // Realizar la llamada a la API usando el requestBody
+            val response = apiService.asignarRolUsuario(requestBody)
+            if (response.isSuccessful) {
+                Result.success(Unit)
+            } else {
+                // Log detallado del error cuando el response no es successful
+                val errorBody = response.errorBody()?.string() ?: "Respuesta sin detalles de error"
+                Log.e("UsuarioRepository", "Error en respuesta asignar rol: ${response.code()} - $errorBody")
+                Result.failure(Exception("Error al asignar rol: $errorBody"))
+            }
+        } catch (e: Exception) {
+            Log.e("UsuarioRepository", "Excepción al asignar rol: ${e.message}")
             Result.failure(e)
         }
     }

@@ -6,7 +6,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
-import androidx.activity.viewModels
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -16,24 +15,27 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.appcompat.app.AppCompatActivity
 import com.example.adminobr.ui.login.LoginActivity
 import com.example.adminobr.databinding.ActivityMainBinding
-import com.example.adminobr.viewmodel.AppDataViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import androidx.lifecycle.lifecycleScope
 import com.example.adminobr.update.UpdateManager
 import kotlinx.coroutines.launch
-import android.app.AlertDialog
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
-import android.util.Log
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
-import com.example.adminobr.ui.usuarios.EditMode
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.adminobr.ui.usuarios.EditType
+import com.example.adminobr.utils.AppUtils
+import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.SessionManager
-import com.example.adminobr.update.DownloadService
 import com.example.adminobr.utils.NetworkStatusHelper
+
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 
 class MainActivity : AppCompatActivity() {
 
@@ -43,20 +45,20 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var sessionManager: SessionManager
 
-    private lateinit var networkHelper: NetworkStatusHelper
+    // Layout para mostrar errores de conexión de red
+    private lateinit var networkErrorLayout: View
+    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
 
     companion object {
         private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1001
     }
 
+    @OptIn(FlowPreview::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // Inicializar SessionManager
         sessionManager = SessionManager(applicationContext)
-
-        // Inicializa NetworkStatusHelper después de que la actividad ha sido creada
-        networkHelper = NetworkStatusHelper(this)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -72,7 +74,6 @@ class MainActivity : AppCompatActivity() {
         // Usa SessionManager para obtener los datos del usuario
         val userName = sessionManager.getUserNombre() ?: "No hay usuario disponible"
         val userLastName = sessionManager.getUserApellido() ?: "No hay apellido disponible"
-//        val empresaName = empresa?.nombre?.lowercase() ?: "No hay empresa disponible" // Convertir a minúsculas
         val empresaName = empresa?.nombre ?: "No hay empresa disponible" // Convertir a minúsculas
 
         val userTextView: TextView = headerView.findViewById(R.id.userTextView)
@@ -83,9 +84,6 @@ class MainActivity : AppCompatActivity() {
 
         val empresaTextView: TextView = headerView.findViewById(R.id.empresaTextView)
         empresaTextView.text = empresaName
-//        empresaTextView.text = empresaName.split(" ").joinToString(" ") {
-//            it.replaceFirstChar { char -> char.uppercase() }
-//        }
 
         val versionName = packageManager.getPackageInfo(packageName, 0).versionName
         val versionTextView: TextView = headerView.findViewById(R.id.versionTextView)
@@ -99,16 +97,79 @@ class MainActivity : AppCompatActivity() {
         // Comprobar y solicitar el permiso de notificaciones
         checkNotificationPermission()
 
-        // Iniciar el servicio de actualización dentro de lifecycleScope.launch
+        // Verificar si se debe comprobar actualizaciones automáticamente
+        val checkUpdatesOnStartup = intent.getBooleanExtra("CHECK_UPDATES_ON_STARTUP", false)
+        if (checkUpdatesOnStartup) {
+            checkUpdatesOnStartup(false) // No mostrar mensajes Toast en modo automático
+        }
+
+        // Referencia al layout de error
+        networkErrorLayout = findViewById(R.id.networkErrorLayout)
+
+        // Observa el estado de la red y actualiza el layout de error
         lifecycleScope.launch {
-            checkUpdates(isAutomatic = true) // false para NO iniciar automaticamente
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                NetworkStatusHelper.networkAvailable
+//                    .debounce(3000) // Evita fluctuaciones rápidas en la red
+                    .collect { isConnected ->
+                        if (isNetworkCheckEnabled) {
+                            if (isConnected) {
+                                hideNetworkErrorLayout()
+                                if (NetworkStatusHelper.isWifiConnected()) {
+                                    // Si la conexión es Wi-Fi, verifica descargas pendientes
+                                    val updateManager = UpdateManager(this@MainActivity)
+                                    updateManager.handlePendingDownload()
+                                }
+                            } else {
+                                showNetworkErrorLayout()
+                            }
+                        }
+                    }
+            }
+        }
+
+//        if (NetworkStatusHelper.isWifiConnected()) {
+//            Snackbar.make(binding.root, "Conectado por Wi-Fi", Snackbar.LENGTH_SHORT).show()
+//        } else {
+//            Snackbar.make(binding.root, "Conectado por Datos Moviles", Snackbar.LENGTH_SHORT).show()
+//        }
+
+        // Configuración del botón "Reintentar" dentro del layout de error
+        val retryButton = findViewById<TextView>(R.id.retry_button)
+        retryButton.setOnClickListener {
+            // Intenta recargar si hay conexión
+            if (NetworkStatusHelper.isNetworkAvailable()) {
+                NetworkStatusHelper.refreshNetworkStatus()
+            } else {
+                val textViewError = networkErrorLayout.findViewById<TextView>(R.id.textViewError)
+                textViewError?.text = "Sigue sin conexión a internet :("
+            }
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        // Verificar si hay una actualización pendiente en Wi-Fi
-        checkPendingUpdateOnWifi()
+    /**
+     * Función que gestiona el layout de errores de red y recarga componentes si la red está disponible.
+     */
+    private fun showNetworkErrorLayout() {
+        val networkErrorLayout = findViewById<View>(R.id.networkErrorLayout)
+
+        // Cerrar el teclado usando AppUtils
+        AppUtils.closeKeyboard(this)
+
+        networkErrorLayout.visibility = View.VISIBLE
+        networkErrorLayout.isClickable = true
+        networkErrorLayout.isFocusable = true
+    }
+
+    private fun hideNetworkErrorLayout() {
+        val networkErrorLayout = findViewById<View>(R.id.networkErrorLayout)
+        val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
+        val textViewError = networkErrorLayout.findViewById<TextView>(R.id.textViewError)
+        networkErrorLayout.visibility = View.GONE
+        textViewError?.text="Se perdio la conexión a internet"
+
+        // Restablecer el enfoque al DrawerLayout
+        drawerLayout.requestFocus()
     }
 
     // Funcionalidad para solicitar permisos de notificaciones
@@ -127,18 +188,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun cerrarSesion() {
-        // Borrar las credenciales del user
-        //val sharedPreferences = getSharedPreferences("mis_preferencias", Context.MODE_PRIVATE)
-        //val editor = sharedPreferences.edit()
-        //editor.clear()
-        //editor.apply()
-        //editor.remove("user_legajo")  // Borrar solo el legajo del usuario
-        //editor.remove("user_nombre")  // Borrar solo el nombre del usuario
-        //editor.remove("user_apellido")  // Borrar solo el apellido del usuario
-
-        // Limpiar la sesión
-        //sessionManager.clearSession()
-
         // Crear un Intent para iniciar la actividad de Login
         val intent = Intent(this, LoginActivity::class.java)
 
@@ -150,7 +199,6 @@ class MainActivity : AppCompatActivity() {
 
         // Finalizar la actividad actual
         finish()
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -181,17 +229,11 @@ class MainActivity : AppCompatActivity() {
 
         // Obtener el elemento del menú específico
         val gestionUsuariosItem = navMenu.findItem(R.id.nav_gestion_usuarios)
-        val changePasswordItem = navMenu.findItem(R.id.nav_change_password)
-        val editProfileItem = navMenu.findItem(R.id.nav_edit_profile)
 
         // Controlar la visibilidad del elemento según los roles del usuario
         if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
             gestionUsuariosItem.isVisible = true
         }
-
-        // Sin restrinccion de rol, para su visivilidad
-        changePasswordItem.isVisible = true
-        editProfileItem.isVisible = true
 
         // Marca el ítem de "Inicio" como seleccionado
         binding.navView.setCheckedItem(R.id.nav_home)
@@ -211,13 +253,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 R.id.nav_partediario -> {
                     // Acción para nav_partesdiarios
-                    findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_partediario) // Reemplaza R.id.nav_partediario con el ID del fragmento destino
+                    val bundle = bundleOf("editMode" to false)
+                    findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_parteDiarioFormFragment, bundle) // Reemplaza R.id.nav_partediario con el ID del fragmento destino
                     binding.drawerLayout.closeDrawers()
                     false
                 }
                 R.id.nav_check_update -> {
                     // Acción para nav_check_updates
-                    checkUpdates()
+                    setupCheckUpdateManualOption()
                     binding.drawerLayout.closeDrawers()
                     false
                 }
@@ -230,7 +273,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_change_password -> {
                     // Acción para nav_change_password
                     val userId = sessionManager.getUserId()
-                    val bundle = bundleOf("userId" to userId, "editMode" to EditMode.CHANGE_PASSWORD.name)
+                    val bundle = bundleOf("userId" to userId, "editType" to EditType.CHANGE_PASSWORD.name)
                     findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_userFormFragment, bundle)
                     binding.drawerLayout.closeDrawers()
                     false
@@ -238,7 +281,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_edit_profile -> {
                     // Acción para nav_edit_profile
                     val userId = sessionManager.getUserId()
-                    val bundle = bundleOf("userId" to userId, "editMode" to EditMode.EDIT_PROFILE.name)
+                    val bundle = bundleOf("userId" to userId, "editType" to EditType.EDIT_PROFILE.name)
                     findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.nav_userFormFragment, bundle)
                     binding.drawerLayout.closeDrawers()
                     false
@@ -251,6 +294,33 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    /**
+     * Configura la opción manual para comprobar actualizaciones.
+     */
+    private fun setupCheckUpdateManualOption() {
+        lifecycleScope.launch {
+            val updateManager = UpdateManager(this@MainActivity)
+            updateManager.checkForUpdates(true)
+        }
+    }
+
+    /**
+     * Comprueba si hay actualizaciones disponibles.
+     * @param showToast Indica si se deben mostrar mensajes Toast.
+     */
+    private fun checkUpdatesOnStartup(showToast: Boolean) {
+        lifecycleScope.launch {
+            val updateManager = UpdateManager(this@MainActivity)
+            updateManager.checkForUpdates(showToast)
+        }
+    }
+//    private fun checkUpdatesOnStartup() {
+//        lifecycleScope.launch {
+//            val updateManager = UpdateManager(this@MainActivity)
+//            updateManager.checkForUpdates()
+//        }
+//    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.main, menu)
@@ -280,95 +350,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        val appDataViewModel: AppDataViewModel by viewModels()
-//        appDataViewModel.cargarDatos()
-        Log.d("MainActivity", "onResume: Datos iniciales cargados")
-
+        // Refrescar el estado de red explícitamente
+        NetworkStatusHelper.refreshNetworkStatus()
     }
 
-    private fun checkUpdates(isAutomatic: Boolean = false) {
 
-        if (!checkPendingUpdateOnWifi()) {
 
-            lifecycleScope.launch {
-                val updateManager = UpdateManager(this@MainActivity)
-                val hasUpdate = updateManager.checkForUpdates()
-                if (hasUpdate) {
-                    val latestVersion = updateManager.getLatestVersion()
-                    showUpdateDialog(latestVersion.apkUrl, latestVersion.versionName)
-                } else if (!isAutomatic) {
-                    // Mostrar mensaje de "no hay actualizaciones disponibles" solo si la llamada es manual
-                    Toast.makeText(
-                        this@MainActivity,
-                        "Ya tienes la última versión.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            }
-        }
-    }
 
-    private fun showUpdateDialog(apkUrl: String, versionName: String) {
-        val builder = AlertDialog.Builder(this)
-            .setTitle("Actualización disponible")
-            .setMessage("La versión $versionName ya está disponible.\n¿Actualizar ahora?") // Salto de línea aquí
-            .setPositiveButton("Actualizar") { _, _ ->
-                if (networkHelper.isWifiConnected()) {
-                    startDownloadService(apkUrl)
-                } else {
-                    showWifiWarningDialog(apkUrl)
-                }
-            }
-            .setNegativeButton("Omitir", null)
 
-        val dialog = builder.create() // Crear el diálogo aquí
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.black))
-        }
-
-        dialog.show()
-    }
-
-    private fun showWifiWarningDialog(apkUrl: String) {
-        val builder = AlertDialog.Builder(this) // Cambiar a builder
-            .setTitle("Conexión de datos móviles")
-            .setMessage("Descargar ahora puede consumir tu plan de datos. ¿Desea continuar o descargar con Wi-Fi?")
-            .setPositiveButton("Continuar") { _, _ ->
-                // Continúa con la descarga usando datos móviles
-                startDownloadService(apkUrl)
-            }
-            .setNegativeButton("Descargar con Wi-Fi") { _, _ ->
-                // Guarda la URL para la próxima vez que se conecte a Wi-Fi
-                sessionManager.savePendingUpdateUrl(apkUrl)
-                Toast.makeText(this, "La actualización se descargará cuando estés conectado a Wi-Fi.", Toast.LENGTH_SHORT).show()
-            }
-
-        val dialog = builder.create() // Crear el diálogo aquí
-
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(ContextCompat.getColor(this, R.color.black))
-        }
-
-        dialog.show()
-    }
-
-    private fun startDownloadService(apkUrl: String) {
-        val intent = Intent(this, DownloadService::class.java)
-        intent.putExtra("apkUrl", apkUrl)
-        startService(intent)
-    }
-
-    private fun checkPendingUpdateOnWifi():Boolean {
-        val pendingUpdateUrl = sessionManager.getPendingUpdateUrl()
-        pendingUpdateUrl?.let {
-            if (networkHelper.isWifiConnected()) {
-                startDownloadService(it)
-                sessionManager.clearPendingUpdateUrl()
-            }
-            return true
-        }
-        return false
-    }
 
 }

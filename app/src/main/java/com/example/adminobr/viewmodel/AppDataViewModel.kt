@@ -10,6 +10,8 @@ import com.example.adminobr.api.AutocompletesApi
 import com.example.adminobr.data.Equipo
 import com.example.adminobr.data.Obra
 import com.example.adminobr.data.Empresa
+import com.example.adminobr.data.Estado
+import com.example.adminobr.data.Rol
 import com.example.adminobr.utils.SessionManager
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -26,6 +28,15 @@ class AppDataViewModel(application: Application) : AndroidViewModel(application)
 
     private val _empresas = MutableLiveData<List<Empresa>>()
     val empresas: LiveData<List<Empresa>> = _empresas
+
+    private val _roles = MutableLiveData<List<Rol>>()
+    val roles: LiveData<List<Rol>> = _roles
+
+    private val _estados = MutableLiveData<List<Estado>>()
+    val estados: LiveData<List<Estado>> = _estados
+
+    private val _tipoCombustible = MutableLiveData<List<String>>()
+    val tipoCombustible: LiveData<List<String>> get() = _tipoCombustible
 
     private val api: AutocompletesApi = AutocompletesApi.create(application)
     private val sessionManager = SessionManager(application)
@@ -44,8 +55,9 @@ class AppDataViewModel(application: Application) : AndroidViewModel(application)
                 val requestBody = createRequestBody().toRequestBody("application/json".toMediaTypeOrNull())
                 val response = api.getEquipos(requestBody)
                 _equipos.value = response
+                Log.d("AppDataViewModel", "Equipos cargados: ${_equipos.value}")
             } catch (e: Exception) {
-                // Manejar errores
+                Log.e("AppDataViewModel", "Error al cargar equipos: ${e.message}")
             }
         }
     }
@@ -56,8 +68,9 @@ class AppDataViewModel(application: Application) : AndroidViewModel(application)
                 val requestBody = createRequestBody().toRequestBody("application/json".toMediaTypeOrNull())
                 val response = api.getObras(requestBody)
                 _obras.value = response
+                Log.d("AppDataViewModel", "Obras cargadas: ${_obras.value}")
             } catch (e: Exception) {
-                // Manejar errores
+                Log.e("AppDataViewModel", "Error al cargar obras: ${e.message}")
             }
         }
     }
@@ -71,6 +84,39 @@ class AppDataViewModel(application: Application) : AndroidViewModel(application)
                 Log.e("AppDataViewModel", "Error al cargar empresas: ${e.message}")
             }
         }
+    }
+
+    fun cargarRoles() {
+        viewModelScope.launch {
+            try {
+                val requestBody =
+                    createRequestBody().toRequestBody("application/json".toMediaTypeOrNull())
+                val response = api.getRoles(requestBody)
+                _roles.value = response
+                Log.d("AppDataViewModel", "Roles cargados: ${_roles.value}")
+            } catch (e: Exception) {
+                Log.e("AppDataViewModel", "Error al cargar roles: ${e.message}")
+            }
+        }
+    }
+
+    fun cargarEstados() {
+        viewModelScope.launch {
+            try {
+                val requestBody =
+                    createRequestBody().toRequestBody("application/json".toMediaTypeOrNull())
+                val response = api.getEstados(requestBody)
+                _estados.value = response
+                Log.d("AppDataViewModel", "Estados cargados: ${_estados.value}")
+            } catch (e: Exception) {
+                Log.e("AppDataViewModel", "Error al cargar estados: ${e.message}")
+            }
+        }
+    }
+
+    fun cargarTipoCombustible() {
+        // Cargar datos fijos de tipo de combustible
+        _tipoCombustible.value = listOf("Diesel", "Nafta")
     }
 }
 

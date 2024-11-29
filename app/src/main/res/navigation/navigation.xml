@@ -10,78 +10,161 @@
         android:id="@+id/nav_home"
         android:name="com.example.adminobr.ui.home.HomeFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" >
+        tools:layout="@layout/fragment_home">
         <action
             android:id="@+id/action_nav_home_to_nav_partediario"
-            app:destination="@id/nav_partediario" />
+            app:destination="@id/nav_partediario"/>
         <action
             android:id="@+id/action_nav_home_to_nav_partesimple"
-            app:destination="@id/nav_partesimple" />
+            app:destination="@id/nav_partesimple"/>
         <action
             android:id="@+id/action_nav_home_to_nav_listarpartes"
-            app:destination="@id/nav_listarpartes" />
+            app:destination="@id/nav_listarpartes"/>
     </fragment>
 
-    <fragment
-        android:id="@+id/nav_partediario"
-        android:name="com.example.adminobr.ui.partediario.ParteDiarioFragment"
-        android:label="Parte Diario"
-        tools:layout="@layout/fragment_parte_diario" />
 
-    <fragment
-        android:id="@+id/nav_partesimple"
-        android:name="com.example.adminobr.ui.partesimple.ParteSimpleFragment"
-        android:label="Partes Simples"
-        tools:layout="@layout/fragment_parte_simple" />
+<!--    <fragment-->
+<!--        android:id="@+id/nav_partediario"-->
+<!--        android:name="com.example.adminobr.ui.partediario.ParteDiarioFormFragment"-->
+<!--        android:label="Parte Diarios Form" />-->
 
+<!--    <fragment-->
+<!--        android:id="@+id/nav_partediario"-->
+<!--        android:name="com.example.adminobr.ui.partediario.ParteDiarioFormFragment"-->
+<!--        android:label="@string/menu_partediario"-->
+<!--        tools:layout="@layout/fragment_parte_diario_form">-->
+<!--        <action-->
+<!--            android:id="@+id/action_nav_parteDiarioFormFragment_create"-->
+<!--            app:destination="@id/nav_parteDiarioFormFragment" />-->
+<!--            <argument-->
+<!--                android:name="editParteMode"-->
+<!--                android:defaultValue="false"/>-->
+<!--    </fragment>-->
+
+
+    <!-- Fragmento para el formulario de parte diario -->
+    <fragment
+        android:id="@+id/nav_parteDiarioFormFragment"
+        android:name="com.example.adminobr.ui.partediario.ParteDiarioFormFragment"
+        android:label="Formulario Parte Diario"
+        tools:layout="@layout/fragment_parte_diario_form">
+
+        <!-- Acción para abrir en modo creación desde el propio ParteDiarioFormFragment -->
+        <action
+            android:id="@+id/action_nav_parteDiarioFormFragment_create"
+            app:destination="@id/nav_parteDiarioFormFragment">
+            <argument
+                android:name="editParteMode"
+                android:defaultValue="false"/>
+        </action>
+
+        <!-- Acción para abrir en modo edición desde el propio ParteDiarioFormFragment -->
+        <action
+            android:id="@+id/action_nav_parteDiarioFormFragment_edit"
+            app:destination="@id/nav_parteDiarioFormFragment">
+            <argument
+                android:name="editParteMode"
+                android:defaultValue="true"/>
+            <argument
+                android:name="parteDiarioId"
+                app:argType="integer"
+                android:defaultValue="-1"/>
+        </action>
+    </fragment>
+
+
+    <!-- Fragmento de lista de partes -->
     <fragment
         android:id="@+id/nav_listarpartes"
         android:name="com.example.adminobr.ui.partediario.ListarPartesFragment"
-        android:label="Lista de Partes Diarios"
-        tools:layout="@layout/fragment_listar_partes">
+        android:label="Lista de Partes"
+        tools:layout="@layout/fragment_listar_partes_diarios">
+
+        <!-- Acción para abrir el formulario en modo creación -->
         <action
-            android:id="@+id/action_editar"
-            app:destination="@id/nav_partediario" />
+            android:id="@+id/action_nav_listarpartes_to_nav_parteDiarioFormFragment_create"
+            app:destination="@id/nav_parteDiarioFormFragment">
+            <argument
+                android:name="editParteMode"
+                android:defaultValue="false"/>
+        </action>
+
+        <!-- Acción para abrir el formulario en modo edición -->
+        <action
+            android:id="@+id/action_nav_listarpartes_to_nav_parteDiarioFormFragment_edit"
+            app:destination="@id/nav_parteDiarioFormFragment">
+            <argument
+                android:name="editParteMode"
+                android:defaultValue="true" />
+            <argument
+                android:name="parteDiarioId"
+                app:argType="integer"
+                android:defaultValue="-1" />
+        </action>
     </fragment>
 
+
+    <!-- Fragmento para partes simples -->
+    <fragment
+    android:id="@+id/nav_partesimple"
+    android:name="com.example.adminobr.ui.partesimple.ParteSimpleFragment"
+    android:label="Partes Simples"
+    tools:layout="@layout/fragment_parte_simple"/>
+
+
+
+    <!-- Fragmento para el listar parte diario -->
+    <fragment
+        android:id="@+id/nav_listarPartesDiarios"
+        android:name="com.example.adminobr.ui.partediario.ListarPartesFragment"
+        android:label="Lista de Partes Diarios"
+        tools:layout="@layout/fragment_listar_partes_diarios" />
+
+    <!-- Fragmento para listar usuarios -->
     <fragment
         android:id="@+id/nav_gestion_usuarios"
         android:name="com.example.adminobr.ui.usuarios.ListarUsuariosFragment"
         android:label="Lista de Usuarios"
-        tools:layout="@layout/fragment_listar_usuarios" >
+        tools:layout="@layout/fragment_listar_usuarios">
+
+        <!-- Acción para abrir el formulario en modo creación de usuario -->
         <action
             android:id="@+id/action_nav_gestion_usuarios_to_nav_userFormFragment_create"
-            app:destination="@id/nav_userFormFragment" >
+            app:destination="@id/nav_userFormFragment">
             <argument
-                android:name="editUserMode"
-                android:defaultValue="false" />
+                android:name="editMode"
+                android:defaultValue="false"/>
         </action>
 
+        <!-- Acción para abrir el formulario en modo edición de usuario -->
         <action
             android:id="@+id/action_nav_gestion_usuarios_to_nav_userFormFragment_edit"
-            app:destination="@id/nav_userFormFragment" >
+            app:destination="@id/nav_userFormFragment">
             <argument
-                android:name="editUserMode"
-                android:defaultValue="true" />
+                android:name="editMode"
+                android:defaultValue="true"/>
             <argument
                 android:name="userId"
-                app:argType="integer" />
+                app:argType="integer"
+                android:defaultValue="-1"/>
         </action>
     </fragment>
 
+    <!-- Fragmento para formulario de usuario -->
     <fragment
         android:id="@+id/nav_userFormFragment"
         android:name="com.example.adminobr.ui.usuarios.UsuarioFormFragment"
         tools:layout="@layout/fragment_user_form"
-        android:label="" >
+        android:label="">
+
         <argument
-            android:name="editMode"
+            android:name="editType"
             app:argType="string"
-            android:defaultValue="EDIT_ALL" />
+            android:defaultValue="EDIT_ALL"/>
         <argument
             android:name="userId"
-            app:argType="integer" />
+            app:argType="integer"
+            android:defaultValue="-1"/>
     </fragment>
-
 
 </navigation>

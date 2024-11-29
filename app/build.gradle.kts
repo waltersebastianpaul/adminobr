@@ -2,18 +2,24 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     id("androidx.navigation.safeargs.kotlin")
+
+    // Make sure that you have the Google services Gradle plugin
+    id("com.google.gms.google-services")
+
+    // Add the Crashlytics Gradle plugin
+    id("com.google.firebase.crashlytics")
 }
 
 android {
     namespace = "com.example.adminobr"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.adminobr"
         minSdk = 24
-        targetSdk = 34
-        versionCode = 14
-        versionName = "1.0.14"
+        targetSdk = 35
+        versionCode = 18
+        versionName = "1.0.18"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -41,10 +47,16 @@ android {
         viewBinding = true
         buildConfig = true
     }
-
 }
 
 dependencies {
+    // Import the BoM for the Firebase platform
+    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+
+    // Add the dependencies for the Crashlytics and Analytics libraries
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
 
     // AndroidX Core
     implementation(libs.androidx.core.ktx)
@@ -60,17 +72,10 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.material3.android)
-    implementation(libs.androidx.ui.text.android)
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.core.i18n)
     implementation(libs.androidx.datastore.core.android)
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidthings)
-
-    // Filament y Protobuf
-    implementation(libs.filament.android)
-    implementation(libs.protolite.well.known.types)
 
     // Retrofit y Gson para solicitudes de red
     implementation(libs.retrofit)
@@ -80,20 +85,19 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
-    implementation(libs.kotlinx.coroutines.core) // Asegúrate de tener la última versión
-
+    implementation(libs.kotlinx.coroutines.core)
     // Otros
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.work.runtime.ktx) // Versión actual
     implementation(libs.jbcrypt)
     implementation(libs.androidx.gridlayout)
+    implementation(libs.androidx.foundation.android)
 
     // Test dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation ("com.google.android.flexbox:flexbox:3.0.0")
-
+    implementation (libs.flexbox)
 }
 

@@ -1,9 +1,15 @@
 [versions]
 agp = "8.6.1"
+firebaseBom = "33.6.0"
+firebaseCrashlyticsGradle = "3.0.2"
+flexbox = "3.0.0"
+googleServices = "4.4.2"
+gradle = "8.6.1"
 gridlayout = "1.0.0"
+hiltAndroidGradlePlugin = "2.44"
 jbcrypt = "0.4"
 kotlin = "1.9.0"
-coreKtx = "1.13.1"
+coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
@@ -12,32 +18,43 @@ kotlinxCoroutinesAndroid = "1.7.3"
 kotlinxCoroutinesCore = "1.6.4"
 loggingInterceptor = "4.9.3"
 material = "1.12.0"
-constraintlayout = "2.1.4"
-lifecycleLivedataKtx = "2.8.6"
-lifecycleViewmodelKtx = "2.8.6"
-navigationFragmentKtx = "2.8.2"
-navigationUiKtx = "2.8.2"
-material3Android = "1.3.0"
+constraintlayout = "2.2.0"
+lifecycleLivedataKtx = "2.8.7"
+lifecycleViewmodelKtx = "2.8.7"
+navigationFragmentKtx = "2.8.4"
+navigationUiKtx = "2.8.4"
+material3Android = "1.3.1"
 okhttp = "4.11.0"
-pagingRuntimeKtx = "3.3.2"
+pagingRuntimeKtx = "3.3.4"
 retrofit = "2.9.0"
-uiTextAndroid = "1.7.3"
-annotation = "1.8.2"
+uiTextAndroid = "1.7.5"
+annotation = "1.9.1"
 protoliteWellKnownTypes = "18.0.0"
 filamentAndroid = "1.17.1"
-workRuntime = "2.9.1"
+workRuntime = "2.10.0"
 coreI18n = "1.0.0-alpha01"
 datastoreCoreAndroid = "1.1.1"
-media3Exoplayer = "1.4.1"
+media3Exoplayer = "1.5.0"
 androidthings = "1.0"
-workRuntimeKtx = "2.9.1"
+workRuntimeKtx = "2.10.0"
+foundationAndroid = "1.7.5"
+firebaseCrashlyticsKtx = "19.2.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-gridlayout = { module = "androidx.gridlayout:gridlayout", version.ref = "gridlayout" }
+androidx-navigation-safe-args-gradle-plugin = { module = "androidx.navigation:navigation-safe-args-gradle-plugin", version.ref = "navigationFragmentKtx" }
 androidx-paging-runtime-ktx = { module = "androidx.paging:paging-runtime-ktx", version.ref = "pagingRuntimeKtx" }
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
+firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsGradle" }
+flexbox = { module = "com.google.android.flexbox:flexbox", version.ref = "flexbox" }
+google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
+gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
+hilt-android-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hiltAndroidGradlePlugin" }
 jbcrypt = { module = "org.mindrot:jbcrypt", version.ref = "jbcrypt" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -64,6 +81,8 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 androidx-datastore-core-android = { group = "androidx.datastore", name = "datastore-core-android", version.ref = "datastoreCoreAndroid" }
 androidx-media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3Exoplayer" }
 androidthings = { group = "com.google.android.things", name = "androidthings", version.ref = "androidthings" }
+androidx-foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroid" }
+firebase-crashlytics-ktx = { group = "com.google.firebase", name = "firebase-crashlytics-ktx", version.ref = "firebaseCrashlyticsKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

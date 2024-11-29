@@ -2,9 +2,7 @@ package com.example.adminobr.utils
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.annotation.OptIn
-import androidx.media3.common.util.Log
-import androidx.media3.common.util.UnstableApi
+import android.util.Log
 import com.example.adminobr.data.Empresa
 import com.google.gson.Gson
 
@@ -92,7 +90,6 @@ class SessionManager(context: Context) {
         editor.apply()
     }
 
-    @OptIn(UnstableApi::class)
     fun saveUserDetails(
         id: Int,
         legajo: String,
@@ -121,7 +118,6 @@ class SessionManager(context: Context) {
         Log.d("SessionManager", "Principal Rol: $principalRole")
     }
 
-    @OptIn(UnstableApi::class)
     fun getUserDetails(): Map<String, String?> {
         // Obtener los datos guardados
         val id = prefs.getInt(KEY_USER_ID, -1)
@@ -150,7 +146,6 @@ class SessionManager(context: Context) {
         )
     }
 
-    @OptIn(UnstableApi::class)
     fun clearUserDetails() {
         val editor = prefs.edit()
         editor.remove(KEY_USER_ID)
@@ -165,21 +160,21 @@ class SessionManager(context: Context) {
         Log.d("SessionManager", "Datos de usuario eliminados de SharedPreferences")
     }
 
-    fun savePendingUpdateUrl(url: String) {
-        val editor = prefs.edit()
-        editor.putString(KEY_PENDING_UPDATE_URL, url)
-        editor.apply()
-    }
-
-    fun getPendingUpdateUrl(): String? {
-        return prefs.getString(KEY_PENDING_UPDATE_URL, null)
-    }
-
-    fun clearPendingUpdateUrl() {
-        val editor = prefs.edit()
-        editor.remove(KEY_PENDING_UPDATE_URL)
-        editor.apply()
-    }
+//    fun savePendingUpdateUrl(url: String) {
+//        val editor = prefs.edit()
+//        editor.putString(KEY_PENDING_UPDATE_URL, url)
+//        editor.apply()
+//    }
+//
+//    fun getPendingUpdateUrl(): String? {
+//        return prefs.getString(KEY_PENDING_UPDATE_URL, null)
+//    }
+//
+//    fun clearPendingUpdateUrl() {
+//        val editor = prefs.edit()
+//        editor.remove(KEY_PENDING_UPDATE_URL)
+//        editor.apply()
+//    }
 
 }
 

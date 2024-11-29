@@ -14,6 +14,7 @@
 
         <!-- Un LinearLayout que agrupa todos los elementos -->
         <LinearLayout
+            android:id="@+id/formLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -44,9 +45,7 @@
                         android:layout_height="wrap_content"
                         android:hint="@string/hint_legajo"
                         android:textSize="16sp"
-                        android:inputType="number"
-                        android:imeOptions="actionNext"
-                        android:focusableInTouchMode="true" />
+                        android:inputType="number" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -54,6 +53,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:enabled="false"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -144,7 +144,6 @@
                 app:layout_constraintTop_toBottomOf="@id/nombreTextInputLayout"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/apellidoEditText"
                     android:layout_width="match_parent"
@@ -193,8 +192,29 @@
                     android:layout_height="52dp"
                     android:hint="Estado"
                     android:inputType="none"
-                    android:focusable="false"
-                    android:clickable="true" />
+                    android:focusable="false" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/rolTextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/telefonoTextInputLayout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                <AutoCompleteTextView
+                    android:id="@+id/rolAutoComplete"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:hint="Rol de Usuario"
+                    android:inputType="none"
+                    android:focusable="false" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
