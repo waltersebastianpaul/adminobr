@@ -1,10 +1,13 @@
 package com.example.adminobr.utils
 
+import android.app.Activity
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.view.View
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -65,4 +68,43 @@ object NetworkStatusHelper {
         val networkCapabilities = connectivityManager.getNetworkCapabilities(network)
         return networkCapabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ?: false
     }
+
+    /**
+     * Verifica si hay conexión a internet en este momento.
+     * @return true si hay conexión a internet, false en caso contrario.
+     */
+    fun isConnected(): Boolean {
+        refreshNetworkStatus() // Actualiza el estado antes de devolver el resultado
+        return isNetworkAvailable()
+    }
+
+    /**
+     * Ejecuta la acción proporcionada si hay conexión a internet.
+     * Muestra un mensaje de error si no hay conexión.
+     *
+     * @param context Contexto para mostrar el Toast.
+     * @param action Acción a ejecutar si hay conexión.
+     * @param errorMessage Mensaje a mostrar si no hay conexión (opcional).
+     * @param showMessage Indica si se debe mostrar el Toast de error (opcional, por defecto es true).
+     * @return true si hay conexión y la acción se ejecuta, false de lo contrario.
+     */
+    fun requireConnection(
+        context: Context,
+        errorMessage: String = "No hay conexión a internet, intenta más tarde.",
+        showMessage: Boolean = true,
+        action: () -> Unit = {}
+    ): Boolean {
+        return if (isConnected()) {
+            action()
+            true
+        } else {
+            if (showMessage) {
+                val rootView = (context as? Activity)?.findViewById<View>(android.R.id.content)
+                    ?: return false  // Si no se puede obtener la vista raíz, retorna false
+                Snackbar.make(rootView, errorMessage, Snackbar.LENGTH_LONG).show()
+            }
+            false
+        }
+    }
+
 }

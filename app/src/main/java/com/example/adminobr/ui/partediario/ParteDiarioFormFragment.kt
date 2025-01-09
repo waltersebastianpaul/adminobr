@@ -13,8 +13,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
+import android.widget.ScrollView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
@@ -22,14 +22,11 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.adminobr.R
-import com.example.adminobr.application.MyApplication
 import com.example.adminobr.data.Estado
 import com.example.adminobr.data.Obra
 import com.example.adminobr.data.Equipo
@@ -45,8 +42,13 @@ import com.example.adminobr.viewmodel.ParteDiarioViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputLayout
 import com.example.adminobr.ui.adapter.ParteDiarioFormAdapter
-import com.example.adminobr.utils.FeedbackVisualUtils
+import com.example.adminobr.utils.FeedbackVisualUtil
+import com.example.adminobr.utils.LoadingDialogUtil
 import com.example.adminobr.utils.NetworkStatusHelper
+import com.example.adminobr.utils.dismissNetworkErrorSnackbar
+import com.example.adminobr.utils.showNetworkErrorSnackbar
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.text.toIntOrNull
 
@@ -64,16 +66,13 @@ class ParteDiarioFormFragment : Fragment() {
     private var _binding: FragmentParteDiarioFormBinding? = null
     private val binding get() = _binding!! // Binding para acceder a los elementos del layout
 
-    private val _parte = MutableLiveData<ParteDiario?>()
-    private val parte: LiveData<ParteDiario?> = _parte
-
     // Otras variables
     private var idParteDiario: Int? = null
     private var selectedEquipo: Equipo? = null
     private var selectedObra: Obra? = null
     private var selectedEstado: Estado? = null
     private var selectedCombustible: String? = null
-    private var editParteMode = false
+    private var editMode: Boolean = false
     private var editType: EditType = EditType.EDIT_ALL
 
     private lateinit var equipoAutocomplete: AutoCompleteTextView
@@ -81,17 +80,28 @@ class ParteDiarioFormFragment : Fragment() {
     private lateinit var estadoAutocomplete: AutoCompleteTextView
     private lateinit var combustibleTipoAutocomplete: AutoCompleteTextView
 
-    private lateinit var sessionManager: SessionManager
+    // Manager para la gestión de sesiones, carga solo cuando se accede a él
+    private val sessionManager by lazy { SessionManager(requireContext()) }
+
+    private lateinit var obraData: Map<String, String?>
+
     private var userId: Int = -1 // Inicializa con un valor predeterminado
-    private var previousConnectionState: Boolean? = null
+
+    // Layout para mostrar errores de conexión de red
+    private lateinit var networkErrorLayout: View
     private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
+    private var isNetworkErrorLayoutEnabled = Constants.getNetworkErrorLayout()
+
+    private var previousConnectionState: Boolean? = null
+
+    // Job para cancelar las corrutinas
+    private var networkJob: Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentParteDiarioFormBinding.inflate(inflater, container, false)
-        sessionManager = SessionManager(requireContext())
 
         // Inicializar userId después de que sessionManager esté inicializado
         userId = sessionManager.getUserId()
@@ -102,50 +112,128 @@ class ParteDiarioFormFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Observa el estado de la red y ejecuta una acción específica en reconexión
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                NetworkStatusHelper.networkAvailable
-                    .collect { isConnected ->
-                        if (isNetworkCheckEnabled) {
-                            if (previousConnectionState == false && isConnected) {
-//                                Log.d("ParteDiarioFormFragment", "Conexión restaurada, recargando datos...")
-                                // Realiza una acción específica al recuperar conexión
-
-                                reloadData()
-                            }
-                            previousConnectionState = isConnected
-                        }
-                    }
-            }
-        }
-
+        // Inicialización de componentes
         equipoAutocomplete = binding.equipoAutocomplete
         obraAutocomplete = binding.obraAutocomplete
         estadoAutocomplete = binding.estadoAutocomplete
         combustibleTipoAutocomplete = binding.combustibleTipoAutocomplete
 
         // Inicializar AutocompleteManager
-        autocompleteManager = AutocompleteManager(requireContext(), appDataViewModel)
+        autocompleteManager = AutocompleteManager(requireContext(), appDataViewModel, sessionManager)
 
-        // Cargar datos de Autocomplete
-        loadAllAutocompleteData()
+        // Obtener y almacenar los datos de la obra
+        obraData = sessionManager.getObraData()
 
-        // Obtener el modo de edición del argumento
-        editParteMode = arguments?.getBoolean("editParteMode", false) ?: false
-
-        // Obtener el modo de edición del argumento (EDIT_ALL u otro)
+        // Obtener el modo de edición
+        editMode = arguments?.getBoolean("editParteMode", false) ?: false
         editType = arguments?.getString("editType")?.let { EditType.valueOf(it) } ?: EditType.EDIT_ALL
 
-        if (!editParteMode && binding.run {
+        // Si es modo edición, cargar los datos del parte
+        val parteDiarioId = arguments?.getInt("parteDiarioId", -1) ?: -1
+        if (editMode && parteDiarioId != -1) {
+            cargarDatosParte(parteDiarioId)
+            //deshabilitarFormulario()
+
+            // Escuchar cambios en el estado de la red
+            networkJob = lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    NetworkStatusHelper.networkAvailable.collect { isConnected ->
+                        if (isConnected) {
+                            cargarDatosParte(parteDiarioId)
+                            networkJob?.cancel() // Detener la escucha tras el éxito
+                        }
+                    }
+                }
+            }
+        } else if (!editMode) {
+            cargarUltimosPartesPorUsuario()
+            //deshabilitarFormulario()
+
+            // Escuchar cambios en el estado de la red
+            networkJob = lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    NetworkStatusHelper.networkAvailable.collect { isConnected ->
+                        if (isConnected) {
+                            cargarUltimosPartesPorUsuario()
+                            networkJob?.cancel() // Detener la escucha tras el éxito
+                        }
+                    }
+                }
+            }
+        }
+
+        // Referencia al layout de error
+        networkErrorLayout = view.findViewById(R.id.networkErrorLayout)
+
+        // Observa el estado de la red y ejecuta una acción específica en reconexión
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                NetworkStatusHelper.networkAvailable
+                    .collect { isConnected ->
+                        Log.d("ParteDiarioFormFragment", "Estado de la red: $isConnected")
+
+                        if (isConnected) {
+                            //networkErrorLayout.visibility = View.GONE
+
+                            dismissNetworkErrorSnackbar()
+                        } else {
+                            // Cerrar el teclado usando AppUtils
+                            //AppUtils.closeKeyboard(requireActivity(), view)
+                            //networkErrorLayout.visibility = View.VISIBLE
+
+                            showNetworkErrorSnackbar(view) {
+                                // Acciones a realizar cuando la conexión se restablezca
+                                // Por ejemplo: recargar datos, etc.
+                                Log.d("Network", "Conexión restablecida")
+                            }
+                        }
+
+                        if (isNetworkCheckEnabled) {
+                            // Si la conexión se restauró
+                            if (isConnected && previousConnectionState == null) {
+                                // Cargar datos de Autocomplete
+                                loadAllAutocompleteData()
+
+                                // Cargar últimos partes por usuario
+                                cargarUltimosPartesPorUsuario()
+                            } else if (isConnected && previousConnectionState == false) {
+//                              // Recargar datos u otras acciones necesarias
+                                reloadData()
+                            }
+
+                            // Si está en modo edición y el formulario estaba deshabilitado
+//                            if (editMode && isConnected && !binding.guardarButton.isEnabled) {
+                            if (isConnected && !binding.guardarButton.isEnabled) {
+                                habilitarFormulario()
+                            }
+
+                            previousConnectionState = isConnected
+                        }
+                    }
+            }
+        }
+
+        // Configuración del botón "Reintentar" dentro del layout de error
+        val retryButton = view.findViewById<TextView>(R.id.retry_button)
+        retryButton.setOnClickListener {
+            // Intenta recargar si hay conexión
+            if (NetworkStatusHelper.isNetworkAvailable()) {
+                NetworkStatusHelper.refreshNetworkStatus()
+            } else {
+                val textViewError = networkErrorLayout.findViewById<TextView>(R.id.textViewError)
+                textViewError?.text = "Sigue sin conexión a internet :("
+            }
+        }
+
+        if (!editMode && binding.run {
                 !fechaEditText.text.isNullOrEmpty() ||
-                !equipoAutocomplete.text.isNullOrEmpty() ||
-                !parteDiarioIdTextView.text.isNullOrEmpty()
+                        !equipoAutocomplete.text.isNullOrEmpty() ||
+                        !parteDiarioIdTextView.text.isNullOrEmpty()
             }) {
             limpiarFormulario()
         }
 
-        // Configura el título y visibilidad de los campos basados en `editType`
+        // Configurar el formulario según el modo de edición
         setFormTitleAndVisibility()
         setupFab()
         observeViewModels()
@@ -158,26 +246,40 @@ class ParteDiarioFormFragment : Fragment() {
 //        setEditTextToUppercase(combustibleTipoAutocomplete)
 //        setEditTextToUppercase(estadoAutocomplete)
 
-        // Configura el RecyclerView para los partes diarios
+        // Configurar RecyclerView
         setupRecyclerView()
-        cargarUltimosPartesPorUsuario()
+    }
 
-        // Cargar el parte si es un modo de edición, independientemente del tipo de edición
-        val parteDiarioId = arguments?.getInt("parteDiarioId", -1) ?: -1
-        if (parteDiarioId != -1) {
-            cargarDatosParte(parteDiarioId)
+    private fun attemptConnection(view: View, message: String = "Sin conexión a internet") {
+        showNetworkErrorSnackbar(view, message) {
+            if (NetworkStatusHelper.isNetworkAvailable()) {
+                dismissNetworkErrorSnackbar()
+            } else {
+                // Cambiar el mensaje del Snackbar en caso de fallo
+                attemptConnection(view, "No se pudo conectar. Intenta nuevamente.")
+            }
         }
     }
 
     private fun reloadData() {
 //        Toast.makeText(requireContext(), "Conexión restaurada, recargando datos...", Toast.LENGTH_SHORT).show()
 
+        // Cargar últimos partes por usuario
+        cargarUltimosPartesPorUsuario()
+
         // Acción que se ejecuta al reconectarse
         loadAllAutocompleteData()
     }
 
     private fun loadAllAutocompleteData() {
-//        Toast.makeText(requireContext(), "Cargando datos...", Toast.LENGTH_SHORT).show()
+        // Cargar obra guardada predeterminada desde SessionManager
+        if (!editMode) { // Solo si no estás en modo edición
+            obraData.let { obra ->
+                binding.obraAutocomplete.setText("${obra["centroCosto"]} - ${obra["obraNombre"]}")
+            }
+        }
+
+        // Cargar datos de equipos
         loadDataIfEmpty(equipoAutocomplete) {
             autocompleteManager.loadEquipos(
                 equipoAutocomplete,
@@ -191,16 +293,21 @@ class ParteDiarioFormFragment : Fragment() {
             }
         }
 
+        // Cargar datos de obras
         loadDataIfEmpty(obraAutocomplete) {
             autocompleteManager.loadObras(
                 obraAutocomplete,
-                this
+                this,
+                empresaDbName = sessionManager.getEmpresaDbName(),
+                forceRefresh = false,
+                filterEstado = true // Filtrar solo las obras activas
             ) { obra ->
                 selectedObra = obra
                 Log.d("ParteDiarioFormFragment", "Obra seleccionada: $obra")
             }
         }
 
+        // Cargar estados
         loadDataIfEmpty(estadoAutocomplete) {
             autocompleteManager.loadEstados(
                 estadoAutocomplete,
@@ -211,6 +318,7 @@ class ParteDiarioFormFragment : Fragment() {
             }
         }
 
+        // Cargar tipos de combustible
         loadDataIfEmpty(combustibleTipoAutocomplete) {
             autocompleteManager.loadTipoCombustible(
                 combustibleTipoAutocomplete,
@@ -235,7 +343,6 @@ class ParteDiarioFormFragment : Fragment() {
         }
     }
 
-
     private fun setupRecyclerView() {
         userId = sessionManager.getUserId()
 
@@ -252,7 +359,7 @@ class ParteDiarioFormFragment : Fragment() {
         }
 
         viewModel.ultimosPartes.observe(viewLifecycleOwner) { partes ->
-            if (partes != null && partes.isNotEmpty()) {
+            if (!partes.isNullOrEmpty()) {
                 Log.d("ParteDiarioFormFragment", "Cargando ${partes.size} elementos en RecyclerView.")
                 adapter.submitList(partes)
             } else {
@@ -263,7 +370,11 @@ class ParteDiarioFormFragment : Fragment() {
     }
 
     private fun cargarUltimosPartesPorUsuario() {
-        if (!editParteMode) {
+        Log.d("ParteDiarioFormFragment", "Cargando últimos partes para userId=$userId")
+        if (!editMode) {
+//            LoadingDialogUtil.showLoading(requireContext(), "") // Muestra el diálogo de carga
+            deshabilitarFormulario() // Deshabilita el formulario al iniciar la carga
+
             viewModel.cargarUltimosPartesPorUsuario(userId)
         }
     }
@@ -283,7 +394,7 @@ class ParteDiarioFormFragment : Fragment() {
     }
 
     private fun setFormTitleAndVisibility() {
-        if (editParteMode) {
+        if (editMode) {
             (activity as? AppCompatActivity)?.supportActionBar?.title = "Editar Parte Diario"
             binding.horizontalConstraintLayout.visibility = View.GONE
             binding.listaPartesDiariosRecyclerView.visibility = View.GONE
@@ -315,12 +426,16 @@ class ParteDiarioFormFragment : Fragment() {
     }
 
     private fun actualizarUiConDatosDeParte(parte: ParteDiario) {
+        Log.d("ParteDiarioFormFragment", "Actualizando UI con parte: $parte")
+
         Log.d("ParteDiarioFormFragment", "Actualizando UI con obraId: ${parte.obraId}")
         Log.d("ParteDiarioFormFragment", "Actualizando UI con equipoId: ${parte.equipoId}")
         binding.apply {
 
             // Configura los valores en la UI y usa valores predeterminados para evitar nulls
             parteDiarioIdTextView.setText(parte.idParteDiario.toString())
+            // Asignar un nuevo valor al hint
+            parteDiarioIdTextInputLayout.hint = "Parte ID"
 //            parteDiarioIdTextView.text = (parte.idParteDiario ?: 0).toString()
 
             fechaEditText.setText(parte.fecha ?: "")
@@ -343,6 +458,7 @@ class ParteDiarioFormFragment : Fragment() {
 
             // Configura el texto en `equipoAutocomplete` sin abrir el menú desplegable.
             selectedEquipo = autocompleteManager.getEquipoById(parte.equipoId ?: 0)
+            Log.d("ParteDiarioFormFragment", "Equipo seleccionado: ${selectedEquipo?.id}")
             equipoAutocomplete.setText(selectedEquipo?.toString() ?: "", false)
             equipoAutocomplete.dismissDropDown()
 
@@ -358,19 +474,18 @@ class ParteDiarioFormFragment : Fragment() {
 
             // Configura el texto en `estadoAutocomplete` sin abrir el menú desplegable.
             selectedEstado = autocompleteManager.getEstadoById(parte.estadoId ?: 0)
+
             estadoAutocomplete.setText(selectedEstado?.toString() ?: "", false)
             estadoAutocomplete.dismissDropDown()
         }
     }
 
     private fun cargarDatosParte(parteDiarioId: Int) {
+        deshabilitarFormulario() // Deshabilita el formulario al iniciar la carga
+        LoadingDialogUtil.showLoading(requireContext(), "") // Muestra el diálogo de carga
+
         viewModel.obtenerParteDiarioPorId(parteDiarioId)
-        viewModel.partes.observe(viewLifecycleOwner) { partes ->
-            if (!partes.isNullOrEmpty()) {
-                actualizarUiConDatosDeParte(partes[0])
-                partes[0].idParteDiario?.let { idParteDiario = it } // Asignación segura si el ID no es nulo
-            }
-        }
+
     }
 
     private fun setupTextWatchers() {
@@ -383,19 +498,6 @@ class ParteDiarioFormFragment : Fragment() {
                 // calcularHorasTrabajadas()
             }
         }
-
-        combustibleTipoAutocomplete.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                if (s?.isEmpty() == true) {
-                    combustibleTipoAutocomplete.dismissDropDown() // Cierra el dropdown
-                    // Opcional: Limpiar la selección programáticamente si es necesario
-                     combustibleTipoAutocomplete.setSelection(0)
-                }
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
 
         // Configurar TextWatchers para los campos de horas
         binding.horasInicioEditText.addTextChangedListener(horasTextWatcher)
@@ -410,23 +512,6 @@ class ParteDiarioFormFragment : Fragment() {
         addTextWatcher(binding.horasFinTextInputLayout, "Campo requerido")
         //addTextWatcher(binding.observacionesTextInputLayout, "Campo requerido")
 
-        binding.horasInicioEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
-            if (!hasFocus) {
-                calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
-            }
-        }
-
-        binding.horasFinEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
-            if (!hasFocus) {
-                calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
-            }
-        }
-
-        binding.horasTrabajadasEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
-            if (!hasFocus) {
-                calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
-            }
-        }
     }
 
     private fun calcularHorasTrabajadas(fieldId: Int) {
@@ -496,14 +581,48 @@ class ParteDiarioFormFragment : Fragment() {
     @SuppressLint("DefaultLocale")
     private fun setupListeners() {
 
+        combustibleTipoAutocomplete.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (s?.isEmpty() == true) {
+                    combustibleTipoAutocomplete.dismissDropDown() // Cierra el dropdown
+                    // Opcional: Limpiar la selección programáticamente si es necesario
+                    combustibleTipoAutocomplete.setSelection(0)
+                }
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+
+        binding.lubricanteOtroCantEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) {
+                Snackbar.make(binding.root, "Describir el tipo de lubricante (Otro)", Snackbar.LENGTH_LONG).show()
+            }
+        }
+
+        binding.horasInicioEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
+            if (!hasFocus) {
+                calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+            }
+        }
+
+        binding.horasFinEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
+            if (!hasFocus) {
+                calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+            }
+        }
+
+        binding.horasTrabajadasEditText.onFocusChangeListener = View.OnFocusChangeListener { view, hasFocus ->
+            if (!hasFocus) {
+                calcularHorasTrabajadas(view.id) // Pasar el ID del campo como argumento
+            }
+        }
+
         // Configurar el listener para el checkbox de otros filtros
         binding.filtroOtroCheckBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                Toast.makeText(
-                    requireContext(),
-                    "Describir el tipo de filtro (Otro)",
-                    Toast.LENGTH_SHORT
-                ).show()
+//                Toast.makeText(requireContext(),"Describir el tipo de filtro (Otro)", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Describir el tipo de filtro (Otro)", Snackbar.LENGTH_LONG).show()
             }
         }
 
@@ -543,8 +662,13 @@ class ParteDiarioFormFragment : Fragment() {
         })
 
         binding.guardarButton.setOnClickListener {
-            guardarParteDiario()
-            binding.ultimoParteLayout.visibility = View.GONE
+            if (isNetworkCheckEnabled && NetworkStatusHelper.isConnected()) {
+                guardarParteDiario()
+                binding.ultimoParteLayout.visibility = View.GONE
+            } else {
+//                Toast.makeText(requireContext(), "No hay conexión a internet, intenta mas tardes.", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG).show()
+            }
         }
 
         binding.ultimoParteLayout.setOnClickListener {
@@ -555,6 +679,8 @@ class ParteDiarioFormFragment : Fragment() {
     }
 
     private fun guardarParteDiario() {
+        Log.d("ParteDiarioFormFragment", "Iniciando guardarParteDiario")
+
         // Forzar pérdida de foco de los EditText
         binding.apply {
             horasInicioEditText.clearFocus()
@@ -565,8 +691,8 @@ class ParteDiarioFormFragment : Fragment() {
         // Ocultar el teclado usando AppUtils
         AppUtils.closeKeyboard(requireActivity(), view)
 
-        // Extensión para convertir String a Editable
-        fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
+//        // Extensión para convertir String a Editable
+//        fun String.toEditable(): Editable = Editable.Factory.getInstance().newEditable(this)
 
         val userId = sessionManager.getUserId()
 
@@ -585,6 +711,13 @@ class ParteDiarioFormFragment : Fragment() {
 //            }
 
             EditType.EDIT_ALL -> {
+                // Log antes de validar campos
+                Log.d("ParteDiarioFormFragment", "Validando campos: equipoId=${selectedEquipo?.id}, obraId=${selectedObra?.id}")
+
+                if (!validarCamposCompletos()) {
+                    Log.e("ParteDiarioFormFragment", "Validación de campos fallida.")
+                    return
+                }
                 if (validarCamposCompletos()) {
 
                     // Verificar si hay conexión a internet
@@ -592,7 +725,8 @@ class ParteDiarioFormFragment : Fragment() {
                         // Opcionalmente, puedes quitar el foco de la vista actual
                         AppUtils.clearFocus(requireContext())
 
-                        Toast.makeText(requireContext(), "No hay conexión a internet", Toast.LENGTH_SHORT).show()
+//                        Toast.makeText(requireContext(), "No hay conexión a internet", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(binding.root, "No hay conexión a internet", Snackbar.LENGTH_LONG).show()
                         return
                     }
 
@@ -626,18 +760,22 @@ class ParteDiarioFormFragment : Fragment() {
                         equipoInterno = (selectedEquipo?.interno ?: false).toString()
                     )
 
-                    if (editParteMode) {
+
+                    Log.d("ParteDiarioFormFragment", "Datos del parte creado: $parte")
+
+                    if (editMode) {
                         viewModel.actualizarParteDiario(parte) { success ->
                             if (success) {
-                                FeedbackVisualUtils.mostrarFeedbackVisualSuccess(requireActivity(), binding.guardarButton)
+                                FeedbackVisualUtil.mostrarFeedbackVisualSuccess(requireActivity(), binding.guardarButton)
                                 deshabilitarFormulario()
 
                                 // Mostrar el botón flotante
                                 val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
                                 fab.visibility = View.VISIBLE
                             } else {
-                                FeedbackVisualUtils.mostrarFeedbackVisualError(requireActivity(), binding.guardarButton)
-                                Toast.makeText(requireContext(), "Error al actualizar el parte", Toast.LENGTH_SHORT).show()
+                                FeedbackVisualUtil.mostrarFeedbackVisualErrorTemp(viewLifecycleOwner, requireActivity(), 4000L, binding.guardarButton)
+//                                Toast.makeText(requireContext(), "Error al actualizar el parte", Toast.LENGTH_SHORT).show()
+                                Snackbar.make(binding.root, "Error al actualizar el parte", Snackbar.LENGTH_LONG).show()
                             }
                         }
 //                        Toast.makeText(requireContext(), "Actualizando Parte...", Toast.LENGTH_SHORT).show()
@@ -645,26 +783,28 @@ class ParteDiarioFormFragment : Fragment() {
                         // Llamada a la función de creación con callback
                         viewModel.crearParteDiario(parte) { success, nuevoId ->
                             if (success) {
-                                nuevoId?.let {
-                                    // Actualizar el ID en la vista cuando se crea exitosamente
-                                    binding.parteDiarioIdTextView.setText(it.toString())
-                                }
+                                Log.d("ParteDiarioFormFragment", "Parte creado exitosamente, nuevoId=$nuevoId")
+                                // Actualizar el ID en la vista cuando se crea exitosamente
+                                binding.parteDiarioIdTextView.setText(nuevoId.toString())
+                                // Asignar un nuevo valor al hint
+                                binding.parteDiarioIdTextInputLayout.hint = "Parte ID"
+//                                nuevoId?.let {
+//                                    // Actualizar el ID en la vista cuando se crea exitosamente
+//                                    binding.parteDiarioIdTextView.setText(it.toString())
+//                                }
                                 cargarUltimosPartesPorUsuario() // Recargar lista tras guardar exitosamente
                                 // Usar la función de feedback visual
-                                FeedbackVisualUtils.mostrarFeedbackVisualSuccess(requireActivity(), binding.guardarButton) // Cambiar el color al guardar con éxito
+                                FeedbackVisualUtil.mostrarFeedbackVisualSuccess(requireActivity(), binding.guardarButton) // Cambiar el color al guardar con éxito
                                 deshabilitarFormulario()
 
                                 // Mostrar el botón flotante
                                 val fab = requireActivity().findViewById<FloatingActionButton>(R.id.fab)
                                 fab.visibility = View.VISIBLE
                             } else {
-                                Toast.makeText(
-                                    requireContext(),
-                                    "Error al crear parte",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+//                                Toast.makeText(requireContext(),"Error al crear parte", Toast.LENGTH_SHORT).show()
+                                Snackbar.make(binding.root, "Error al crear parte", Snackbar.LENGTH_LONG).show()
                                 // Usar la función de feedback visual
-                                FeedbackVisualUtils.mostrarFeedbackVisualError(requireActivity(), binding.guardarButton) // Cambiar el color al error
+                                FeedbackVisualUtil.mostrarFeedbackVisualErrorTemp(viewLifecycleOwner, requireActivity(), 4000L, binding.guardarButton) // Cambiar el color al error
                             }
                         }
 //                        Toast.makeText(requireContext(), "Creando parte...", Toast.LENGTH_SHORT).show()
@@ -680,7 +820,9 @@ class ParteDiarioFormFragment : Fragment() {
         super.onDestroyView()
 
         // Restaurar el color original
-        FeedbackVisualUtils.restaurarColorOriginal(requireActivity(), binding.guardarButton)
+        FeedbackVisualUtil.restaurarColorOriginal(requireActivity(), binding.guardarButton)
+
+        previousConnectionState = null // Restablecer el estado de la conexión
 
         // Limpiar el binding
         _binding = null
@@ -717,7 +859,7 @@ class ParteDiarioFormFragment : Fragment() {
             }
 
             if (horasInicioEditText.text.isNullOrEmpty()) {
-                horasInicioTextInputLayout.error = "Campo requerido"
+                horasInicioTextInputLayout.error = "Requerido"
                 horasInicioTextInputLayout.isErrorEnabled = true
                 camposValidos = false
             } else {
@@ -725,7 +867,7 @@ class ParteDiarioFormFragment : Fragment() {
             }
 
             if (horasFinEditText.text.isNullOrEmpty()) {
-                horasFinTextInputLayout.error = "Campo requerido"
+                horasFinTextInputLayout.error = "Requerido"
                 horasFinTextInputLayout.isErrorEnabled = true
                 camposValidos = false
             } else {
@@ -736,7 +878,7 @@ class ParteDiarioFormFragment : Fragment() {
                 if (selectedObra == null) {
                     val obraName = obraAutocomplete.text.toString()
                     selectedObra = autocompleteManager.getObraByName(obraName)
-                    if (selectedEquipo == null) {
+                    if (selectedObra == null) {
                         obraTextInputLayout.error = "Seleccione una obra válida"
                         obraTextInputLayout.isErrorEnabled = true
                         camposValidos = false
@@ -768,7 +910,8 @@ class ParteDiarioFormFragment : Fragment() {
             }
 
             if (!camposValidos) {
-                Toast.makeText(requireContext(), "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
+//                Toast.makeText(requireContext(), "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Por favor, complete todos los campos requeridos", Snackbar.LENGTH_LONG).show()
             }
 
             return camposValidos
@@ -781,9 +924,12 @@ class ParteDiarioFormFragment : Fragment() {
             visibility = View.GONE
             setImageResource(R.drawable.ic_add)
             backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
-            setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorWhite)))
+            imageTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorWhite))
 
             setOnClickListener {
+                // Restaurar el color original
+                FeedbackVisualUtil.restaurarColorOriginal(requireActivity(), binding.guardarButton)
+
                 limpiarFormulario()
                 visibility = View.GONE
             }
@@ -815,18 +961,14 @@ class ParteDiarioFormFragment : Fragment() {
             listOf(
                 fechaEditText,
                 parteDiarioIdTextView,
-                equipoAutocomplete,
-                obraAutocomplete,
                 horasInicioEditText,
                 horasFinEditText,
                 horasTrabajadasEditText,
                 observacionesEditText,
-                combustibleTipoAutocomplete,
                 combustibleCantEditText,
                 lubricanteMotorCantEditText,
                 lubricanteHidraulicoCantEditText,
-                lubricanteOtroCantEditText,
-                estadoAutocomplete
+                lubricanteOtroCantEditText
             ).forEach {
                 it.text?.clear()
                 it.error = null // Limpia cualquier mensaje de error en el campo
@@ -843,7 +985,20 @@ class ParteDiarioFormFragment : Fragment() {
 
             // Ocultar el layout "último parte"
             ultimoParteLayout.visibility = View.GONE
+
+            // Limpia el texto visible en los AutoCompleteTextView sin borrar los ítems del adaptador
+            equipoAutocomplete.setText("", false)
+            obraAutocomplete.setText("", false)
+            combustibleTipoAutocomplete.setText("", false)
+            estadoAutocomplete.setText("", false)
         }
+
+        // Limpia los valores seleccionados internamente
+        selectedEquipo = null
+        selectedObra = null
+        selectedCombustible = null
+        selectedEstado = null
+
         habilitarFormulario()
     }
 
@@ -876,8 +1031,14 @@ class ParteDiarioFormFragment : Fragment() {
             estadoTextInputLayout.isEnabled = true
             guardarButton.isEnabled = true
         }
+        binding.formLayout.parent?.let {
+            if(it is ScrollView){
+                it.setOnTouchListener(null)
+            }
+        }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun deshabilitarFormulario() {
         binding.apply {
             fechaTextInputLayout.isEnabled = false
@@ -906,20 +1067,36 @@ class ParteDiarioFormFragment : Fragment() {
             estadoTextInputLayout.isEnabled = false
             guardarButton.isEnabled = false
         }
+        binding.formLayout.parent?.let {
+            if(it is ScrollView){
+                it.setOnTouchListener { _, _ -> true }
+            }
+        }
     }
 
     private fun observeViewModels() {
 
+        viewModel.isNetworkAvailable.observe(viewLifecycleOwner) { isNetworkAvailable ->
+            if (!isNetworkAvailable) {
+                deshabilitarFormulario()
+            }
+        }
+
         // Aquí consumimos el mensaje usando getContentIfNotHandled()
         viewModel.errorMessage.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { mensaje ->
-                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
+//                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, mensaje, Snackbar.LENGTH_LONG)
+                    .setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.colorDanger))
+                    .setActionTextColor(ContextCompat.getColor(requireContext(), R.color.colorWhite))
+                    .show()
             }
         }
 
         viewModel.mensaje.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { mensaje ->
-                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
+//                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, mensaje, Snackbar.LENGTH_LONG).show()
             }
         }
 
@@ -943,6 +1120,26 @@ class ParteDiarioFormFragment : Fragment() {
                 viewModel.resetRecargarListaPartesPorUsuario() // Para que no vuelva a activarse
             }
         }
+
+        // Observa el estado de carga
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+            if (isAdded && context != null) { // Verifica que el fragmento siga activo
+                if (isLoading) {
+                    LoadingDialogUtil.showLoading(requireContext(), "")
+                } else {
+                    LoadingDialogUtil.hideLoading(lifecycleScope, 500L)
+                }
+            }
+        }
+
+        viewModel.partes.observe(viewLifecycleOwner) { partes ->
+            if (!partes.isNullOrEmpty()) {
+                actualizarUiConDatosDeParte(partes[0])
+                partes[0].idParteDiario?.let { idParteDiario = it } // Asignación segura si el ID no es nulo
+                habilitarFormulario()
+            }
+        }
+
     }
 
     private fun addTextWatcher(textInputLayout: TextInputLayout, errorMessage: String) {

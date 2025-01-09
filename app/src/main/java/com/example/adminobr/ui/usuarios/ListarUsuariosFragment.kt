@@ -1,26 +1,28 @@
 package com.example.adminobr.ui.usuarios
 
-import android.content.res.ColorStateList
 import android.os.Bundle
-import android.text.InputFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
-import android.widget.Toast
 import androidx.appcompat.widget.SearchView
-import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.adminobr.R
 import com.example.adminobr.databinding.FragmentListarUsuariosBinding
 import com.example.adminobr.ui.adapter.UsuarioAdapter
+import com.example.adminobr.utils.Constants
+import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.viewmodel.UsuarioViewModel
 import com.example.adminobr.viewmodel.UsuarioViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 
 class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
 
@@ -28,9 +30,14 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
     private val binding get() = _binding!!
     private lateinit var userAdapter: UsuarioAdapter
 
+    private var previousConnectionState: Boolean? = null
+    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
+
     private val usuarioViewModel: UsuarioViewModel by viewModels {
         UsuarioViewModelFactory(requireActivity().application)
     }
+    private var previousQuery: String? = null
+    private var isFirstQuery = true  // Bandera para controlar la primera vez
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -54,7 +61,17 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                usuarioViewModel.loadUsers(usuarioFiltro = newText ?: "")
+                // Solo cargar los usuarios si el texto ha cambiado y no es la primera vez que se accede
+                if (isFirstQuery) {
+                    isFirstQuery = false  // Se establece la bandera después de la primera vez
+                    return true
+                }
+
+                // Solo cargar los usuarios si el texto ha cambiado
+                if (newText != previousQuery) {
+                    usuarioViewModel.cargarUsuarios(usuarioFiltro = newText ?: "")
+                    previousQuery = newText
+                }
                 return true
             }
         })
@@ -64,13 +81,15 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
 
         usuarioViewModel.errorMessage.observe(viewLifecycleOwner) { event -> // Cambia error a errorMessage
             event.getContentIfNotHandled()?.let { errorMessage ->
-                Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+//                Toast.makeText(requireContext(), errorMessage, Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), errorMessage, Snackbar.LENGTH_LONG).show()
             }
         }
 
         usuarioViewModel.mensaje.observe(viewLifecycleOwner) { event ->
             event.getContentIfNotHandled()?.let { mensaje ->
-                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
+//                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
+                Snackbar.make(requireView(), mensaje, Snackbar.LENGTH_LONG).show()
             }
         }
 
@@ -78,9 +97,43 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
             userAdapter.submitList(users)
         }
 
-        usuarioViewModel.cargarUsuarios() // Cambia loadUsers a cargarUsuarios
+        // Cargar usuarios
+        //cargarUsuarios()
 
         setupFab()
+
+        // Observa el estado de la red y ejecuta una acción específica en reconexión
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                NetworkStatusHelper.networkAvailable
+                    .collect { isConnected ->
+                        if (isNetworkCheckEnabled) {
+                            if (isConnected && previousConnectionState == null) {
+                                cargarUsuarios()
+                            } else if (isConnected && previousConnectionState == false) {
+//                                Log.d("ParteDiarioFormFragment", "Conexión restaurada, recargando datos...")
+                                // Realiza una acción específica al recuperar conexión
+
+                                reloadData()
+                            }
+
+                            previousConnectionState = isConnected
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun reloadData() {
+//        Toast.makeText(requireContext(), "Conexión restaurada, recargando datos...", Toast.LENGTH_SHORT).show()
+
+        // Cargar usuarios
+        cargarUsuarios()
+
+    }
+
+    private fun cargarUsuarios() {
+        usuarioViewModel.cargarUsuarios()
     }
 
     override fun onDestroy() {
@@ -88,41 +141,31 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
         _binding = null
     }
 
-    private fun setSearchViewToUppercase(searchView: SearchView) {
-        val searchEditText = searchView.findViewById<EditText>(R.id.searchView)
-        searchEditText?.filters = arrayOf(InputFilter.AllCaps())
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+        previousConnectionState = null // Restablecer el estado de la conexión
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.searchView.setQuery("", false)
     }
 
     private fun setupFab() {
         val fab: FloatingActionButton? = activity?.findViewById(R.id.fab)
-
         fab?.visibility = View.VISIBLE
         fab?.setImageResource(R.drawable.ic_add)
-        fab?.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
-        fab?.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorWhite)))
 
         fab?.setOnClickListener {
             navigateToCreateUserForm()
-            fab.visibility = View.GONE
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
     }
 
     private fun navigateToCreateUserForm() {
         val bundle = bundleOf("editMode" to false)
         findNavController().navigate(
             R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_create,bundle
-        )
-    }
-
-    private fun navigateToEditUserForm(userId: Int) {
-        val bundle = bundleOf("editMode" to true, "userId" to userId)
-        findNavController().navigate(
-            R.id.action_nav_gestion_usuarios_to_nav_userFormFragment_edit,bundle
         )
     }
 

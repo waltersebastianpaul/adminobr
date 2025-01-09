@@ -9,9 +9,11 @@ sealed class Constants {
     companion object {
 
         // Establece el modo de depuración
-        private const val DEBUG = true // Cambiar a true en desarrollo, false en producción
+        private const val DEBUG = false // Cambiar a true en desarrollo, false en producción
         // Establece el modo de red de depuración
-        private const val NETWORK_STATUS_HELPER = true // Cambiar a true en desarrollo, false en producción
+        private const val NETWORK_STATUS_HELPER = true // Cambiar a false en desarrollo, true en producción
+        // Establece el modo mostrar el Layout Error ante la falta de conexion
+        private const val NETWORK_ERROR_LAYOUT = false // false para no mostrar el layout de error
 
         // Configuración de la URL base
         private const val BASE_URL = "http://adminobr.site"
@@ -40,10 +42,20 @@ sealed class Constants {
         fun getNetworkStatusHelper(): Boolean {
             return NETWORK_STATUS_HELPER
         }
+
+        fun getNetworkErrorLayout(): Boolean {
+            return NETWORK_ERROR_LAYOUT
+        }
     }
 
     object Update {
         val UPDATE_DIR = buildUrl("updates/apk/")
+    }
+
+    object Auth {
+        const val LOGIN = "api/auth/login.php"
+        const val LOGOUT = "api/auth/logoutApp.php"
+        const val VALIDATE_TOKEN = "api/auth/validateToken.php"
     }
 
     object PartesDiarios {
@@ -69,12 +81,8 @@ sealed class Constants {
     }
 
     object Empresas {
+        const val VALIDATE = "api/empresas/getValidate.php"
         const val GET_LISTA = "api/empresas/getEmpresas.php"
-    }
-
-    object Auth {
-        const val LOGIN = "api/auth/login.php"
-        const val LOGOUT = "api/auth/logout.php"
     }
 
     object Roles {
@@ -89,4 +97,5 @@ sealed class Constants {
         const val DELETE = "api/usuarios/delete.php"
         const val GET_BY_ID = "api/usuarios/getById.php"
     }
+
 }

@@ -1,5 +1,6 @@
 package com.example.adminobr.api
 
+import com.example.adminobr.data.Empresa
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.data.LoginResponse
 import com.example.adminobr.data.ParteDiario
@@ -11,18 +12,31 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
 import com.example.adminobr.utils.Constants
-import okhttp3.ResponseBody
-import retrofit2.Call
 import java.util.concurrent.TimeUnit
 
 interface ApiService {
 
     // MODULO DE LOGIN
+    @POST(Constants.Auth.VALIDATE_TOKEN)
+    suspend fun validateToken(
+        @Header("Authorization") token: String
+    ): Response<Unit>
+
     @POST(Constants.Auth.LOGIN)
     suspend fun login(
-        @Body requestBody: RequestBody,
-        @Header("Cache-Control") cacheControl: String = "no-cache"
+        @Body loginRequest: Map<String, String>
     ): Response<LoginResponse>
+
+    @POST(Constants.Auth.LOGOUT)
+    suspend fun logout(
+        @Header("Authorization") authorization: String
+    ): Response<Unit>
+
+    @POST(Constants.Empresas.VALIDATE)
+    suspend fun validateCompany(
+        @Body request: Map<String, String>
+    ): Response<Empresa>
+
 
     // MODULO DE PARTES DIARIOS
     // Crear parte diario
@@ -101,6 +115,7 @@ interface ApiService {
         @Field("telefono") telefono: String,
         @Field("userCreated") userCreated: Int,
         @Field("estadoId") estadoId: Int,
+        @Field("roleId") roleId: Int?,
         @Field("empresaDbName") empresaDbName: String
     ): Response<ApiResponse<Usuario>>
 
@@ -152,7 +167,6 @@ interface ApiService {
         }
     }
 }
-
 
 
 

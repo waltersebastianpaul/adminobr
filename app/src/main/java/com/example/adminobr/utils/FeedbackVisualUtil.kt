@@ -8,9 +8,14 @@ import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.example.adminobr.R
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 
-object FeedbackVisualUtils {
+import com.example.adminobr.R
+import kotlinx.coroutines.launch
+
+object FeedbackVisualUtil {
 
     // Cambiar el color principal y la barra de estado con animación para éxito
     fun mostrarFeedbackVisualSuccess(activity: Activity, vararg buttons: View?) {
@@ -21,7 +26,7 @@ object FeedbackVisualUtils {
     // Cambiar el color principal y la barra de estado con animación para error
     fun mostrarFeedbackVisualError(activity: Activity, vararg buttons: View?) {
         val nuevoColor = ContextCompat.getColor(activity, R.color.colorDanger)
-        cambiarColorConAnimacion(activity, nuevoColor, alpha = 0.5f, *buttons)
+        cambiarColorConAnimacion(activity, nuevoColor, alpha = 1.0f, *buttons)
     }
 
     // Restaurar el color original con animación
@@ -30,30 +35,40 @@ object FeedbackVisualUtils {
         cambiarColorConAnimacion(activity, originalColor, alpha = 1.0f, *buttons)
     }
 
-    // Mostrar feedback visual temporal (éxito)
     fun mostrarFeedbackVisualSuccessTemp(
+        lifecycleOwner: LifecycleOwner,
         activity: Activity,
         delay: Long = 3000L,
-        vararg buttons: View?
+        vararg buttons: View?,
+        onFinished: () -> Unit = {}
     ) {
         mostrarFeedbackVisualSuccess(activity, *buttons)
 
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            restaurarColorOriginal(activity, *buttons)
-        }, delay)
+        lifecycleOwner.lifecycleScope.launch {
+            kotlinx.coroutines.delay(delay)
+            if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                //restaurarColorOriginal(activity, *buttons)
+                onFinished()
+            }
+        }
     }
 
-    // Mostrar feedback visual temporal (error)
     fun mostrarFeedbackVisualErrorTemp(
+        lifecycleOwner: LifecycleOwner,
         activity: Activity,
         delay: Long = 3000L,
-        vararg buttons: View?
+        vararg buttons: View?,
+        onFinished: () -> Unit = {}
     ) {
         mostrarFeedbackVisualError(activity, *buttons)
 
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            restaurarColorOriginal(activity, *buttons)
-        }, delay)
+        lifecycleOwner.lifecycleScope.launch {
+            kotlinx.coroutines.delay(delay)
+            if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                //restaurarColorOriginal(activity, *buttons)
+                onFinished()
+            }
+        }
     }
 
     // Función interna para animar el cambio de color y ajustar la opacidad

@@ -8,21 +8,18 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import kotlinx.coroutines.flow.*
-
 import android.util.Log
 import androidx.lifecycle.*
 import com.example.adminobr.api.ApiService
 import com.example.adminobr.data.ParteDiario
 import com.example.adminobr.repository.ParteDiarioRepository
-import com.example.adminobr.ui.partediario.ParteDiarioPagingSource
+import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.Event
+import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
 
 class ParteDiarioViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -51,37 +48,85 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
 
     private val apiService = ApiService.create()
     private val sessionManager = SessionManager(application)
-    private val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
+    private val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"] ?: ""
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> get() = _isLoading
 
     private val filterState = MutableStateFlow(ParteDiarioFilter())
 
+    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
+
+    // Nuevo LiveData para el estado de la conexión a internet
+    private var _isNetworkAvailable = MutableLiveData<Boolean>()
+    val isNetworkAvailable: LiveData<Boolean> get() = _isNetworkAvailable
+
+    init {
+        // Inicializar el estado de la conexión a internet
+        _isNetworkAvailable.value = NetworkStatusHelper.isConnected()
+    }
+
+    // Flujo que emite los datos paginados
     val partesDiarios: Flow<PagingData<ParteDiario>> = filterState.flatMapLatest { filter ->
-        Log.d("ParteDiarioViewModel", "Filtrando con Equipo: ${filter.equipoId}, FechaInicio: ${filter.fechaInicio}, FechaFin: ${filter.fechaFin}")
-        Pager(
-            config = PagingConfig(pageSize = 20, enablePlaceholders = false),
-            pagingSourceFactory = {
-                ParteDiarioPagingSource(
-                    apiService,
-                    empresaDbName,
-                    filter.equipoId,
-                    filter.fechaInicio,
-                    filter.fechaFin
-                )
-            }
-        ).flow.cachedIn(viewModelScope)
+        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+            // Emitir un flujo vacío y registrar un error si no hay conexión
+            Log.e("ParteDiarioViewModel", "No hay conexión a internet. No se puede cargar datos paginados.")
+            _errorMessage.postValue(Event("No hay conexión a internet, intenta más tarde"))
+            flowOf(PagingData.empty())
+        } else {
+            Log.d("ParteDiarioViewModel", "Aplicando filtro: $filter")
+            Pager(
+                config = PagingConfig(pageSize = 20, enablePlaceholders = false),
+                pagingSourceFactory = {
+                    repository.getPagingSource(
+                        filter.equipoId,
+                        filter.obraId,
+                        filter.fechaInicio,
+                        filter.fechaFin
+                    )
+                }
+            ).flow.cachedIn(viewModelScope)
+        }
     }
 
-    fun updateFilters(equipoId: Int, fechaInicio: String, fechaFin: String) {
-        filterState.value = ParteDiarioFilter(equipoId, fechaInicio, fechaFin)
+    // Actualizar filtros desde el fragmento
+    fun updateFilters(
+        equipoId: Int,
+        obraId: Int,
+        fechaInicio: String,
+        fechaFin: String
+    ) {
+        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+            // Emite un error específico en el errorMessage si no hay conexión
+            _errorMessage.value = Event("No hay conexión a internet, intenta nuevamente mas tarde")
+            return
+        }
+        val newFilter = ParteDiarioFilter(
+            equipoId = equipoId,
+            obraId = obraId,
+            fechaInicio = fechaInicio,
+            fechaFin = fechaFin
+        )
+        Log.d("ParteDiarioViewModel", "Actualizando filtros: $newFilter")
+        filterState.value = newFilter
     }
 
+    // Clase contenedora para los filtros
     data class ParteDiarioFilter(
         val equipoId: Int = 0,
+        val obraId: Int = 0,
         val fechaInicio: String = "",
         val fechaFin: String = ""
     )
 
-    fun obtenerUltimoPartePorEquipo(equipoId: Int) {
+    fun obtenerUltimoPartePorEquipo(
+        equipoId: Int
+    ) {
+        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+            _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
+            return
+        }
+
         viewModelScope.launch {
             Log.d("ParteDiarioViewModel", "Iniciando obtenerUltimoPartePorEquipo con equipoId: $equipoId")
             val result = repository.getUltimoPartePorEquipo(equipoId)
@@ -94,29 +139,56 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun crearParteDiario(parte: ParteDiario, callback: (Boolean, Int?) -> Unit) {
+    fun crearParteDiario(
+        parte: ParteDiario,
+        callback: (Boolean, Int?) -> Unit
+    ) {
+        Log.d("ParteDiarioViewModel", "Iniciando creación de parte: $parte")
+        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+            _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
+            callback(false, null)
+            return
+        }
+
+        _isLoading.value = true // Indica que la carga está en progreso
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) { repository.createParteDiario(parte) }
+            Log.d("ParteDiarioViewModel", "Resultado de creación: $result")
             if (result.isSuccess) {
                 val (success, nuevoId) = result.getOrNull() ?: Pair(false, null)
-                Log.d("UsuarioViewModel", "Callback de creación: success=$success, nuevoId=$nuevoId")
+                Log.d("ParteDiarioViewModel", "Parte creado con éxito, nuevoId=$nuevoId")
+                Log.d("ParteDiarioViewModel", "Callback de creación: success=$success, nuevoId=$nuevoId")
                 if (success) {
                     _mensaje.value = Event("Parte diario creado exitosamente")
                     callback(true, nuevoId) // Llamada a la función de callback
                     // Cargar partes después de crear uno nuevo
-                    cargarPartes()
+                    //cargarPartes()
                 } else {
                     _errorMessage.value = Event("Error al crear parte")
                     callback(false, null)
                 }
             } else {
                 _errorMessage.value = Event("Error al crear parte: ${result.exceptionOrNull()?.message}")
+                Log.e("ParteDiarioViewModel", "Error al crear el parte: ${result.exceptionOrNull()?.message}")
                 callback(false, null)
             }
+            _isLoading.value = false // Indica que la carga ha terminado
         }
     }
 
-    fun actualizarParteDiario(parte: ParteDiario, callback: (Boolean) -> Unit) {
+    fun actualizarParteDiario(
+        parte: ParteDiario,
+        callback: (Boolean) -> Unit
+    ) {
+        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+            _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
+            _isNetworkAvailable.value = false
+            callback(false)
+            return
+        }
+
+        _isNetworkAvailable.value = true
+        _isLoading.value = true // Indica que la carga está en progreso
         viewModelScope.launch {
             try {
                 val result = withContext(Dispatchers.IO) { repository.updateParteDiario(parte) } // Realiza la operación de actualización en el repositorio
@@ -127,6 +199,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
                     _errorMessage.postValue(Event("Error al actualizar parte: ${result.exceptionOrNull()?.message}"))
                     callback(false) // Notifica error
                 }
+                _isLoading.value = false // Indica que la carga ha terminado
             } catch (e: Exception) {
                 _errorMessage.postValue(Event("Error al actualizar parte: ${e.message}"))
                 callback(false) // Notifica error
@@ -134,25 +207,21 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-//
-//    fun actualizarParteDiario(parte: ParteDiario) {
-//        viewModelScope.launch {
-//            val result = withContext(Dispatchers.IO) { repository.updateParteDiario(parte) }
-//            if (result.isSuccess) {
-//                _mensaje.value = Event("Parte actualizado exitosamente")
-//            } else {
-//                _errorMessage.value = Event("Error al actualizar parte: ${result.exceptionOrNull()?.message}")
-//            }
-//        }
-//    }
+    fun eliminarParteDiario(
+        idParteDiario: Int,
+        origen: String
+    ) {
+        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+            _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
+            return
+        }
 
-    fun eliminarParteDiario(idParteDiario: Int, origen: String) {
+        _isLoading.value = true // Indica que la carga está en progreso
         viewModelScope.launch {
             val result = repository.deleteParteDiario(idParteDiario)
-
             if (result.isSuccess) {
                 _mensaje.value = Event("Parte eliminado correctamente")
-
+                Log.d("ParteDiarioViewModel", "Parte eliminada correctamente - Origen: $origen")
                 // Emitir el evento específico según el fragmento de origen
                 if (origen == "form") {
                     _recargarListaPartesPorUsuario.value = true
@@ -163,11 +232,18 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
                 val error = result.exceptionOrNull()?.message ?: "Error desconocido"
                 _errorMessage.value = Event("Error al eliminar parte: $error")
             }
+            _isLoading.value = false // Indica que la carga ha terminado
         }
     }
 
-
     fun obtenerParteDiarioPorId(idParteDiario: Int) {
+        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+            _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
+            _isLoading.value = false
+            return
+        }
+
+        _isLoading.value = true // Indica que la carga está en progreso
         viewModelScope.launch {
             val result = withContext(Dispatchers.IO) { repository.fetchParteById(idParteDiario) }
             if (result.isSuccess) {
@@ -175,26 +251,18 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
             } else {
                 _errorMessage.value = Event("Error al obtener parte: ${result.exceptionOrNull()?.message}")
             }
-        }
-    }
-
-    fun cargarPartes(parteFiltro: String = "") {
-        viewModelScope.launch {
-            Log.d("ParteDiarioViewModel", "Iniciando carga de parte con filtro '$parteFiltro'...")
-            val result = withContext(Dispatchers.IO) { repository.fetchPartes(parteFiltro) }
-
-            if (result.isSuccess) {
-                _partes.value = result.getOrNull()
-                Log.d("ParteDiarioViewModel", "Partes cargados correctamente.")
-            } else {
-                val error = result.exceptionOrNull()?.message ?: "Error desconocido"
-                _errorMessage.value = Event("Error al cargar partes: $error")
-                Log.e("ParteDiarioViewModel", "Error al cargar partes: $error")
-            }
+            _isLoading.value = false // Indica que la carga ha terminado
         }
     }
 
     fun cargarUltimosPartesPorUsuario(userId: Int) {
+        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+            _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
+//            _isLoading.value = false
+            return
+        }
+
+//        _isLoading.value = true // Indica que la carga está en progreso
         viewModelScope.launch {
             Log.d("ParteDiarioViewModel", "Cargando últimos partes del usuario con ID: $userId")
             val result = repository.getUltimosPartesPorUsuario(userId)
@@ -207,40 +275,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
                 _errorMessage.value = Event("Error al cargar partes: $errorMessage")
                 Log.e("ParteDiarioViewModel", "Error al cargar partes: $errorMessage")
             }
-        }
-    }
-
-
-    // Método loadPartes para cargar partes con filtro de búsqueda
-    fun loadPartes(parteFiltro: String = "") {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    val empresaDbName = repository.sessionManager.getEmpresaData()?.db_name ?: return@withContext
-
-                    val jsonObject = JSONObject().apply {
-                        put("empresaDbName", empresaDbName)
-                        if (parteFiltro.isNotEmpty()) {
-                            put("parteFiltro", parteFiltro)
-                        }
-                    }
-
-                    val requestBody = jsonObject.toString()
-                        .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-
-                    val response = repository.apiService.getAllPartesDiarios(requestBody)
-
-                    if (response.isSuccessful) {
-                        val partes = response.body()?.data ?: emptyList()
-                        _partes.postValue(partes)
-                        Log.d("ParteDiarioViewModel", "Partes cargados con filtro correctamente.")
-                    } else {
-                        _errorMessage.postValue(Event("Error al obtener partes: ${response.code()}"))
-                    }
-                } catch (e: Exception) {
-                    _errorMessage.postValue(Event("Error: ${e.message}"))
-                }
-            }
+//            _isLoading.value = false // Indica que la carga ha terminado
         }
     }
 

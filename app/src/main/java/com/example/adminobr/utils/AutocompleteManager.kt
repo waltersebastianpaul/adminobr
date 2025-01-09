@@ -9,6 +9,7 @@ import android.util.Log
 import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import android.widget.Toast
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import com.example.adminobr.data.Empresa
@@ -19,10 +20,17 @@ import com.example.adminobr.data.Rol
 import com.example.adminobr.ui.adapter.CustomArrayAdapter
 import com.example.adminobr.ui.adapter.EmpresaArrayAdapter
 import com.example.adminobr.viewmodel.AppDataViewModel
+import kotlin.text.associateBy
+import kotlin.text.map
+import kotlin.text.uppercase
 
-class AutocompleteManager(private val context: Context, private val viewModel: AppDataViewModel) {
+class AutocompleteManager(
+    private val context: Context,
+    private val viewModel: AppDataViewModel,
+    private val sessionManager: SessionManager
+) {
 
-    // HashMap para almacenar la relación nombre-Empresa
+    // Maps para almacenar las instancias de las entidades
     private val empresaMap = HashMap<String, Empresa>()
     private val obraMap = HashMap<String, Obra>()
     private val equipoMap = HashMap<String, Equipo>()
@@ -36,7 +44,7 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
     ) {
         viewModel.cargarEmpresas()
         if (autoCompleteTextView != null && lifecycleOwner != null) {
-            viewModel.empresas.observe(lifecycleOwner, Observer { empresas ->
+            viewModel.empresas.observe(lifecycleOwner) { empresas ->
                 val adapter = EmpresaArrayAdapter(
                     context, R.layout.simple_dropdown_item_1line,
                     empresas.map { it.nombre }
@@ -58,11 +66,21 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 }
 
                 autoCompleteTextView.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                    override fun beforeTextChanged(
+                        s: CharSequence?,
+                        start: Int,
+                        count: Int,
+                        after: Int
+                    ) {
                         // No es necesario hacer nada aquí
                     }
 
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                    override fun onTextChanged(
+                        s: CharSequence?,
+                        start: Int,
+                        before: Int,
+                        count: Int
+                    ) {
                         if (s?.isNotEmpty() == true) {
                             autoCompleteTextView.showDropDown()
                         }
@@ -73,24 +91,29 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                     }
                 })
 
-                autoCompleteTextView.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                    // No es necesario hacer nada aquí
-                }
-            })
+                autoCompleteTextView.onFocusChangeListener =
+                    View.OnFocusChangeListener { _, hasFocus ->
+                        // No es necesario hacer nada aquí
+                    }
+            }
         }
     }
 
 
     fun loadEquipos(
-        autoCompleteTextView: AutoCompleteTextView? = null, lifecycleOwner: LifecycleOwner? = null,
+        autoCompleteTextView: AutoCompleteTextView? = null,
+        lifecycleOwner: LifecycleOwner? = null,
         onEquipoSelected: ((Equipo) -> Unit)? = null,
     ) {
         viewModel.cargarEquipos()
         if (autoCompleteTextView != null && lifecycleOwner != null) {
-            viewModel.equipos.observe(lifecycleOwner, Observer { equipos ->
+            viewModel.equipos.observe(lifecycleOwner) { equipos ->
                 val adapter = CustomArrayAdapter(
-                    context, R.layout.simple_dropdown_item_1line,
-                    equipos.map { "${it.interno} - ${it.descripcion}" }
+                    context,
+                    android.R.layout.simple_dropdown_item_1line,
+                    equipos,
+                    itemToDisplay = { "${it.interno} - ${it.descripcion}" }, // Cómo se muestra en el campo
+                    itemToFilter = { "${it.interno} - ${it.descripcion}" }   // Cómo se filtra
                 )
                 autoCompleteTextView.setAdapter(adapter)
 
@@ -98,167 +121,124 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 equipoMap.putAll(equipos.associateBy { "${it.interno} - ${it.descripcion}" })
 
                 autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
-                    val selectedEquipoNombre = parent.getItemAtPosition(position) as String
-                    val selectedEquipo = equipoMap[selectedEquipoNombre]
-                    Log.d("AutocompleteManager", "Equipo seleccionado: $selectedEquipo") // Agregar log
+                    val selectedEquipo = adapter.getItem(position)
+                    Log.d("AutocompleteManager", "Equipo seleccionado: $selectedEquipo")
                     selectedEquipo?.let {
                         onEquipoSelected?.invoke(it)
-
-                        // Cerrar el teclado después de seleccionar un equipo
                         AppUtils.closeKeyboard(context, autoCompleteTextView)
                     }
                 }
-
-                autoCompleteTextView.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                        // No es necesario hacer nada aquí
-                    }
-
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                        if (s?.isNotEmpty() == true) {
-                            autoCompleteTextView.showDropDown()
-                        }
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                        // No es necesario hacer nada aquí
-                    }
-                })
-
-                autoCompleteTextView.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                    // No es necesario hacer nada aquí
-                }
-            })
+            }
         }
     }
 
-    fun loadObras(
-        autoCompleteTextView: AutoCompleteTextView? = null, lifecycleOwner: LifecycleOwner? = null,
-        onObraSelected: ((Obra) -> Unit)? = null,
+    // Método para cargar obras en un AutoCompleteTextView con opciones de filtrado y actualización
+
+    fun loadObras( // pasar Si o Si el arg "empresaDbName" [sessionManager.getEmpresaDbName()]
+        autoCompleteTextView: AutoCompleteTextView? = null, // Campo AutoCompleteTextView donde se mostrarán las obras
+        lifecycleOwner: LifecycleOwner? = null, // Observador del ciclo de vida para observar LiveData
+        empresaDbName: String? = null, // Pasar Si o Si el nombre de la base de datos de la empresa [sessionManager.getEmpresaDbName()]
+        forceRefresh: Boolean = false, // Indica si debe forzar la recarga de datos desde el servidor
+        filterEstado: Boolean = false, // Indica si se debe filtrar por estado activo/inactivo
+        onObraSelected: ((Obra) -> Unit)? = null // Callback ejecutado cuando se selecciona una obra
     ) {
-        viewModel.cargarObras()
-        if (autoCompleteTextView != null && lifecycleOwner != null) {
-            viewModel.obras.observe(lifecycleOwner, Observer { obras ->
-                val adapter = CustomArrayAdapter(
-                    context, R.layout.simple_dropdown_item_1line,
+        // Si se debe forzar la recarga, cargar las obras directamente desde el servidor
+        if (forceRefresh) {
+            viewModel.cargarObras(empresaDbName, filterEstado)
+        } else {
+            // Obtener las obras guardadas en SessionManager (caché local)
+            val obrasGuardadas = sessionManager.getObraList()
+            if (!obrasGuardadas.isNullOrEmpty()) {
+                // Si hay obras en caché, configurar el adaptador con esas obras y salir
+                setupAdapter(autoCompleteTextView, obrasGuardadas, onObraSelected)
+                return
+            }
+            // Si no hay obras en caché, cargar desde el servidor
+            viewModel.cargarObras(empresaDbName, filterEstado)
+        }
 
-                    obras.map { "${it.centroCosto} - ${it.nombre}" }
-
-                )
-                autoCompleteTextView.setAdapter(adapter)
-
-                obraMap.clear()
-                obraMap.putAll(obras.associateBy { "${it.centroCosto} - ${it.nombre}" })
-
-                autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
-                    val selectedObraNombre = parent.getItemAtPosition(position) as String
-                    val selectedObra = obraMap[selectedObraNombre]
-                    Log.d("AutocompleteManager", "Obra seleccionada: $selectedObra") // Agregar log
-                    selectedObra?.let {
-                        onObraSelected?.invoke(it)
-
-                        // Cerrar el teclado después de seleccionar una obra
-                        AppUtils.closeKeyboard(context, autoCompleteTextView)
-                    }
-                }
-
-                autoCompleteTextView.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                        // No es necesario hacer nada aquí
-                    }
-
-                    override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                        if (s?.isNotEmpty() == true) {
-                            autoCompleteTextView.showDropDown()
-                        }
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                        // No es necesario hacer nada aquí
-                    }
-                })
-
-                autoCompleteTextView.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-                    // No es necesario hacer nada aquí
-                }
-            })
+        // Observar el LiveData de obras en el ViewModel para configurar el adaptador cuando lleguen los datos
+        viewModel.obras.observe(lifecycleOwner!!) { obras ->
+            setupAdapter(autoCompleteTextView, obras, onObraSelected)
         }
     }
 
+    // Configurar el adaptador para mostrar y filtrar las obras en el AutoCompleteTextView
+    private fun setupAdapter(
+        autoCompleteTextView: AutoCompleteTextView?, // Campo AutoCompleteTextView a configurar
+        obras: List<Obra>, // Lista de obras a mostrar en el adaptador
+        onObraSelected: ((Obra) -> Unit)? // Callback para manejar la selección de una obra
+    ) {
+        // Crear el adaptador personalizado con las funciones de visualización y filtrado
+        val adapter = CustomArrayAdapter(
+            context,
+            R.layout.simple_dropdown_item_1line, // Diseño para cada elemento del desplegable
+            obras,
+            itemToDisplay = { "${it.centroCosto} - ${it.nombre}" }, // Texto mostrado en el campo y el desplegable
+            itemToFilter = { "${it.centroCosto} - ${it.nombre} (${it.localidad})" } // Texto usado para filtrar los elementos
+        )
+
+        // Asignar el adaptador al AutoCompleteTextView
+        autoCompleteTextView?.setAdapter(adapter)
+
+        // Limpiar y actualizar el mapa de obras para búsquedas rápidas
+        obraMap.clear()
+        obraMap.putAll(obras.associateBy { "${it.centroCosto} - ${it.nombre}" })
+
+        // Manejar la selección de elementos en el desplegable
+        autoCompleteTextView?.setOnItemClickListener { parent, _, position, _ ->
+            // Obtener la obra seleccionada del adaptador
+            val selectedObra = adapter.getItem(position)
+            // Ejecutar el callback con la obra seleccionada, si está definida
+            selectedObra?.let { onObraSelected?.invoke(it) }
+        }
+    }
 
     fun loadRoles(
-        autoCompleteTextView: AutoCompleteTextView? = null, lifecycleOwner: LifecycleOwner? = null,
+        autoCompleteTextView: AutoCompleteTextView? = null,
+        lifecycleOwner: LifecycleOwner? = null,
         onRolSelected: ((Rol) -> Unit)? = null,
     ) {
         viewModel.cargarRoles()
         if (autoCompleteTextView != null && lifecycleOwner != null) {
-            viewModel.roles.observe(lifecycleOwner, Observer { roles ->
+            viewModel.roles.observe(lifecycleOwner) { roles ->
                 val adapter = CustomArrayAdapter(
-                    context, R.layout.simple_dropdown_item_1line,
-                    roles.map {it.nombre}
+                    context,
+                    android.R.layout.simple_dropdown_item_1line,
+                    roles,
+                    itemToDisplay = { it.nombre }, // Cómo se muestra en el campo
+                    itemToFilter = { it.nombre }   // Cómo se filtra
                 )
                 autoCompleteTextView.setAdapter(adapter)
 
                 rolMap.clear()
-                rolMap.putAll(roles.associateBy {it.nombre})
+                rolMap.putAll(roles.associateBy { it.nombre })
 
                 autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
-                    val selectedRolNombre = parent.getItemAtPosition(position) as String
-                    val selectedRol = rolMap[selectedRolNombre]
-                    Log.d("AutocompleteManager", "Rol seleccionado: $selectedRol") // Agregar log
+                    val selectedRol = adapter.getItem(position)
+                    Log.d("AutocompleteManager", "Rol seleccionado: $selectedRol")
                     selectedRol?.let {
                         onRolSelected?.invoke(it)
-
-                        // Cerrar el teclado después de seleccionar un rol
-                        //AppUtils.closeKeyboard(context, autoCompleteTextView)
                     }
                 }
-
-                autoCompleteTextView.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int,
-                    ) {
-                        // No es necesario hacer nada aquí
-                    }
-
-                    override fun onTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        before: Int,
-                        count: Int,
-                    ) {
-                        if (s?.isNotEmpty() == true) {
-                            autoCompleteTextView.showDropDown()
-                        }
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                        // No es necesario hacer nada aquí
-                    }
-                })
-
-                autoCompleteTextView.onFocusChangeListener =
-                    View.OnFocusChangeListener { _, hasFocus ->
-                        // No es necesario hacer nada aquí
-                    }
-
-            })
+            }
         }
     }
 
     fun loadEstados(
-        autoCompleteTextView: AutoCompleteTextView? = null, lifecycleOwner: LifecycleOwner? = null,
+        autoCompleteTextView: AutoCompleteTextView? = null,
+        lifecycleOwner: LifecycleOwner? = null,
         onEstadoSelected: ((Estado) -> Unit)? = null,
     ) {
         viewModel.cargarEstados()
         if (autoCompleteTextView != null && lifecycleOwner != null) {
-            viewModel.estados.observe(lifecycleOwner, Observer { estados ->
+            viewModel.estados.observe(lifecycleOwner) { estados ->
                 val adapter = CustomArrayAdapter(
-                    context, R.layout.simple_dropdown_item_1line,
-                    estados.map { it.nombre }
+                    context,
+                    android.R.layout.simple_dropdown_item_1line,
+                    estados,
+                    itemToDisplay = { it.nombre }, // Cómo se muestra en el campo
+                    itemToFilter = { it.nombre }   // Cómo se filtra
                 )
                 autoCompleteTextView.setAdapter(adapter)
 
@@ -266,50 +246,13 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
                 estadoMap.putAll(estados.associateBy { it.nombre })
 
                 autoCompleteTextView.setOnItemClickListener { parent, _, position, _ ->
-                    val selectedEstadoNombre = parent.getItemAtPosition(position) as String
-                    val selectedEstado = estadoMap[selectedEstadoNombre]
-                    Log.d("AutocompleteManager", "Estado seleccionado: $selectedEstado") // Agregar log
-
+                    val selectedEstado = adapter.getItem(position)
+                    Log.d("AutocompleteManager", "Estado seleccionado: $selectedEstado")
                     selectedEstado?.let {
                         onEstadoSelected?.invoke(it)
-
-                        // Cerrar el teclado después de seleccionar un estado
-                        //AppUtils.closeKeyboard(context, autoCompleteTextView)
                     }
                 }
-
-                autoCompleteTextView.addTextChangedListener(object : TextWatcher {
-                    override fun beforeTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        count: Int,
-                        after: Int,
-                    ) {
-                        // No es necesario hacer nada aquí
-                    }
-
-                    override fun onTextChanged(
-                        s: CharSequence?,
-                        start: Int,
-                        before: Int,
-                        count: Int,
-                    ) {
-                        if (s?.isNotEmpty() == true) {
-                            autoCompleteTextView.showDropDown()
-                        }
-                    }
-
-                    override fun afterTextChanged(s: Editable?) {
-                        // No es necesario hacer nada aquí
-                    }
-                })
-
-                autoCompleteTextView.onFocusChangeListener =
-                    View.OnFocusChangeListener { _, hasFocus ->
-                        // No es necesario hacer nada aquí
-                    }
-
-            })
+            }
         }
     }
 
@@ -319,7 +262,7 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
         onTipoCombustibleSelected: ((String) -> Unit)? = null
     ) {
         val tipoCombustibleItems = arrayOf("Diesel", "Nafta")
-        val adapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, tipoCombustibleItems)
+        val adapter = ArrayAdapter(context, R.layout.simple_dropdown_item_1line, tipoCombustibleItems)
         autoCompleteTextView?.setAdapter(adapter)
 
         // Variable para almacenar el valor seleccionado
@@ -366,15 +309,31 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
         }
     }
 
-
-
     fun getEmpresaByName(empresaName: String): Empresa? {
         return empresaMap.entries.find { it.key.equals(empresaName, ignoreCase = true) }?.value
     }
 
-    fun getObraByName(obraName: String): Obra? {
-        return obraMap.entries.find { it.key.equals(obraName, ignoreCase = true) }?.value
+    fun getObraByName(obraText: String): Obra? {
+        Log.d("AutocompleteManager", "Buscando obra por texto: $obraText")
+
+        val foundObra = obraMap.entries.find { (key, _) ->
+            val keyCentroCosto = key.substringBefore(" - ").trim()
+            val keyNombre = key.substringAfter(" - ").substringBefore(" (").trim()
+            val inputCentroCosto = obraText.substringBefore(" - ").trim()
+            val inputNombre = obraText.substringAfter(" - ").substringBefore(" (").trim()
+
+            val match = keyCentroCosto.equals(inputCentroCosto, ignoreCase = true) &&
+                    keyNombre.equals(inputNombre, ignoreCase = true)
+
+            Log.d("AutocompleteManager", "Comparando: '$key' con '$obraText', resultado: $match")
+            match
+        }?.value
+
+        Log.d("AutocompleteManager", "Resultado de la búsqueda: ${foundObra?.nombre ?: "Ninguna obra encontrada"}")
+        return foundObra
     }
+
+
 
     fun getObraById(obraId: Int): Obra? {
         return obraMap.values.find { it.id == obraId }
@@ -385,6 +344,7 @@ class AutocompleteManager(private val context: Context, private val viewModel: A
     }
 
     fun getEquipoById(equipoId: Int): Equipo? {
+        Log.d("AutocompleteManager", "Buscando equipo por ID: $equipoId")
         return equipoMap.values.find { it.id == equipoId }
     }
 

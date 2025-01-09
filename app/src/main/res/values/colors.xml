@@ -3,6 +3,8 @@
 
     <!-- App colors -->
 
+    <color name="black_50">#80000000</color>
+
     <color name="colorDisabledText">#dbdfe9</color>
     <color name="colorPrimary">#0094ff</color>
     <color name="colorPrimaryDark">#0d0e12</color>
@@ -10,6 +12,9 @@
     <color name="colorAccent">#00a650</color>
     <color name="colorSuccess">#00a650</color> <!-- Un tono verde de éxito -->
     <color name="colorDanger">#f23d4e</color> <!-- Un tono rojo de error -->
+
+    <color name="green">#4CAF50</color>
+    <color name="snackbarBackground">#323232</color>
 
     <color name="colorGreen">#2fb344</color>
     <color name="colorRed">@color/danger_500</color>
@@ -24,20 +29,17 @@
     <color name="colorBlack">#000000</color>
 
 
-
-
-
-
-
     <!-- Buttons -->
+    <color name="pressed_color">#FFDDDDDD</color>
+
     <color name="colorButtonPrimary">#1b84ff</color>
     <color name="colorTextButtonPrimary">#FFFFFF</color>
     <color name="colorButtonDisabled">#8dc1ff</color>
     <color name="colorTextButtonDisabled">#FFFFFF</color>
 
-    <color name="colorButtonSecondary">#f9f9f9</color>
+    <color name="colorButtonSecondary">#DBEAFE</color>
     <color name="colorButtonSuccess">#17c653</color>
-    <color name="colorTextButtonSecondary">#252f4a</color>
+    <color name="colorTextButtonSecondary">#1b84ff</color>
     <color name="colorBorderEnfocado">#056ee9</color>
 
     <color name="colorButtonStrokeColor">#056ee9</color>

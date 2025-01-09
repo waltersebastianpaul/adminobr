@@ -4,9 +4,11 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.adminobr.R
 
@@ -19,8 +21,14 @@ class DownloadForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
-        startForeground(NOTIFICATION_ID, createNotification())
+        try {
+            (getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager)?.cancel(NOTIFICATION_ID)
+            createNotificationChannel()
+            startForeground(NOTIFICATION_ID, createNotification())
+            Log.d("DownloadForegroundService", "startForeground() ejecutado correctamente.")
+        } catch (e: Exception) {
+            Log.e("DownloadForegroundService", "Error en startForeground(): ${e.message}", e)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

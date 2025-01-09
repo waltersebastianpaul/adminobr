@@ -23,7 +23,7 @@ class EmpresaArrayAdapter<T>(context: Context, resource: Int, private val items:
         return object : Filter() {
             override fun performFiltering(constraint: CharSequence?): FilterResults {
                 val filterResults = FilterResults()
-                if (constraint != null && constraint.isNotEmpty()) {
+                if (!constraint.isNullOrEmpty()) {
                     val filterPattern = constraint.toString().lowercase(Locale.getDefault()).trim()
                     val regex = Regex("\\b$filterPattern")
                     val filteredList = items.filter {

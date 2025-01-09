@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:clipToPadding="false" >
 
     <ScrollView
         android:layout_width="match_parent"
@@ -240,6 +241,7 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:baselineAligned="false"
                             android:orientation="horizontal"
                             android:layout_marginTop="8dp">
 
@@ -294,6 +296,7 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:baselineAligned="false"
                             android:orientation="horizontal"
                             android:layout_marginTop="0dp">
 
@@ -644,9 +647,12 @@
             <!-- Mensaje en caso de que no haya partes simples disponibles -->
             <TextView
                 android:id="@+id/emptyListMessage"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="55dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginStart="16dp"
+                android:gravity="center_horizontal"
                 android:text="No hay partes en el historial"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -672,5 +678,14 @@
 
         </LinearLayout>
     </ScrollView>
+
+    <include
+        android:id="@+id/networkErrorLayout"
+        layout="@layout/network_error_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:focusable="false"
+        android:clickable="false" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

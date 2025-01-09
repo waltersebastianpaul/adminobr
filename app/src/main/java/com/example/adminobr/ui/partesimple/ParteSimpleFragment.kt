@@ -12,7 +12,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -42,7 +41,9 @@ import com.example.adminobr.data.Equipo
 import com.example.adminobr.ui.adapter.ParteSimpleAdapter
 import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.utils.AutocompleteManager
+import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.viewmodel.ParteSimpleViewModel
+import com.google.android.material.snackbar.Snackbar
 import com.google.gson.Gson
 import kotlin.math.abs
 
@@ -51,6 +52,9 @@ class ParteSimpleFragment : Fragment() {
     private var _binding: FragmentParteSimpleBinding? = null
     private val binding get() = _binding!!
     private val viewModel: ParteSimpleViewModel by viewModels()
+
+    // Manager para la gestión de sesiones, carga solo cuando se accede a él
+    private val sessionManager by lazy { SessionManager(requireContext()) }
 
     private lateinit var autocompleteManager: AutocompleteManager
     private val appDataViewModel: AppDataViewModel by activityViewModels()
@@ -69,7 +73,7 @@ class ParteSimpleFragment : Fragment() {
     @SuppressLint("SetTextI18n")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentParteSimpleBinding.inflate(inflater, container, false)
         adapter = ParteSimpleAdapter(viewModel) // Pasa el ViewModel al adaptador
@@ -111,7 +115,8 @@ class ParteSimpleFragment : Fragment() {
 
                 } catch (e: NumberFormatException) {
                     // Manejar la excepción, por ejemplo, mostrar un mensaje de error
-                    Toast.makeText(requireContext(), "El valor de horas es demasiado grande", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(requireContext(), "El valor de horas es demasiado grande", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), "El valor de horas es demasiado grande", Snackbar.LENGTH_LONG).show()
                     horasEditText.requestFocus()
                 }
             }
@@ -141,7 +146,7 @@ class ParteSimpleFragment : Fragment() {
         }
 
         // Agregar texto informativo debajo del botón
-        binding.infoTextView.text = "Atención: La lista se borrará luego de $TIEMPO_LIMITE_HS horas.\nSe recomienda COMPARTIR la lista de partes."
+        binding.infoTextView.text = "Atención: Los partes se borrarán luego de $TIEMPO_LIMITE_HS horas.\nSe recomienda COMPARTIR la lista de partes."
 
         return binding.root
     }
@@ -208,7 +213,8 @@ class ParteSimpleFragment : Fragment() {
         }
 
         if (!camposValidos) {
-            Toast.makeText(requireContext(), "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
+//            Toast.makeText(requireContext(), "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
+            Snackbar.make(requireView(), "Por favor, complete todos los campos requeridos", Snackbar.LENGTH_LONG).show()
         }
 
         return camposValidos
@@ -221,7 +227,7 @@ class ParteSimpleFragment : Fragment() {
         fab.visibility = View.GONE
 
         // Inicializar AutocompleteManager
-        autocompleteManager = AutocompleteManager(requireContext(), appDataViewModel)
+        autocompleteManager = AutocompleteManager(requireContext(), appDataViewModel, sessionManager)
 
         // Cargar equipos y capturar el objeto Equipo seleccionado
         autocompleteManager.loadEquipos(
@@ -237,12 +243,11 @@ class ParteSimpleFragment : Fragment() {
         setEditTextToUppercase(equipoAutocomplete)
 
         // Mensaje alertando sobre la persistencia de los datos
-        Toast.makeText(
-            requireContext(),
-//            "La lista de PARTES SIMPLES, se borrará al salir de la actividad.",
-            "La lista de PARTES SIMPLES se borrará luego de $TIEMPO_LIMITE_HS horas.",
-            Toast.LENGTH_LONG
-        ).show()
+//        Snackbar.make(
+//            requireView(),
+//            "Esta lista se borrará, luego de $TIEMPO_LIMITE_HS horas.",
+//            Snackbar.LENGTH_LONG  // Duración: SHORT, LONG, INDEFINITE
+//        ).show()
 
         cargarDatosDesdeSharedPreferences() // Cargar los datos después de verificar la fecha
 
@@ -260,7 +265,7 @@ class ParteSimpleFragment : Fragment() {
                 binding.clearHistorialPartesTextView.visibility = View.GONE
                 binding.compartirIcon.visibility = View.GONE
                 binding.emptyListMessage.visibility = View.VISIBLE
-//                binding.infoTextView.visibility = View.GONE
+                binding.infoTextView.visibility = View.GONE
             } else {
                 binding.clearHistorialPartesTextView.visibility = View.VISIBLE
                 binding.compartirIcon.visibility = View.VISIBLE
@@ -275,7 +280,7 @@ class ParteSimpleFragment : Fragment() {
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
-                target: RecyclerView.ViewHolder
+                target: RecyclerView.ViewHolder,
             ): Boolean {
                 return false
             }
@@ -309,7 +314,7 @@ class ParteSimpleFragment : Fragment() {
                 dX: Float,
                 dY: Float,
                 actionState: Int,
-                isCurrentlyActive: Boolean
+                isCurrentlyActive: Boolean,
             ) {
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive)
 
@@ -322,14 +327,14 @@ class ParteSimpleFragment : Fragment() {
                 val redColor = ContextCompat.getColor(requireContext(), R.color.danger_100)
 
                 //val limit = 110 // itemView.width / 3 // Distancia límite para que el ícono se quede fijo
-                val limit = itemView.width / 7 // Distancia límite para que el ícono se quede fijo
+                val limit = itemView.width / 6 // Distancia límite para que el ícono se quede fijo
 
                 when {
                     dX < 0 -> { // Deslizar hacia la izquierda
                         val iconLeft = if (dX > -limit) {
                             itemView.right + dX.toInt() + iconMargin
                         } else {
-                            itemView.right - limit.toInt() + iconMargin
+                            itemView.right - limit + iconMargin
                         }
                         val iconRight = iconLeft + icon.intrinsicWidth
 

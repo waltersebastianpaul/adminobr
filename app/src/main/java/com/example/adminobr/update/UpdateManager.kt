@@ -7,7 +7,7 @@ import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.util.Log
-import android.widget.Toast
+import android.view.View
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import androidx.work.*
@@ -15,6 +15,7 @@ import com.example.adminobr.R
 import com.example.adminobr.data.VersionInfo
 import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.NetworkStatusHelper
+import com.google.android.material.snackbar.Snackbar
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
@@ -22,12 +23,13 @@ import java.util.concurrent.TimeUnit
 class UpdateManager(private val context: Context) {
 
     private var updateUrl = Constants.Update.UPDATE_DIR
+    private val rootView = (context as? android.app.Activity)?.findViewById<View>(android.R.id.content)
 
     /**
      * Comprueba si hay actualizaciones disponibles.
-     * @param showToast Indica si se deben mostrar mensajes Toast.
+     * @param showMessage Indica si se deben mostrar mensajes Toast.
      */
-    suspend fun checkForUpdates(showToast: Boolean) {
+    suspend fun checkForUpdates(showMessage: Boolean) {
         try {
             val updateService = Retrofit.Builder()
                 .baseUrl(updateUrl)
@@ -41,15 +43,75 @@ class UpdateManager(private val context: Context) {
             if (latestVersion.versionCode > currentVersionCode) {
                 // Hay una nueva versión, muestra el diálogo al usuario
                 showUpdateDialog(latestVersion)
-            } else if (showToast) {
-                Toast.makeText(context, "Tu aplicación está actualizada", Toast.LENGTH_SHORT).show()
+            } else if (showMessage) {
+//                Toast.makeText(context, "Tu aplicación está actualizada", Toast.LENGTH_SHORT).show()
+                rootView?.let {
+                    Snackbar.make(it, "Tu aplicación está actualizada", Snackbar.LENGTH_LONG).apply {
+                        setTextColor(ContextCompat.getColor(context, R.color.colorWhite)) // Texto en verde
+                        show()
+                    }
+                } ?: Log.e("UpdateManager", "No se pudo encontrar la vista raíz para mostrar el Snackbar")
+
             }
+//        } catch (e: Exception) {
+//            Log.e("UpdateManager", "Error al comprobar actualizaciones: ${e.message}")
+//            if (showToast) {
+//                Toast.makeText(context, "Error al comprobar actualizaciones", Toast.LENGTH_SHORT).show()
+//            }
+//        }
         } catch (e: Exception) {
-            Log.e("UpdateManager", "Error al comprobar actualizaciones: ${e.message}")
-            if (showToast) {
-                Toast.makeText(context, "Error al comprobar actualizaciones", Toast.LENGTH_SHORT).show()
+            when (e) {
+                is java.net.SocketTimeoutException -> {
+                    Log.e("UpdateManager", "Timeout al comprobar actualizaciones: ${e.message}")
+                    if (showMessage) {
+//                        Toast.makeText(context, "Conexión lenta. Intente de nuevo más tarde.", Toast.LENGTH_SHORT).show()
+                        rootView?.let {
+                            Snackbar.make(it, "Conexión lenta. Intente de nuevo más tarde.", Snackbar.LENGTH_LONG).apply {
+                                setTextColor(ContextCompat.getColor(context, R.color.colorButtonWarning))
+                                show()
+                            }
+                        } ?: Log.e("UpdateManager", "No se pudo encontrar la vista raíz para mostrar el Snackbar")
+                    }
+                }
+                is java.net.UnknownHostException -> {
+                    Log.e("UpdateManager", "No se pudo conectar al servidor: ${e.message}")
+                    if (showMessage) {
+//                        Toast.makeText(context, "No se puede conectar al servidor. Verifique su conexión.", Toast.LENGTH_SHORT).show()
+                        rootView?.let {
+                            Snackbar.make(it, "No se puede conectar al servidor. Verifique su conexión.", Snackbar.LENGTH_LONG).apply {
+                                setTextColor(ContextCompat.getColor(context, R.color.colorDanger))
+                                show()
+                            }
+                        } ?: Log.e("UpdateManager", "No se pudo encontrar la vista raíz para mostrar el Snackbar")
+                    }
+                }
+                is retrofit2.HttpException -> {
+                    Log.e("UpdateManager", "Error del servidor: ${e.code()} ${e.message}")
+                    if (showMessage) {
+//                        Toast.makeText(context, "Error del servidor. Intente más tarde.", Toast.LENGTH_SHORT).show()
+                        rootView?.let {
+                            Snackbar.make(it, "Error del servidor: ${e.code()} ${e.message}", Snackbar.LENGTH_LONG).apply {
+                                setTextColor(ContextCompat.getColor(context, R.color.colorDanger))
+                                show()
+                            }
+                        } ?: Log.e("UpdateManager", "No se pudo encontrar la vista raíz para mostrar el Snackbar")
+                    }
+                }
+                else -> {
+                    Log.e("UpdateManager", "Error inesperado al comprobar actualizaciones: ${e.message}")
+                    if (showMessage) {
+//                        Toast.makeText(context, "Error inesperado. Intente más tarde.", Toast.LENGTH_SHORT).show()
+                        rootView?.let {
+                            Snackbar.make(it, "Error inesperado. Intente más tarde.", Snackbar.LENGTH_LONG).apply {
+                                setTextColor(ContextCompat.getColor(context, R.color.colorDanger))
+                                show()
+                            }
+                        } ?: Log.e("UpdateManager", "No se pudo encontrar la vista raíz para mostrar el Snackbar")
+                    }
+                }
             }
         }
+
     }
 
     /**
@@ -124,7 +186,7 @@ class UpdateManager(private val context: Context) {
     /**
      * Inicia la descarga de la actualización.
      */
-    fun startUpdateDownload(versionInfo: VersionInfo) {
+    private fun startUpdateDownload(versionInfo: VersionInfo) {
         val workRequest = OneTimeWorkRequestBuilder<DownloadWorker>()
             .setInputData(
                 workDataOf(
@@ -139,7 +201,13 @@ class UpdateManager(private val context: Context) {
         WorkManager.getInstance(context).enqueue(workRequest)
 
         // Informar al usuario que la descarga ha comenzado
-        Toast.makeText(context, "Descargando actualización...", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(context, "Descargando actualización...", Toast.LENGTH_SHORT).show()
+        rootView?.let {
+            Snackbar.make(it, "Descargando actualización...", Snackbar.LENGTH_LONG).apply {
+                setTextColor(ContextCompat.getColor(context, R.color.colorButtonWarning))
+                show()
+            }
+        } ?: Log.e("UpdateManager", "No se pudo encontrar la vista raíz para mostrar el Snackbar")
     }
 
     /**
@@ -155,7 +223,11 @@ class UpdateManager(private val context: Context) {
             apply()
         }
 
-        Toast.makeText(context, "La descarga iniciará al conectarse a Wi-Fi", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(context, "La descarga iniciará al conectarse a Wi-Fi", Toast.LENGTH_SHORT).show()
+        Snackbar.make(rootView!!, "La descarga iniciará al conectarse a Wi-Fi", Snackbar.LENGTH_LONG).apply {
+            setTextColor(ContextCompat.getColor(context, R.color.colorButtonPrimary))
+            show()
+        }
     }
 
     /**

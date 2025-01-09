@@ -10,7 +10,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.DiffUtil
@@ -20,6 +19,7 @@ import com.example.adminobr.R
 import com.example.adminobr.data.ParteDiario
 import com.example.adminobr.databinding.ItemParteDiarioBinding
 import com.example.adminobr.ui.partediario.ParteDiarioDetalleDialog
+import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.viewmodel.ParteDiarioViewModel
 
 class ParteDiarioFormAdapter(
@@ -29,6 +29,7 @@ class ParteDiarioFormAdapter(
     private val fragmentManager: FragmentManager, // Agregar FragmentManager
     private val onEditParte: (ParteDiario) -> Unit, // Callback para editar
 ) : ListAdapter<ParteDiario, ParteDiarioFormAdapter.ParteDiarioViewHolder>(ParteDiarioDiffCallback()) {
+    private val sessionManager = SessionManager(context) // Instancia de SessionManager
 
     inner class ParteDiarioViewHolder(val binding: ItemParteDiarioBinding) : RecyclerView.ViewHolder(binding.root) {
 
@@ -39,38 +40,18 @@ class ParteDiarioFormAdapter(
                 horasInicioTextView.text = "Ini: ${parte.horasInicio}"
                 horasFinTextView.text = "Fin: ${parte.horasFin}"
 
-//                menuItemParte.setOnClickListener { view ->
-//                    val popupMenu = PopupMenu(context, view)
-//                    popupMenu.inflate(R.menu.menu_item_parte)
-//                    popupMenu.setOnMenuItemClickListener { menuItem ->
-//                        when (menuItem.itemId) {
-//                            R.id.action_detalles -> {
-//                                // Cierra el PopupMenu antes de mostrar el diálogo de detalles
-//                                popupMenu.dismiss()
-//                                showParteDetalleDialog(parte) // Mostrar diálogo de detalles
-//                                true
-//                            }
-//                            R.id.action_editar -> {
-//                                // Cierra el PopupMenu antes de navegar al formulario de edición
-//                                popupMenu.dismiss()
-//                                onEditParte(parte) // Llama al callback de edición
-//                                true
-//                            }
-//                            R.id.action_eliminar -> {
-//                                // Cierra el PopupMenu antes de mostrar la confirmación de eliminación
-//                                popupMenu.dismiss()
-//                                confirmarEliminarParte(parte)
-//                                true
-//                            }
-//                            else -> false
-//                        }
-//                    }
-//                    popupMenu.show()
-//                }
+                // Obtener roles del usuario
+                val userRoles = sessionManager.getUserRol()
 
                 menuItemParte.setOnClickListener { view ->
                     val popupMenu = PopupMenu(context, view)
                     popupMenu.inflate(R.menu.menu_item_parte)
+
+                    // Controlar la visibilidad del elemento según los roles del usuario
+                    if (userRoles?.contains("supervisor") == false || userRoles?.contains("administrador") == false) {
+                        popupMenu.menu.findItem(R.id.action_editar)?.isVisible = false
+                        popupMenu.menu.findItem(R.id.action_eliminar)?.isVisible = false
+                    }
 
                     popupMenu.setOnMenuItemClickListener { menuItem ->
                         popupMenu.dismiss() // Asegurarse de que el menú esté cerrado
@@ -134,7 +115,6 @@ class ParteDiarioFormAdapter(
                 }, null)
                 .show()
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ParteDiarioViewHolder {

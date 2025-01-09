@@ -12,6 +12,7 @@ import com.example.adminobr.data.Obra
 import com.example.adminobr.data.Empresa
 import com.example.adminobr.data.Estado
 import com.example.adminobr.data.Rol
+import com.example.adminobr.utils.Event
 import com.example.adminobr.utils.SessionManager
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -38,12 +39,15 @@ class AppDataViewModel(application: Application) : AndroidViewModel(application)
     private val _tipoCombustible = MutableLiveData<List<String>>()
     val tipoCombustible: LiveData<List<String>> get() = _tipoCombustible
 
+    private val _errorObras = MutableLiveData<Event<String>>()
+    val errorObras: LiveData<Event<String>> = _errorObras
+
     private val api: AutocompletesApi = AutocompletesApi.create(application)
     private val sessionManager = SessionManager(application)
 
     private fun createRequestBody(): String {
         val json = JSONObject()
-        val empresaDbName = sessionManager.getEmpresaData()?.db_name
+        val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
 
         json.put("empresaDbName", empresaDbName)
         return json.toString()
@@ -62,15 +66,58 @@ class AppDataViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun cargarObras() {
+//    fun cargarObras(empresaDbName: String? = null, filterEstado: Boolean = false) {
+//        viewModelScope.launch {
+//            try {
+//                val dbName = empresaDbName ?: sessionManager.getEmpresaData()["empresaDbName"]
+//
+//                if (!dbName.isNullOrEmpty()) {
+//                    val requestBody = JSONObject().apply {
+//                        put("empresaDbName", dbName)
+//                        if (filterEstado) {
+//                            put("filterEstado", true)
+//                        }
+//                    }.toString().toRequestBody("application/json".toMediaTypeOrNull())
+//
+//                    val response = api.getObras(requestBody) // Asumiendo que api.getObras está actualizado
+//                    _obras.value = response
+//                    _errorObras.value = Event(null) // Limpia el error en caso de éxito
+//                    Log.d("AppDataViewModel", "Obras cargadas: ${_obras.value}")
+//                } else {
+//                    // Manejar caso donde no se proporciona empresaDbName ni está en la sesión
+//                    _errorObras.value = Event("No se pudo cargar obras: empresaDbName no disponible")
+//                    Log.e("AppDataViewModel", "No se pudo cargar obras: empresaDbName no disponible")
+//                }
+//            } catch (e: Exception) {
+//                _errorObras.value = Event("Error al cargar obras: ${e.message}")
+//                Log.e("AppDataViewModel", "Error al cargar obras", e)
+//            }
+//        }
+//    }
+    fun cargarObras(empresaDbName: String? = null, filterEstado: Boolean = false) {
         viewModelScope.launch {
             try {
-                val requestBody = createRequestBody().toRequestBody("application/json".toMediaTypeOrNull())
-                val response = api.getObras(requestBody)
-                _obras.value = response
-                Log.d("AppDataViewModel", "Obras cargadas: ${_obras.value}")
+                val dbName = empresaDbName ?: sessionManager.getEmpresaData()["empresaDbName"]
+
+                if (!dbName.isNullOrEmpty()) {
+                    val requestBody = JSONObject().apply {
+                        put("empresaDbName", dbName)
+                        if (filterEstado) {
+                            put("filterEstado", true)
+                        }
+                    }.toString().toRequestBody("application/json".toMediaTypeOrNull())
+
+                    val response = api.getObras(requestBody) // Llamada a la API para obtener obras
+                    _obras.value = response
+                    _errorObras.value = Event(null) // Limpia el error tras un éxito
+                    Log.d("AppDataViewModel", "Obras cargadas: ${_obras.value}")
+                } else {
+                    _errorObras.value = Event("No se pudo cargar obras: empresaDbName no disponible")
+                    Log.e("AppDataViewModel", "No se pudo cargar obras: empresaDbName no disponible")
+                }
             } catch (e: Exception) {
-                Log.e("AppDataViewModel", "Error al cargar obras: ${e.message}")
+                _errorObras.value = Event("Error al cargar obras: ${e.message}")
+                Log.e("AppDataViewModel", "Error al cargar obras", e)
             }
         }
     }

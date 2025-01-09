@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <!-- Fondo de la ruedita -->
+        <shape android:shape="ring">
+            <size android:width="48dp" android:height="48dp" />
+            <solid android:color="#E0E0E0" /> <!-- Color del fondo (gris claro) -->
+        </shape>
+    </item>
+    <item>
+        <!-- La rueda giratoria -->
+        <rotate
+            android:fromDegrees="0"
+            android:toDegrees="360"
+            android:pivotX="50%"
+            android:pivotY="50%"
+            android:drawable="@drawable/circular_ring" />
+    </item>
+</layer-list>

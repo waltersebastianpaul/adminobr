@@ -6,71 +6,45 @@ import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
+import android.view.Menu
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.AutoCompleteTextView
+import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModelProvider
+import androidx.core.content.ContextCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import com.example.adminobr.utils.AutocompleteManager
-import com.example.adminobr.utils.SessionManager
+import androidx.lifecycle.repeatOnLifecycle
+import com.example.adminobr.BuildConfig
 import com.example.adminobr.MainActivity
 import com.example.adminobr.R
-import com.example.adminobr.api.ApiService
+import com.example.adminobr.data.Obra
+import com.example.adminobr.data.ResultData
 import com.example.adminobr.databinding.ActivityLoginBinding
-import com.example.adminobr.api.ApiUtils
-import com.example.adminobr.data.Empresa
-import com.example.adminobr.data.ErrorResponse
-import com.example.adminobr.data.LoginRequest
-import com.example.adminobr.data.LoginResponse
-import com.example.adminobr.ui.common.ProgressDialogFragment
+import com.example.adminobr.repository.LoginRepository
 import com.example.adminobr.utils.AppUtils
-import com.example.adminobr.utils.NetworkStatusHelper
-import com.example.adminobr.viewmodel.AppDataViewModel
-import com.google.android.material.textfield.TextInputLayout
-import com.google.gson.Gson
-import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.HttpException
-import retrofit2.Response
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
-import java.util.Locale
-import android.graphics.Rect
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.repeatOnLifecycle
+import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.utils.Constants
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
-
-/**
- * Módulo LoginActivity
- *
- * Esta actividad gestiona el flujo de inicio de sesión en la aplicación, verificando la conectividad de red,
- * recuperando datos almacenados de usuario y empresa, y permitiendo al usuario autenticarse con sus credenciales.
- * Incluye funcionalidades para manejar errores de red, validar campos de entrada y gestionar la persistencia de
- * datos con `SessionManager`.
- */
+import com.example.adminobr.utils.LoadingDialogUtil
+import com.example.adminobr.utils.NetworkStatusHelper
+import com.example.adminobr.utils.SessionManager
+import com.example.adminobr.viewmodel.AppDataViewModel
+import com.example.adminobr.viewmodel.LoginViewModel
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
-
-    // Servicio de API para realizar solicitudes de login
-    private val apiService: ApiService by lazy { ApiUtils.getApiService() }
-
-    // Administrador de autocompletado para cargar empresas
-    private lateinit var autocompleteManager: AutocompleteManager
-
-    // ViewModel para gestionar los datos de la aplicación
-    private lateinit var appDataViewModel: AppDataViewModel
-
-    // Binding para acceder a las vistas de la interfaz de usuario
     private lateinit var binding: ActivityLoginBinding
-
-    // Variable para almacenar la empresa seleccionada en el campo de autocompletado
-    private var selectedEmpresa: Empresa? = null
+    private val loginViewModel: LoginViewModel by viewModels()
+    private val loginRepository = LoginRepository()
 
     // Manager para la gestión de sesiones, carga solo cuando se accede a él
     private val sessionManager by lazy { SessionManager(this) }
@@ -78,248 +52,186 @@ class LoginActivity : AppCompatActivity() {
     // Layout para mostrar errores de conexión de red
     private lateinit var networkErrorLayout: View
     private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
+    private var isNetworkErrorLayoutEnabled = Constants.getNetworkErrorLayout()
 
-    // Variables para verificar si los datos de usuario y empresa ya están cargados
-    var isEmpresaPreloaded = false
-    var isUserPreloaded = false
+    // Administrador de autocompletado para cargar empresas
+    private lateinit var autocompleteManager: AutocompleteManager
 
-    /**
-     * Método que se ejecuta al crear la actividad.
-     * Se inicializan los elementos y se cargan los datos necesarios como el estado de la red,
-     * la interfaz de usuario y los datos del usuario y la empresa.
-     */
-    @OptIn(FlowPreview::class)
+    private lateinit var obraAutocomplete: AutoCompleteTextView
+    private lateinit var obraLayout: TextInputLayout
+    private lateinit var obraTextInputLayout: TextInputLayout
+    private lateinit var empresaEditText: TextInputEditText
+    private lateinit var empresaTextInputLayout: TextInputLayout
+    private lateinit var usuarioEditText: TextInputEditText
+    private lateinit var usuarioTextInputLayout: TextInputLayout
+    private lateinit var passwordEditText: TextInputEditText
+    private lateinit var passwordTextInputLayout: TextInputLayout
+    private lateinit var tvNotMeLink: TextView
+
+    // ViewModel para gestionar los datos de la aplicación
+    private val appDataViewModel: AppDataViewModel by viewModels() // Usamos el delegado by viewModels()
+
+    private var empresaDbName: String? = null
+    private lateinit var empresaData: Map<String, String?>
+    private lateinit var obraData: Map<String, String?>
+    private lateinit var userDetails: Map<String, String?>
+
+    private var selectedObra: Obra? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Verificar si ya existen datos guardados del usuario
-        val userDetails = sessionManager.getUserDetails()
-        val empresa = sessionManager.getEmpresaData() // Obtener los datos de la empresa
-
-        if (!userDetails["legajo"].isNullOrEmpty() && !userDetails["nombre"].isNullOrEmpty()) {
-            isUserPreloaded = true
-            // Mostrar mensaje de bienvenida
-            binding.tvWelcomeMessage.text = "¡Hola ${userDetails["nombre"]?.uppercase(Locale.ROOT)}!"
-            binding.tvWelcomeMessage.visibility = View.VISIBLE
-
-            // Mostrar el enlace de "No soy yo"
-            binding.tvNotMeLink.visibility = View.VISIBLE
-
-            // Ocultar los campos de empresa y usuario
-            binding.empresaTextInputLayout.visibility = View.GONE
-            binding.usuarioTextInputLayout.visibility = View.GONE
-
-            // Si los datos de la empresa existen, mostrar el nombre de la empresa en el campo de autocomplete
-            if (empresa != null && empresa.nombre.isNotEmpty() && !empresa.db_name.isNullOrEmpty()) {
-                isEmpresaPreloaded = true
-                Log.d("LoginActivity", "Empresa recuperada: ${empresa.nombre}")
-                binding.empresaAutocomplete.setText(empresa.nombre) // Asignar el nombre de la empresa
-            } else {
-                Log.d("LoginActivity", "No se encontraron datos de empresa en SharedPreferences.")
-                Toast.makeText(this, "No se encontraron datos de empresa en SharedPreferences.", Toast.LENGTH_SHORT).show()
-            }
-
-            // Asignar el legajo al campo de usuario
-            val legajo = userDetails["legajo"]
-            if (!legajo.isNullOrEmpty()) {
-                Log.d("LoginActivity", "Legajo recuperado: $legajo")
-                binding.usuarioEditText.setText(legajo)  // Asignar el legajo al campo de usuario
-            }
-        } else {
-            // Si no hay datos, mostrar los campos de login
-            Log.d("LoginActivity", "No se encontraron datos de usuario en SharedPreferences.")
-        }
-
-        binding.tvNotMeLink.setOnClickListener {
-            // Limpiar el campo de empresa
-            binding.empresaAutocomplete.setText("")
-            // Limpiar el campo de usuario
-            binding.usuarioEditText.setText("")
-
-            // Borrar los datos del usuario almacenados en SessionManager
-            sessionManager.clearUserDetails()
-
-            // Mostrar los campos de empresa y usuario nuevamente
-            binding.empresaTextInputLayout.visibility = View.VISIBLE
-            binding.usuarioTextInputLayout.visibility = View.VISIBLE
-
-            // Ocultar el mensaje de bienvenida y el enlace de "No soy yo"
-            binding.tvWelcomeMessage.visibility = View.GONE
-            binding.tvNotMeLink.visibility = View.GONE
-
-            // Aquí puedes restablecer cualquier otro estado necesario
-        }
+        // Configurar el ícono del menú
+        val menuIcon = findViewById<ImageView>(R.id.menuIcon)
+        menuIcon.setOnClickListener { showPopupMenu(it) }
 
         // Asignar valores por defecto en modo Debug
-        val isDebuggable = false // BuildConfig.DEBUG
+        val isDebuggable = BuildConfig.DEBUG
 
         // Guardar el valor de isDebuggable en SessionManager
         sessionManager.saveDebuggable(isDebuggable)
         Log.d("LoginActivity", "Debuggable: $isDebuggable")
 
-        // Obtener el ViewModel
-        appDataViewModel = ViewModelProvider(this).get(AppDataViewModel::class.java)
+        // Inicialización de autocompleteManager después de appDataViewModel
+        autocompleteManager = AutocompleteManager(this, appDataViewModel, sessionManager)
 
-        // Crear una instancia de AutocompleteManager
-        autocompleteManager = AutocompleteManager(this, appDataViewModel)
+        // Obtener y almacenar los datos de la empresa
+        empresaData = sessionManager.getEmpresaData()
 
-        // Cargar empresas y capturar el objeto Empresa seleccionado
-        autocompleteManager.loadEmpresas(
-            binding.empresaAutocomplete, this) { empresa ->
-            Log.d("LoginActivity", "Empresa selecionada: $empresa")
-            selectedEmpresa = empresa // Guardar empresa seleccionada
+        // Obtener y almacenar los datos de la obra
+        obraData = sessionManager.getObraData()
+
+        obraAutocomplete = binding.obraAutocomplete
+        obraTextInputLayout = binding.obraTextInputLayout
+        empresaEditText = binding.empresaEditText
+        empresaTextInputLayout = binding.empresaTextInputLayout
+        usuarioEditText = binding.usuarioEditText
+        usuarioTextInputLayout = binding.usuarioTextInputLayout
+        passwordEditText = binding.passwordEditText
+        passwordTextInputLayout = binding.passwordTextInputLayout
+        tvNotMeLink = binding.tvNotMeLink
+
+
+        // Versión actual de la app
+        val currentVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: ""
+
+        // Última versión almacenada
+        val lastVersion = sessionManager.getLastVersion()
+
+        if (lastVersion.isNullOrEmpty() || isVersionGreater(currentVersion, lastVersion)) {
+            // Actualizamos la última versión almacenada
+            sessionManager.saveLastVersion(currentVersion)
+
+// Ejecutar acción única para una versión específica
+            if (currentVersion == "1.0.33") {
+                // Forzar revalidación del login
+                sessionManager.clearAuthToken()
+                sessionManager.clearEmpresaData()
+                sessionManager.clearObraData()
+
+                // Configurar empresa predeterminada
+                empresaEditText.setText("JEPSA")
+
+                Log.d("LoginActivity", "Acción única ejecutada para la versión $currentVersion")
+            }
+// Fin de la ejecución de la acción única
+
+        } else {
+            Log.d("LoginActivity", "Versión actual: $currentVersion, última guardada: $lastVersion")
         }
 
-        // Llamar a la función para convertir el texto a mayúsculas
-        setEditTextToUppercase(binding.empresaAutocomplete)
-
-        addTextWatcher(binding.empresaTextInputLayout, "Campo requerido")
-        addTextWatcher(binding.usuarioTextInputLayout, "Campo requerido")
-        addTextWatcher(binding.passwordTextInputLayout, "Campo requerido")
-
-        binding.passwordEditText.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-                binding.loginButton.performClick() // Simula un clic en el botón de login
-                true // Indica que la acción se ha manejado
-            } else {
-                false // Indica que la acción no se ha manejado
+        val token = sessionManager.getAuthToken()
+        if (!token.isNullOrEmpty()) {
+            lifecycleScope.launch {
+                val result = loginViewModel.validateToken(token) // Validar el token
+                if (result is ResultData.Success) {
+                    startMainActivity() // Redirigir al MainActivity si es válido
+                    finish()
+                }
             }
         }
 
-        // Listener para el botón de login
-        binding.loginButton.setOnClickListener {
+        // Eliminar las claves específicas
+        //sessionManager.removeKeys("last_version") // agregar una o varias key a eliminar
 
-            val usuario = binding.usuarioEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
+        initUI()
+        setupObservers()
+        setupListeners()
 
-            // Cerrar el teclado usando AppUtils
-            AppUtils.closeKeyboard(this)
+        // Detecta el tamaño de la ventana y ajusta el formulario si el teclado está visible
+        binding.root.viewTreeObserver.addOnGlobalLayoutListener {
+            val rect = android.graphics.Rect()
+            binding.root.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = binding.root.rootView.height
+            val keypadHeight = screenHeight - rect.bottom
 
-            // Usar la empresa almacenada en SharedPreferences si existe
-            val empresa = sessionManager.getEmpresaData()
-
-            if (validarCampos()) {
-
-                // Verificar si hay conexión a internet
-                if (!NetworkStatusHelper.isNetworkAvailable()) {
-                    // Opcionalmente, puedes quitar el foco de la vista actual
-                    AppUtils.clearFocus(this)
-
-                    Toast.makeText(this, "No hay conexión a internet", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-
-                val progressDialog = ProgressDialogFragment.show(supportFragmentManager)
-                lifecycleScope.launch {
-                    try {
-
-                        // Usar la empresa guardada si está disponible
-                        val dbName = empresa?.db_name ?: selectedEmpresa?.db_name
-
-                        if (dbName.isNullOrEmpty()) {
-                            Log.e("LoginActivity", "DB Name es nulo o vacío")
-                            Toast.makeText(this@LoginActivity, "DB Name es nulo o vacío", Toast.LENGTH_SHORT).show()
-
-                            return@launch
-                        }
-
-                        val loginRequest = LoginRequest(usuario, password, dbName)
-                        val requestBody = Gson().toJson(loginRequest)
-                            .toRequestBody("application/json".toMediaTypeOrNull())
-
-                        Log.d("LoginActivity", "Datos a enviar: Usuario = $usuario, Password = $password, DB Name = $dbName")
-                        Log.d("LoginActivity", "Enviando datos al servidor: $requestBody")
-
-                        // Realizar la solicitud de login
-                        val response = apiService.login(requestBody)
-
-                        Log.d("LoginActivity", "Enviando datos al servidor: $requestBody")
-
-                        handleLoginResponse(response)
-
-                    } catch (e: HttpException) {
-                        progressDialog.dismiss()
-                        val errorBody = e.response()?.errorBody()?.string()
-                        val errorMessage = parseErrorMessage(errorBody)
-                        Log.e("LoginActivity", "Error HTTP: ${e.code()} - $errorMessage")
-                        Toast.makeText(this@LoginActivity, errorMessage, Toast.LENGTH_SHORT).show()
-                    } catch (e: UnknownHostException) {
-                        progressDialog.dismiss()
-                        Log.e("LoginActivity", "Error de conexión a internet: ${e.message}")
-                        Toast.makeText(
-                            this@LoginActivity,
-                            "No hay conexión a internet",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } catch (e: SocketTimeoutException) {
-                        progressDialog.dismiss()
-                        Log.e("LoginActivity", "Timeout de la petición: ${e.message}")
-                        Toast.makeText(
-                            this@LoginActivity,
-                            "Timeout de la petición",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } catch (e: Exception) {
-                        progressDialog.dismiss()
-                        Log.e("LoginActivity", "Error en la autenticación: ${e.message}", e)
-                        Toast.makeText(
-                            this@LoginActivity,
-                            "Error en la autenticación",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    } finally {
-                        progressDialog.dismiss()
+            if (keypadHeight > screenHeight * 0.15) {
+                val focusedView = currentFocus
+                if (focusedView != null) {
+                    binding.scrollView.post {
+                        binding.scrollView.smoothScrollTo(0, focusedView.bottom)
                     }
                 }
             }
         }
 
-        // Detecta el tamaño de la ventana y ajusta el formulario si el teclado está visible
-        binding.root.viewTreeObserver.addOnGlobalLayoutListener {
-            val rect = Rect()
-            binding.root.getWindowVisibleDisplayFrame(rect)
-            val screenHeight = binding.root.rootView.height
-
-            val keypadHeight = screenHeight - rect.bottom
-            if (keypadHeight > screenHeight * 0.15) { // Teclado visible
-                binding.scrollView.scrollTo(0, binding.loginButton.bottom)
+        // Configurar la validación de empresa
+        binding.validateEmpresaButton.setOnClickListener {
+            AppUtils.closeKeyboard(this)
+            if (isNetworkCheckEnabled && NetworkStatusHelper.isConnected()) {
+                validateEmpresa()
             } else {
-                // Teclado oculto, opcionalmente puedes restablecer la vista aquí si es necesario
+//                Toast.makeText(this, "No hay conexión a internet, intenta mas tardes.", Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG).show()
             }
         }
 
-        networkErrorLayout = findViewById(R.id.networkErrorLayout) // Enlaza con el layout de error de red
+        binding.loginButton.setOnClickListener {
+            AppUtils.closeKeyboard(this)
+            if (isNetworkCheckEnabled) {
+                if (NetworkStatusHelper.isConnected()) {
+                    validateLogin()
+                } else {
+//                    Toast.makeText(this, "No hay conexión a internet, intenta mas tardes.", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG)
+                        .setBackgroundTint(ContextCompat.getColor(this, R.color.colorDanger))
+                        .setActionTextColor(ContextCompat.getColor(this, R.color.colorWhite))
+                        .show()
+                }
+            }
+        }
 
-        // Observa los cambios en la conectividad de red
+        // Agregar listeners para los campos de texto
+        addTextWatcher(empresaTextInputLayout, "Campo requerido")
+        addTextWatcher(usuarioTextInputLayout, "Campo requerido")
+        addTextWatcher(passwordTextInputLayout, "Campo requerido")
+        addTextWatcher(obraTextInputLayout, "Campo requerido")
+
+        // Llamar a la función para convertir el texto a mayúsculas
+        setEditTextToUppercase(empresaEditText)
+        setAutocompleteToUppercase(obraAutocomplete)
+
+        // Referencia al layout de error
+        networkErrorLayout = findViewById(R.id.networkErrorLayout)
+
+        // Detecta cambios en la conectividad
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 NetworkStatusHelper.networkAvailable
 //                .debounce(3000) // Evita fluctuaciones rápidas en la red
-                    .collect { isConnected ->
-                        if (isNetworkCheckEnabled) {
-                            if (isConnected) {
-                                hideNetworkErrorLayout()
-                                val adapter = binding.empresaAutocomplete.adapter
-                                if (adapter == null || adapter.count == 0) {
-                                    // Si el adaptador está vacío, recargar empresas
-                                    autocompleteManager.loadEmpresas(
-                                        binding.empresaAutocomplete,
-                                        this@LoginActivity
-                                    ) { empresa ->
-                                        Log.d(
-                                            "LoginActivity",
-                                            "Empresa cargada tras reconexión: $empresa"
-                                        )
-                                        selectedEmpresa = empresa
-                                    }
-                                }
-                            } else {
-                                showNetworkErrorLayout()
-                            }
+                .collect { isConnected ->
+                    if (isNetworkCheckEnabled) {
+                        if (isConnected) {
+                            if (!empresaData["empresaDbName"].isNullOrEmpty()) loadObrasData()
+
+                            if (isNetworkErrorLayoutEnabled) hideNetworkErrorLayout()
+                        } else {
+                            if (isNetworkErrorLayoutEnabled) showNetworkErrorLayout()
                         }
+                    }
                 }
             }
         }
@@ -336,75 +248,513 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
+    }
 
-        binding.root.viewTreeObserver.addOnGlobalLayoutListener {
-            val rect = Rect()
-            binding.root.getWindowVisibleDisplayFrame(rect)
-            val screenHeight = binding.root.rootView.height
-            val keypadHeight = screenHeight - rect.bottom
+    private fun isVersionGreater(version1: String, version2: String): Boolean {
+        val v1Parts = version1.split(".").map { it.toIntOrNull() ?: 0 }
+        val v2Parts = version2.split(".").map { it.toIntOrNull() ?: 0 }
+        for (i in 0 until maxOf(v1Parts.size, v2Parts.size)) {
+            val part1 = v1Parts.getOrElse(i) { 0 }
+            val part2 = v2Parts.getOrElse(i) { 0 }
+            if (part1 != part2) return part1 > part2
+        }
+        return false
+    }
 
-            if (keypadHeight > screenHeight * 0.15) { // El teclado está visible
-                val focusedView = currentFocus
-                if (focusedView != null) {
-                    binding.scrollView.post {
-                        binding.scrollView.smoothScrollTo(0, focusedView.bottom)
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.main, menu)
+        return true
+    }
+
+    private fun showPopupMenu(view: View) {
+        // Crear el PopupMenu
+        val popupMenu = PopupMenu(this, view)
+        popupMenu.inflate(R.menu.menu_login) // Inflar el menú desde XML
+
+        // Configurar acciones de los ítems
+        popupMenu.setOnMenuItemClickListener { item ->
+
+            when (item.itemId) {
+                R.id.action_change_company -> {
+                    sessionManager.clearEmpresaData()
+                    sessionManager.clearObraData()
+                    showEmpresaStep()
+                    true
+                }
+                R.id.action_exit_app -> {
+                    finishAffinity() // Cierra la aplicación
+                    true
+                }
+                else -> false
+            }
+        }
+
+        // Mostrar el menú
+        popupMenu.show()
+    }
+
+    private fun setupListeners() {
+        empresaEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                binding.validateEmpresaButton.performClick() // Simula un clic en el botón de login
+                true // Indica que la acción se ha manejado
+            } else {
+                false // Indica que la acción no se ha manejado
+            }
+        }
+
+        passwordEditText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                binding.loginButton.performClick() // Simula un clic en el botón de login
+                true // Indica que la acción se ha manejado
+            } else {
+                false // Indica que la acción no se ha manejado
+            }
+        }
+
+        obraAutocomplete.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                binding.loginButton.performClick() // Simula un clic en el botón de login
+                true // Indica que la acción se ha manejado
+            } else {
+                false // Indica que la acción no se ha manejado
+            }
+        }
+    }
+
+    private fun setupObservers() {
+
+        // Observador para errores al cargar obras
+//        appDataViewModel.errorObras.observe(this) { event ->
+//            event.getContentIfNotHandled()?.let { message ->
+//                if (!empresaData["empresaDbName"].isNullOrEmpty()) {
+//                    if (NetworkStatusHelper.isNetworkAvailable()) {
+//                        if (event != null) {
+//                            binding.loginButton.isEnabled = false
+//                            // Mostrar un mensaje o gestionar la recarga
+//                            Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE)
+//                                .setAction("Reintentar") {
+//                                    loadObrasData()
+//                                }
+//                                .show()
+//                        } else {
+//                            binding.loginButton.isEnabled = true
+//                        }
+//                    }
+//                }
+//            }
+//        }
+
+        appDataViewModel.errorObras.observe(this) { event ->
+            val message = event.getContentIfNotHandled()
+            if (!empresaData["empresaDbName"].isNullOrEmpty()) {
+                if (NetworkStatusHelper.isNetworkAvailable()) {
+                    if (message != null) {
+                        binding.loginButton.isEnabled = false
+                        Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE)
+                            .setAction("Reintentar") {
+                                loadObrasData() // Llamada a recargar las obras
+                            }
+                            .show()
+                    } else {
+                        // Si no hay error, habilita el botón
+                        binding.loginButton.isEnabled = true
                     }
+                } else {
+                    // Habilita el botón incluso sin conexión si no hay error
+                    binding.loginButton.isEnabled = true
+                }
+            }
+        }
+
+
+
+        loginViewModel.successMessage.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { message ->
+//                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+            }
+        }
+
+//        // Observador para mensajes de error usando getContentIfNotHandled()
+//        loginViewModel.errorMessage.observe(this) { message ->
+//            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+//        }
+
+        loginViewModel.fieldErrorMessage.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { errorCode ->
+                when (errorCode) {
+                    "wrong_password" -> binding.passwordTextInputLayout.error = "Contraseña incorrecta."
+                    "user_not_found" -> binding.usuarioTextInputLayout.error = "Usuario no encontrado."
+                    "empresa_not_found" -> binding.empresaTextInputLayout.error = "Empresa no encontrada."
+                    "wrong_empresa" -> binding.empresaTextInputLayout.error = "Empresa incorrecta."
+//                    "missing_data" -> Toast.makeText(this, "Por favor, complete todos los campos.", Toast.LENGTH_SHORT).show()
+                    "missing_data" -> Snackbar.make(binding.root, "Por favor, complete todos los campos.", Snackbar.LENGTH_LONG).show()
+//                    "db_connection" -> Toast.makeText(this, "Error de conexión con la base de datos.", Toast.LENGTH_SHORT).show()
+                    "db_connection" -> Snackbar.make(binding.root, "Error de conexión con la base de datos.", Snackbar.LENGTH_LONG).show()
+                    else -> Log.e("LoginActivity", "Código de error desconocido: $errorCode")
+                }
+            }
+        }
+
+        loginViewModel.errorMessage.observe(this) { event ->
+            event.getContentIfNotHandled()?.let { message ->
+//                Toast.makeText(this,  message, Toast.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                    .setBackgroundTint(ContextCompat.getColor(this, R.color.colorDanger))
+                    .setActionTextColor(ContextCompat.getColor(this, R.color.colorWhite))
+                    .show()
+            }
+        }
+
+        // Observador para la validación de empresa
+        loginViewModel.empresaValidationResult.observe(this) { result ->
+            LoadingDialogUtil.hideLoading(lifecycleScope, 500L)
+
+            when (result) {
+                is ResultData.Success -> {
+                    val empresa = result.data
+                    Log.d("LoginActivity", "Validación exitosa. Empresa recibida: $empresa")
+
+                    if (empresa.db_name.isNotEmpty()) {
+                        Log.d("LoginActivity", "Guardando datos de empresa: ${empresa.code}, ${empresa.nombre}, ${empresa.db_name}")
+                        sessionManager.saveEmpresaData(empresa.code, empresa.nombre, empresa.db_name)
+                        empresaDbName = empresa.db_name
+                        showLoginStep2()
+                    } else {
+                        Log.e("LoginActivity", "Error: db_name vacío en la empresa validada.")
+                    }
+                }
+                is ResultData.Error -> {
+                    Log.e("LoginActivity", "Error al validar empresa: ${result.message}")
+                }
+            }
+        }
+
+        // Observador para el login
+        loginViewModel.loginResult.observe(this) { result ->
+            LoadingDialogUtil.hideLoading(lifecycleScope, 500L)
+            when (result) {
+                is ResultData.Success -> {
+                    val token = result.data.token // Obtener el token del resultado
+                    if (!token.isNullOrEmpty()) {
+                        sessionManager.saveAuthToken(token) // Guardar el token en SessionManager
+                        Log.d("TokenDebug", "Token guardado: $token")
+                    } else {
+//                        Toast.makeText(this, "Error: No se recibió un token válido.", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(binding.root, "Error: No se recibió un token válido.", Snackbar.LENGTH_LONG).show()
+                    }
+
+                    val user = result.data.user
+                    if (user != null) {
+                        sessionManager.saveUserDetails(
+                            user.id ?: -1,
+                            user.legajo,
+                            user.nombre,
+                            user.apellido,
+                            user.roles,
+                            user.principalRole,
+                            user.email,
+                            user.telefono
+                        )
+                        startMainActivity()
+                    } else {
+//                        Toast.makeText(this, "Error: Usuario inválido.", Toast.LENGTH_SHORT).show()
+                        Snackbar.make(binding.root, "Error: Usuario inválido.", Snackbar.LENGTH_LONG).show()
+
+                    }
+                }
+                is ResultData.Error -> {
+//                    Toast.makeText(this, "${result.message}", Toast.LENGTH_SHORT).show()
+                    Snackbar.make(binding.root, "${result.message}", Snackbar.LENGTH_LONG).show()
+
                 }
             }
         }
     }
 
+    private fun startMainActivity() {
+        startActivity(Intent(this, MainActivity::class.java))
+        finish()
+    }
+
+    private fun initUI() {
+
+        empresaData = sessionManager.getEmpresaData()
+        if (empresaData["empresaDbName"].isNullOrEmpty()) {
+            showEmpresaStep()
+        } else {
+            empresaDbName = empresaData["empresaDbName"]
+            showLoginStep2() // Si ya hay datos de empresa, ir directamente al paso 2
+        }
+    }
+
+    private fun showEmpresaStep() {
+
+        binding.empresaTextInputLayout.isErrorEnabled = false
+
+        // Mostrar solo el campo de empresa y el botón de validar
+        binding.empresaTextInputLayout.visibility = View.VISIBLE
+        binding.validateEmpresaButton.visibility = View.VISIBLE
+
+        // Ocultar otros elementos del paso 2
+        binding.usuarioTextInputLayout.visibility = View.GONE
+        binding.recuperarPasswordButton.visibility = View.GONE
+        binding.passwordTextInputLayout.visibility = View.GONE
+        binding.obraTextInputLayout.visibility = View.GONE
+        binding.loginButton.visibility = View.GONE
+        binding.menuIcon.visibility = View.GONE
+        binding.obraLayout.visibility = View.GONE
+
+        binding.tvWelcomeMessage.visibility = View.GONE
+        binding.tvNotMeLink.visibility = View.GONE
+    }
+
+    private fun showLoginStep2() {
+
+        // Limpia los errores de todos los TextInputLayout
+        val inputLayouts = listOf(
+            binding.usuarioTextInputLayout,
+            binding.passwordTextInputLayout,
+            binding.obraTextInputLayout
+        )
+
+        inputLayouts.forEach { it.isErrorEnabled = false }
+
+        loadObrasData()
+
+        empresaData = sessionManager.getEmpresaData()
+        obraData = sessionManager.getObraData()
+
+        // Ocultar los elementos del paso 1
+        binding.empresaTextInputLayout.visibility = View.GONE
+        binding.validateEmpresaButton.visibility = View.GONE
+
+        // Mostrar los elementos del paso 2
+        binding.menuIcon.visibility = View.VISIBLE
+
+        binding.recuperarPasswordButton.visibility = View.VISIBLE
+        binding.passwordTextInputLayout.visibility = View.VISIBLE
+        binding.loginButton.visibility = View.VISIBLE
+
+        if (obraData["obraNombre"].isNullOrEmpty() || binding.obraAutocomplete.text.isEmpty()) {
+            binding.obraAutocomplete.setText("")
+            binding.obraTextInputLayout.visibility = View.VISIBLE
+            binding.obraLayout.visibility = View.GONE
+            binding.obraTextView.text = ""
+        } else {
+            // Mostrar la obra seleccionada y permitir cambiarla
+            binding.obraTextView.text = "Obra: ${obraData["obraNombre"]}"
+            binding.obraLayout.visibility = View.VISIBLE
+            binding.obraTextInputLayout.visibility = View.GONE
+
+            binding.obraEditIcon.setOnClickListener {
+                binding.obraLayout.visibility = View.GONE
+                binding.obraTextInputLayout.visibility = View.VISIBLE
+            }
+        }
+
+        // Obtener detalles de usuario guardados
+        userDetails = sessionManager.getUserDetails()
+
+        if (!userDetails["nombre"].isNullOrEmpty()) {
+            // Oculta el texto del logo
+            binding.logoTextImageView.visibility = View.GONE
+
+            // Mostrar saludo inicial
+            binding.apply {
+                tvWelcomeMessage.text = "¡Hola ${userDetails["nombre"]?.uppercase()}!"
+                tvWelcomeMessage.visibility = View.VISIBLE
+                tvNotMeLink.visibility = View.VISIBLE
+            }
+
+            // Ocultar campo de usuario si hay datos válidos
+            if (!userDetails["legajo"].isNullOrEmpty() || !userDetails["email"].isNullOrEmpty()) {
+                usuarioEditText.setText(userDetails["legajo"] ?: userDetails["email"])
+                usuarioTextInputLayout.visibility = View.GONE
+            } else {
+                usuarioEditText.setText("")
+                usuarioTextInputLayout.visibility = View.VISIBLE
+            }
+
+            // Configurar "No soy yo" para borrar los datos de usuario
+            tvNotMeLink.setOnClickListener {
+                sessionManager.clearUserDetails()
+                userDetails = sessionManager.getUserDetails()
+                binding.apply {
+                    // Oculta el texto del logo
+                    logoTextImageView.visibility = View.VISIBLE
+                    usuarioTextInputLayout.visibility = View.VISIBLE
+                    usuarioEditText.setText("")
+                    passwordEditText.setText("")
+                    tvWelcomeMessage.visibility = View.GONE
+                    tvNotMeLink.visibility = View.GONE
+                }
+            }
+
+            // Asigna el OnClickListener al TextView de "Recuperar Contraseña"
+            binding.recuperarPasswordButton.setOnClickListener {
+                Snackbar.make(binding.root, "Comunicarse con el administrador de la app. \nNo disponible en esta versión.", Snackbar.LENGTH_LONG).show()
+            }
+
+            obraData.let { obra ->
+                if (obra.isNullOrEmpty()) {
+                    binding.obraAutocomplete.setText("")
+                } else {
+                    obraAutocomplete.setText("${obra["centroCosto"]} - ${obra["obraNombre"]}", false)
+                    obraAutocomplete.dismissDropDown()
+                }
+            }
+
+        } else {
+            // Muestra el texto del logo
+            binding.logoTextImageView.visibility = View.VISIBLE
+
+            // Si no hay datos de usuario, mostrar el campo de usuario
+            binding.usuarioTextInputLayout.visibility = View.VISIBLE
+            binding.recuperarPasswordButton.visibility = View.GONE
+            binding.tvWelcomeMessage.visibility = View.GONE
+            binding.tvNotMeLink.visibility = View.GONE
+        }
+    }
+
+    private fun loadObrasData() {
+        // Cargar datos de obras
+        loadDataIfEmpty(obraAutocomplete) {
+            autocompleteManager.loadObras(
+                autoCompleteTextView = obraAutocomplete,
+                lifecycleOwner = this,
+                empresaDbName = empresaDbName, // Pasamos el db_name explícitamente
+                forceRefresh = true, // Forzamos la recarga desde la base externa
+                filterEstado = true // Filtramos por estado
+            ) { obra ->
+                selectedObra = obra
+                Log.d("ParteDiarioFormFragment", "Obra seleccionada: $obra")
+                // Guardamos la obra seleccionada en SessionManager solo desde el LoginActivity
+                sessionManager.saveObraData(obra.id, obra.nombre, obra.centroCosto)
+            }
+        }
+    }
+
+    private fun validateEmpresa() {
+        val empresaCode = empresaEditText.text.toString().trim()
+
+        Log.d("LoginActivity", "Validando empresaCode: $empresaCode")
+
+        if (!validateEmpresaFields(empresaCode)) return
+
+        LoadingDialogUtil.showLoading(this, "Validando empresa...")
+        loginViewModel.validateEmpresa(empresaCode)
+    }
+
+    private fun validateEmpresaFields(empresaCode: String): Boolean {
+        var isValid = true
+        if (empresaCode.isEmpty()) {
+            empresaTextInputLayout.error = "Codigo de empresa requerido"
+            isValid = false
+        }
+        return isValid
+    }
+
+    private fun validateLogin() {
+        val usuario = usuarioEditText.text.toString().trim()
+        val password = passwordEditText.text.toString().trim()
+        val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
+
+        obraData = sessionManager.getObraData()
+        Log.d("LoginActivity", "Validando credenciales: $usuario, $password, $obraData")
+
+        if (!validateLoginFields(usuario, password, obraData, )) return
+
+        LoadingDialogUtil.showLoading(this, "Iniciando sesión...")
+        loginViewModel.login(usuario, password, empresaDbName!!)
+    }
+
+    private fun validateLoginFields(usuario: String, password: String, obraData: Map<String, String?>): Boolean {
+        var isValid = true
+
+        if (usuario.isEmpty()) {
+            binding.usuarioTextInputLayout.error = "Usuario requerido"
+            isValid = false
+        }
+        if (password.isEmpty()) {
+            binding.passwordTextInputLayout.error = "Contraseña requerida"
+            isValid = false
+        }
+
+        if (obraAutocomplete.text.isNotEmpty()) {
+            if (selectedObra == null) {
+                val obraName = obraAutocomplete.text.toString()
+                selectedObra = autocompleteManager.getObraByName(obraName)
+                if (selectedObra == null) {
+                    obraTextInputLayout.error = "Seleccione una obra válida"
+                    obraTextInputLayout.isErrorEnabled = true
+                    isValid = false
+                } else {
+                    obraTextInputLayout.isErrorEnabled = false
+                }
+            }
+        } else {
+            obraTextInputLayout.error = "Obra requerida"
+            obraTextInputLayout.isErrorEnabled = true
+            isValid = false
+        }
+        return isValid
+    }
+
     /**
-     * Función que gestiona el layout de errores de red y recarga componentes si la red está disponible.
+     * Verifica si el adaptador del AutoCompleteTextView está vacío antes de cargar los datos.
+     *
+     * @param autoCompleteTextView El AutoCompleteTextView a verificar.
+     * @param loadFunction La función de carga que se ejecutará si el adaptador está vacío.
      */
+    private fun loadDataIfEmpty(autoCompleteTextView: AutoCompleteTextView, loadFunction: () -> Unit) {
+        val adapterCount = autoCompleteTextView.adapter?.count ?: 0
+        if (adapterCount == 0) {
+            loadFunction()
+        }
+    }
+
+    private fun setAutocompleteToUppercase(autocomplete: AutoCompleteTextView) {
+        autocomplete.filters = arrayOf(InputFilter.AllCaps())
+    }
+
+    // Función que convierte el texto ingresado en un TextView a mayúsculas.
+    private fun setEditTextToUppercase(editText: TextInputEditText) {
+        editText.filters = arrayOf(InputFilter.AllCaps())
+    }
+
+
+    // Función que gestiona el layout de errores de red y recarga componentes si la red está disponible.
     private fun showNetworkErrorLayout() {
         val networkErrorLayout = findViewById<View>(R.id.networkErrorLayout)
 
         // Cerrar el teclado usando AppUtils
         AppUtils.closeKeyboard(this)
 
-        if (networkErrorLayout.visibility != View.VISIBLE) {
-            networkErrorLayout.animate()
-                .alpha(1f)
-                .setDuration(300)
-                .withStartAction { networkErrorLayout.visibility = View.VISIBLE }
-                .start()
-        }
+        networkErrorLayout.visibility = View.VISIBLE
         networkErrorLayout.isClickable = true
         networkErrorLayout.isFocusable = true
     }
 
     private fun hideNetworkErrorLayout() {
         val networkErrorLayout = findViewById<View>(R.id.networkErrorLayout)
+        val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
         val textViewError = networkErrorLayout.findViewById<TextView>(R.id.textViewError)
-//        networkErrorLayout.visibility = View.GONE
-        if (networkErrorLayout.visibility == View.VISIBLE) {
-            networkErrorLayout.animate()
-                .alpha(0f)
-                .setDuration(300)
-                .withEndAction { networkErrorLayout.visibility = View.GONE }
-                .start()
-        }
+        networkErrorLayout.visibility = View.GONE
         textViewError?.text="Se perdio la conexión a internet"
+
     }
 
-    /**
-     * Función que agrega un TextWatcher a un campo de entrada para validar su contenido.
-     */
+    // Función que agrega un TextWatcher a un campo de entrada para validar su contenido.
     private fun addTextWatcher(textInputLayout: TextInputLayout, errorMessage: String) {
         val editText = textInputLayout.editText
         editText?.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Implementación vacía o tu código aquí
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Implementación vacía o tu código aquí
-            }
-
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                if (editText == binding.empresaAutocomplete) {
-                    selectedEmpresa = null // Limpiar selectedEmpresa solo si es el AutoCompleteTextView de empresas
+                if (editText == obraAutocomplete) {
+                    selectedObra = null
                 }
 
                 if (textInputLayout.isErrorEnabled) {
@@ -418,117 +768,4 @@ class LoginActivity : AppCompatActivity() {
         })
     }
 
-    /**
-     * Función que convierte el texto ingresado en un AutoCompleteTextView a mayúsculas.
-     */
-    private fun setEditTextToUppercase(editText: AutoCompleteTextView) {
-        editText.filters = arrayOf(InputFilter.AllCaps())
-    }
-
-    /**
-     * Función que maneja la respuesta de la solicitud de login.
-     */
-    private fun handleLoginResponse(response: Response<LoginResponse>) {
-        if (response.isSuccessful) {
-            val loginResponse = response.body()
-            val empresa = selectedEmpresa ?: sessionManager.getEmpresaData()
-
-            if (loginResponse?.success == true && empresa != null) {
-                // Guardar la empresa seleccionada
-                sessionManager.saveEmpresaData(empresa)
-
-                // Guardar los datos del usuario en SharedPreferences
-                loginResponse.user.let { user ->
-                    sessionManager.saveUserDetails(
-                        user.id ?: -1,
-                        user.legajo,
-                        user.nombre,
-                        user.apellido,
-                        user.roles,
-                        user.principalRole
-                    )
-                    Log.d("LoginActivity", "Datos de usuario guardados en SharedPreferences.")
-                }
-
-                // Iniciar la actividad principa
-//                startActivity(Intent(this, MainActivity::class.java))
-//                finish()
-
-                val intent = Intent(this, MainActivity::class.java)
-                intent.putExtra("CHECK_UPDATES_ON_STARTUP", true) // Indicar que se debe verificar actualizaciones
-                startActivity(intent)
-                finish() // Finaliza LoginActivity para limpiar la pila
-
-            } else {
-                val errorMessage = loginResponse?.message ?: "Error de autenticación desconocido"
-                Log.e("LoginActivity", "Error de autenticación: $errorMessage")
-                Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            val errorMessage = parseErrorMessage(response.errorBody()?.string())
-            Log.e("LoginActivity", "Error en la respuesta del servidor: ${response.code()} - $errorMessage")
-            Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    /**
-     * Función que parsea el mensaje de error del servidor.
-     */
-    private fun parseErrorMessage(errorBody: String?): String {
-        return if (errorBody.isNullOrEmpty()) {
-            "Error en la respuesta del servidor"
-        } else {
-            try {
-                val errorResponse = Gson().fromJson(errorBody, ErrorResponse::class.java)
-                errorResponse.message ?: "Error en la respuesta del servidor"
-            } catch (e: Exception) {
-                "Error en la respuesta del servidor"
-            }
-        }
-    }
-
-    /**
-     * Función para validar los campos de entrada del formulario de login.
-     */
-    private fun validarCampos(): Boolean {
-        var camposValidos = true
-
-        if (!isUserPreloaded && binding.usuarioEditText.text.isNullOrEmpty()) {
-            binding.usuarioTextInputLayout.error = "Campo requerido"
-            binding.usuarioTextInputLayout.isErrorEnabled = true
-            camposValidos = false
-        } else {
-            binding.usuarioTextInputLayout.isErrorEnabled = false
-        }
-
-        if (binding.passwordEditText.text.isNullOrEmpty()) {
-            binding.passwordTextInputLayout.error = "Campo requerido"
-            binding.passwordTextInputLayout.isErrorEnabled = true
-            camposValidos = false
-        } else {
-            binding.passwordTextInputLayout.isErrorEnabled = false
-        }
-
-        if (!isEmpresaPreloaded && binding.empresaAutocomplete.text.isEmpty()) {
-            binding.empresaTextInputLayout.error = "Campo requerido"
-            binding.empresaTextInputLayout.isErrorEnabled = true
-            camposValidos = false
-        } else if (selectedEmpresa == null && !isEmpresaPreloaded) {
-            val empresaName = binding.empresaAutocomplete.text.toString()
-            selectedEmpresa = autocompleteManager.getEmpresaByName(empresaName)
-
-            if (selectedEmpresa == null) {
-                binding.empresaTextInputLayout.error = "Seleccione una empresa válida"
-                camposValidos = false
-            } else {
-                binding.empresaTextInputLayout.isErrorEnabled = false
-            }
-        }
-
-        if (!camposValidos) {
-            Toast.makeText(this, "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
-        }
-
-        return camposValidos
-    }
 }

@@ -43,10 +43,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/equipoHorasLinearLayout"
-        android:autoSizeTextType="uniform"
-        android:autoSizeMinTextSize="12sp"
-        android:autoSizeMaxTextSize="16sp"
-        android:autoSizeStepGranularity="2sp"
         android:text="Observaciones: " />
 
 </RelativeLayout>

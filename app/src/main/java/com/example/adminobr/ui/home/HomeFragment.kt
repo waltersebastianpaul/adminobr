@@ -1,27 +1,16 @@
 package com.example.adminobr.ui.home
 
-import android.app.DownloadManager
-import android.app.PendingIntent
-import android.content.BroadcastReceiver
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import androidx.core.content.ContextCompat.RECEIVER_NOT_EXPORTED
 import android.content.res.ColorStateList
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.example.adminobr.R
 import com.example.adminobr.databinding.FragmentHomeBinding
-import com.example.adminobr.viewmodel.HomeViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
@@ -33,33 +22,17 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var sessionManager: SessionManager
-
-    private val downloadCompleteReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            if (intent?.action == DownloadManager.ACTION_DOWNLOAD_COMPLETE) {
-                val downloadId = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
-                val downloadManager = context?.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
-                val uri = downloadManager.getUriForDownloadedFile(downloadId)
-                if (uri != null) {
-                    installApk(uri)
-                }
-            }
-        }
-    }
+    private lateinit var empresaName: String // Declaración como propiedad de la clase
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val homeViewModel = ViewModelProvider(this)[HomeViewModel::class.java]
+        // Inicializar sessionManager aquí
+        sessionManager = SessionManager(requireContext())
+
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
-//        val textView: TextView = binding.textHome
-//        homeViewModel.text.observe(viewLifecycleOwner) {
-//            textView.text = it
-//        }
-
-        sessionManager = SessionManager(requireContext())
 
         return root
     }
@@ -87,7 +60,6 @@ class HomeFragment : Fragment() {
         if (userRoles?.contains("supervisor") == true || userRoles?.contains("administrador") == true) {
             binding.parteSimpleCardView.visibility = View.VISIBLE
         }
-
     }
 
     override fun onResume() {
@@ -107,14 +79,6 @@ class HomeFragment : Fragment() {
             val bundle = bundleOf("editMode" to false)
             findNavController().navigate(R.id.nav_parteDiarioFormFragment, bundle) // Reemplaza R.id.nav_partediario con el ID del fragmento destino
         }
-
-        // Registrar el BroadcastReceiver
-        ContextCompat.registerReceiver( // Usar ContextCompat.registerReceiver()
-            requireActivity(),
-            downloadCompleteReceiver,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-            RECEIVER_NOT_EXPORTED // Agregar el flag
-        )
 
 //        // Configuración del ExtendedFloatingActionButton
 //        val extendedFab: ExtendedFloatingActionButton? = requireActivity().findViewById(R.id.extended_fab)
@@ -136,34 +100,6 @@ class HomeFragment : Fragment() {
 //            }
 //        }
 
-    }
-
-    override fun onStop() {
-        super.onStop()
-    }
-    private fun installApk(uri: Uri) {
-        val intent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            requireContext(), 0, // requestCode
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE // Flags para Android 12+
-        )
-
-        try {
-            pendingIntent.send()
-        } catch (e: PendingIntent.CanceledException) {
-            // Manejar la excepción si el PendingIntent se cancela
-            Toast.makeText(requireContext(), "Error al instalar la actualización", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        requireActivity().unregisterReceiver(downloadCompleteReceiver) // Usar requireActivity()
     }
 
     override fun onDestroyView() {

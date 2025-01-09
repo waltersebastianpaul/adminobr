@@ -23,6 +23,7 @@
                 android:id="@+id/legajoUsuarioIdLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:baselineAligned="false"
                 android:orientation="horizontal"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
@@ -212,58 +213,108 @@
                     android:id="@+id/rolAutoComplete"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
+                    android:focusable="false"
                     android:hint="Rol de Usuario"
-                    android:inputType="none"
-                    android:focusable="false" />
+                    android:inputType="none" />
 
             </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Separador de Título -->
+            <TextView
+                android:id="@+id/passwordSectionTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="8dp"
+                android:paddingStart="8dp"
+                android:paddingVertical="4dp"
+                android:gravity="start"
+                android:visibility="visible"
+                android:text="Cambiar contraseña"
+                android:textColor="@color/colorButtonPrimary"
+                android:textSize="16sp"
+                android:textStyle="normal"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/rolTextInputLayout" />
 
             <!-- Campos de contraseña (visibilidad controlada por código) -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/passwordTextInputLayout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/passwordFieldsContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="16dp"
-                android:visibility="visible"
-                app:endIconMode="password_toggle"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/estadoAutocomplete">
+                android:visibility="gone" >
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/passwordEditText"
-                    android:layout_width="match_parent"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/actualPasswordTextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="Contraseña"
-                    android:inputType="textPassword"
-                    android:textSize="16sp" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:visibility="visible"
+                    app:endIconMode="password_toggle"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/password2TextInputLayout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="4dp"
-                android:layout_marginEnd="16dp"
-                android:visibility="visible"
-                app:endIconMode="password_toggle"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/passwordTextInputLayout">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/actualPasswordEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Contraseña actual"
+                        android:inputType="textPassword"
+                        android:textSize="16sp" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/password2EditText"
-                    android:layout_width="match_parent"
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/passwordTextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:hint="Confirmar Contraseña"
-                    android:inputType="textPassword"
-                    android:textSize="16sp" />
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="16dp"
+                    app:layout_goneMarginTop="4dp"
+                    app:endIconMode="password_toggle"
+                    app:layout_constraintTop_toBottomOf="@id/actualPasswordTextInputLayout"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/passwordEditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Contraseña"
+                        android:inputType="textPassword"
+                        android:textSize="16sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/password2TextInputLayout"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginTop="8dp"
+                    app:endIconMode="password_toggle"
+                    app:layout_constraintTop_toBottomOf="@id/passwordTextInputLayout"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/password2EditText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="Confirmar Contraseña"
+                        android:inputType="textPassword"
+                        android:textSize="16sp" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <!-- Botones (posición controlada por código) -->
             <Button

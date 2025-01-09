@@ -19,12 +19,26 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp" >
+            android:padding="16dp">
+
+            <ImageView
+                android:id="@+id/menuIcon"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_more_vert"
+                android:visibility="visible"
+                android:padding="5dp"
+                android:contentDescription="Menu"
+                android:background="@drawable/image_view_selector"
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/logoImageView"
                 android:layout_width="150dp"
-                android:layout_height="150dp"
+                android:layout_height="115dp"
                 android:layout_marginTop="50dp"
                 android:layout_marginBottom="16dp"
                 android:contentDescription="@string/logo_app"
@@ -32,6 +46,59 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:srcCompat="@mipmap/adminobr_logo" />
+
+            <ImageView
+                android:id="@+id/logoTextImageView"
+                android:layout_width="150dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="0dp"
+                android:contentDescription="@string/logo_app"
+                android:paddingHorizontal="18dp"
+                android:visibility="visible"
+                app:layout_constraintHorizontal_bias="0.502"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/logoImageView"
+                app:srcCompat="@mipmap/adminobr_text_logo" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/empresaTextInputLayout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="80dp"
+                android:layout_marginEnd="16dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/logoTextImageView"
+                app:layout_goneMarginTop="70dp"
+                android:visibility="gone"> <!-- Visible solo al inicio -->
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/empresaEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Empresa CODE"
+                    android:inputType="text"
+                    android:imeOptions="actionDone" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <Button
+                android:id="@+id/validateEmpresaButton"
+                android:layout_width="0dp"
+                android:layout_height="62dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:text="Validar Empresa"
+                android:textSize="16sp"
+                android:backgroundTint="@color/button_primary_background"
+                android:textColor="@color/button_primary_text_color"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/empresaTextInputLayout"
+                android:visibility="gone" /><!-- Visible solo al inicio -->
 
             <TextView
                 android:id="@+id/tvWelcomeMessage"
@@ -44,7 +111,7 @@
                 android:visibility="gone"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/logoImageView"
+                app:layout_constraintTop_toBottomOf="@id/logoTextImageView"
                 tools:ignore="HardcodedText" />
 
             <TextView
@@ -52,77 +119,50 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="44dp"
                 android:text="No soy yo"
                 android:textColor="@color/colorButtonPrimary"
                 android:visibility="gone"
                 android:focusable="false"
+                android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvWelcomeMessage"
                 tools:ignore="HardcodedText" />
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/empresaTextInputLayout"
+                android:id="@+id/usuarioTextInputLayout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="40dp"
+                android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp"
                 android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tvNotMeLink"
                 app:layout_goneMarginTop="40dp"
-
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                <AutoCompleteTextView
-                    android:id="@+id/empresaAutocomplete"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:hint="Empresa"
-                    android:completionThreshold="2"
-                    android:padding="16dp"
-                    android:textSize="16sp"
-                    android:inputType="text"
-                    android:imeOptions="actionNext"
-                    android:nextFocusForward="@id/usuarioEditText"
-                    tools:ignore="HardcodedText" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/usuarioTextInputLayout"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
-                android:visibility="visible"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/empresaTextInputLayout"
-                app:layout_goneMarginTop="0dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/usuarioEditText"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
-                    android:hint="@string/user"
+                    android:hint="Usuario"
                     android:inputType="text|textEmailAddress" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/passwordTextInputLayout"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="4dp"
                 android:layout_marginEnd="16dp"
+                android:focusable="false"
                 app:endIconMode="password_toggle"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:visibility="visible"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/usuarioTextInputLayout"
@@ -132,41 +172,128 @@
                     android:id="@+id/passwordEditText"
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
-                    android:hint="@string/pass"
-                    android:inputType="textPassword" />
-
+                    android:hint="Contraseña"
+                    android:inputType="textPassword"
+                    android:imeOptions="actionDone"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <TextView
-                android:id="@+id/recuperarPasswordTextView"
-                android:layout_width="wrap_content"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/obraLayout"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:text="@string/recuperar_contrasena"
-                android:enabled="true"
-                android:focusable="false"
-                android:textColor="@color/colorButtonPrimary"
-                app:layout_constraintStart_toStartOf="@id/passwordTextInputLayout"
-                app:layout_constraintTop_toBottomOf="@id/passwordTextInputLayout" />
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:visibility="visible"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/passwordTextInputLayout">
+
+                <TextView
+                    android:id="@+id/obraTextView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Obra:"
+                    android:textSize="16sp"
+                    android:textColor="@color/colorGray"
+                    android:paddingEnd="5dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/obraEditIcon"
+                    app:layout_constraintHorizontal_bias="0"
+                    app:layout_constraintHorizontal_chainStyle="packed"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+                <ImageView
+                    android:id="@+id/obraEditIcon"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_swap_horiz"
+                    android:focusable="false"
+                    android:contentDescription="Cambiar Obra"
+                    app:layout_constraintStart_toEndOf="@id/obraTextView"
+                    app:tint="@color/colorPrimary"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/obraTextInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="4dp"
+                android:visibility="visible"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/obraLayout">
+
+                <AutoCompleteTextView
+                    android:id="@+id/obraAutocomplete"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Obra"
+                    android:completionThreshold="1"
+                    android:padding="16dp"
+                    android:textSize="16sp"
+                    android:inputType="textAutoComplete" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <Button
                 android:id="@+id/loginButton"
                 android:layout_width="0dp"
                 android:layout_height="62dp"
-                android:layout_marginTop="24dp"
-                android:textAllCaps="true"
-                android:text="@string/button_login"
-                android:textSize="16sp"
-                android:minHeight="48dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:text="Iniciar sesión"
+                android:visibility="visible"
                 android:backgroundTint="@color/button_primary_background"
                 android:textColor="@color/button_primary_text_color"
-                app:layout_constraintEnd_toEndOf="@+id/passwordTextInputLayout"
-                app:layout_constraintStart_toStartOf="@+id/passwordTextInputLayout"
-                app:layout_constraintTop_toBottomOf="@+id/recuperarPasswordTextView" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/obraTextInputLayout"
+                app:layout_goneMarginTop="16dp" />
+
+            <Button
+                android:id="@+id/recuperarPasswordButton"
+                android:layout_width="0dp"
+                android:layout_height="62dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="16dp"
+                android:text="¿Olvidaste tu contraseña?"
+                android:textAllCaps="false"
+                android:visibility="visible"
+                android:backgroundTint="@color/button_secondary_background"
+                android:textColor="@color/button_secondary_text_color"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/loginButton" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </ScrollView>
+
+    <TextView
+        android:id="@+id/developerTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="18dp"
+        android:text="Created by Walter Paul"
+        android:textColor="@color/colorGray"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <include
         android:id="@+id/networkErrorLayout"

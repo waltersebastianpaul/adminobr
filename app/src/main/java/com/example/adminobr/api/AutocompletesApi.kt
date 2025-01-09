@@ -33,7 +33,9 @@ interface AutocompletesApi {
         private val BASE_URL = Constants.getBaseUrl()
 
 
-        fun create(application: Application): AutocompletesApi {
+        fun create(
+            application: Application
+        ): AutocompletesApi {
             val logging = HttpLoggingInterceptor().apply {
                 setLevel(HttpLoggingInterceptor.Level.BODY)
             }

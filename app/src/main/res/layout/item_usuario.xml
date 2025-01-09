@@ -64,15 +64,14 @@ android:paddingBottom="4dp">
     <!-- Menú de tres puntos -->
     <ImageView
         android:id="@+id/menuItemUsuario"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:layout_gravity="center_vertical"
-        android:focusable="true"
         android:visibility="visible"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:paddingStart="4dp"
+        android:padding="5dp"
+        android:background="@drawable/image_view_selector"
         android:clickable="true"
+        android:focusable="true"
         android:src="@drawable/ic_more_vert"
         android:contentDescription="overflow menu" />
 

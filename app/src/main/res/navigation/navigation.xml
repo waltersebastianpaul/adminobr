@@ -78,7 +78,7 @@
         android:id="@+id/nav_listarpartes"
         android:name="com.example.adminobr.ui.partediario.ListarPartesFragment"
         android:label="Lista de Partes"
-        tools:layout="@layout/fragment_listar_partes_diarios">
+        tools:layout="@layout/fragment_listar_partes">
 
         <!-- Acción para abrir el formulario en modo creación -->
         <action
@@ -118,7 +118,7 @@
         android:id="@+id/nav_listarPartesDiarios"
         android:name="com.example.adminobr.ui.partediario.ListarPartesFragment"
         android:label="Lista de Partes Diarios"
-        tools:layout="@layout/fragment_listar_partes_diarios" />
+        tools:layout="@layout/fragment_listar_partes" />
 
     <!-- Fragmento para listar usuarios -->
     <fragment

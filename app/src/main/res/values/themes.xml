@@ -28,7 +28,7 @@
 
     <!-- Estilo para el ProgressBar -->
     <style name="TransparentProgressBar" parent="Widget.AppCompat.ProgressBar">
-        <item name="android:indeterminateDrawable">@drawable/circular_progress_bar</item>
+        <item name="android:indeterminateDrawable">@drawable/circular_progress</item>
         <item name="android:background">@color/transparent</item>
     </style>
 

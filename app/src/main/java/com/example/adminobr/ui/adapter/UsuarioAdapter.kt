@@ -10,8 +10,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
-import android.widget.Toast
-import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.navigation.findNavController
@@ -24,6 +22,7 @@ import com.example.adminobr.databinding.ItemUsuarioBinding
 import com.example.adminobr.ui.usuarios.EditType
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.viewmodel.UsuarioViewModel
+import com.google.android.material.snackbar.Snackbar
 
 class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val context: Context) : ListAdapter<Usuario, UsuarioAdapter.UserViewHolder>(
     UserDiffCallback()
@@ -46,13 +45,12 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
                 user.id
             }
         }
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
         val binding = ItemUsuarioBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val sessionManager = SessionManager(parent.context)
-        val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
+        val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"] ?: ""
         return UserViewHolder(binding, viewModel, parent.context, empresaDbName)
     }
 
@@ -97,7 +95,8 @@ class UsuarioAdapter(private val viewModel: UsuarioViewModel, private val contex
                                             viewModel.eliminarUsuario(userId) // Llama al método de eliminación en el ViewModel
 //                                            Toast.makeText(context, "Eliminando usuario...", Toast.LENGTH_SHORT).show()
                                         } ?: run {
-                                            Toast.makeText(context, "Error: ID de usuario no válido.", Toast.LENGTH_SHORT).show()
+                                            //Toast.makeText(context, "Error: ID de usuario no válido.", Toast.LENGTH_SHORT).show()
+                                            Snackbar.make(holder.itemView, "Error: ID de usuario no válido.", Snackbar.LENGTH_LONG).show()
                                         }
                                     }
                                     // Botón negativo ("Cancelar") con color negro (colorBlack)

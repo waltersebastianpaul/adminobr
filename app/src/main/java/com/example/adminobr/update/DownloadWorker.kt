@@ -2,7 +2,6 @@ package com.example.adminobr.update
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -21,13 +20,16 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.OutputStream
+import android.provider.Settings
+import androidx.core.content.ContextCompat
+import com.example.adminobr.application.MyApplication
 
 class DownloadWorker(
     private val context: Context,
     params: WorkerParameters
 ) : CoroutineWorker(context, params) {
 
-    @RequiresApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun doWork(): Result {
         val apkUrl = inputData.getString("apkUrl") ?: return Result.failure()
         val versionName = inputData.getString("versionName") ?: "1.0.0"
@@ -37,7 +39,7 @@ class DownloadWorker(
         val versionInfo = VersionInfo(versionCode, versionName, releaseNotes, apkUrl)
 
         return try {
-            startForegroundService()
+            startForegroundService() // Inicia el servicio antes de cualquier operación pesada.
 
             val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 downloadToMediaStore(apkUrl)
@@ -46,7 +48,16 @@ class DownloadWorker(
             }
 
             if (uri != null) {
-                showInstallNotification(uri, versionInfo)
+                if (isAppInForeground()) {
+                    // Llama a las funciones del companion object correctamente
+                    installApk(this.context, uri) // Pasa el contexto explícito
+                    clearPendingInstallation(this.context) // Pasa el contexto explícito
+                    removeNotification(this.context) // Pasa el contexto explícito
+                } else {
+                    Log.d("DownloadWorker", "App en segundo plano, marcando como pendiente de instalación.")
+                    markPendingInstallation(uri)
+                    showInstallNotification(versionInfo)
+                }
                 Result.success()
             } else {
                 Result.failure()
@@ -55,84 +66,121 @@ class DownloadWorker(
             Log.e("DownloadWorker", "Error durante la descarga: ${e.message}", e)
             Result.retry()
         } finally {
-            stopForegroundService()
+            stopForegroundService() // Detiene el servicio al finalizar.
+        }
+
+    }
+
+    private fun markPendingInstallation(uri: Uri) {
+        val prefs = context.getSharedPreferences("update_prefs", Context.MODE_PRIVATE)
+        with(prefs.edit()) {
+            putString("pending_installation_uri", uri.toString())
+            apply()
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startForegroundService() {
+        val intent = Intent(context, DownloadForegroundService::class.java)
+        ContextCompat.startForegroundService(context, intent)
+
+        // Asegúrate de que se envía la notificación inmediatamente
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channelId = "download_channel"
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "download_channel",
+                channelId,
                 "Descargas",
                 NotificationManager.IMPORTANCE_LOW
             )
-            val manager = context.getSystemService(NotificationManager::class.java)
-            manager?.createNotificationChannel(channel)
+            notificationManager.createNotificationChannel(channel)
         }
 
-        val notification = NotificationCompat.Builder(context, "download_channel")
+        val notification = NotificationCompat.Builder(context, channelId)
             .setContentTitle("Descargando actualización")
-            .setContentText("La descarga está en progreso")
+            .setContentText("Por favor, espere mientras se completa la descarga")
             .setSmallIcon(R.drawable.ic_download)
             .setOngoing(true)
             .build()
 
-        val intent = Intent(context, DownloadForegroundService::class.java)
-        context.startForegroundService(intent)
+        notificationManager.notify(DownloadForegroundService.NOTIFICATION_ID, notification)
     }
 
     private fun stopForegroundService() {
         val intent = Intent(context, DownloadForegroundService::class.java)
         context.stopService(intent)
+        Log.d("DownloadWorker", "Foreground service detenido correctamente.")
     }
 
+    // Modificación en la función para MediaStore (Android Q+)
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun downloadToMediaStore(apkUrl: String): Uri? {
         val resolver = context.contentResolver
 
-        // Elimina archivos previos con el mismo nombre
+        // Validación y eliminación previa
         resolver.query(
             MediaStore.Downloads.EXTERNAL_CONTENT_URI,
             arrayOf(MediaStore.MediaColumns._ID),
-            "${MediaStore.MediaColumns.DISPLAY_NAME} = ?",
-            arrayOf("adminobr.apk"),
+            "${MediaStore.MediaColumns.DISPLAY_NAME} LIKE ?",
+            arrayOf("${APK_FILE_NAME.removeSuffix(".apk")}%"),
             null
         )?.use { cursor ->
-            if (cursor.moveToFirst()) {
+            while (cursor.moveToNext()) {
                 val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
-                resolver.delete(
-                    Uri.withAppendedPath(MediaStore.Downloads.EXTERNAL_CONTENT_URI, id.toString()),
-                    null,
-                    null
-                )
+                val uri = Uri.withAppendedPath(MediaStore.Downloads.EXTERNAL_CONTENT_URI, id.toString())
+                val deleted = resolver.delete(uri, null, null)
+                if (deleted > 0) {
+                    Log.d("DownloadWorker", "Archivo eliminado: $uri")
+                } else {
+                    Log.e("DownloadWorker", "No se pudo eliminar: $uri")
+                }
             }
         }
 
+        // Crear archivo para la descarga
         val contentValues = ContentValues().apply {
-            put(MediaStore.MediaColumns.DISPLAY_NAME, "adminobr.apk")
+            put(MediaStore.MediaColumns.DISPLAY_NAME, APK_FILE_NAME)
             put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.android.package-archive")
             put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
         }
 
         val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
         uri?.let {
             resolver.openOutputStream(it)?.use { outputStream ->
                 if (!downloadFile(apkUrl, outputStream)) {
-                    resolver.delete(it, null, null) // Elimina el archivo si la descarga falla
+                    resolver.delete(it, null, null) // Eliminar si falla la descarga
+                    Log.e("DownloadWorker", "Error durante la descarga. Archivo eliminado.")
                 }
             }
         }
         return uri
     }
 
+    // Función para eliminar archivos existentes y duplicados
+    private fun deleteExistingApkFiles(downloadsDir: File) {
+        val files = downloadsDir.listFiles { file ->
+            file.name.startsWith(APK_FILE_NAME.removeSuffix(".apk")) && file.name.endsWith(".apk")
+        }
+
+        files?.forEach { file ->
+            if (file.delete()) {
+                Log.d("DownloadWorker", "Archivo eliminado: ${file.name}")
+            } else {
+                Log.e("DownloadWorker", "No se pudo eliminar el archivo: ${file.name}")
+            }
+        }
+    }
+
+    // Modificación en la función para el sistema de archivos legado
     private fun downloadToLegacyFileSystem(apkUrl: String): Uri? {
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-        val apkFile = File(downloadsDir, "adminobr.apk")
 
-        if (apkFile.exists()) {
-            apkFile.delete() // Elimina el archivo existente si ya existe
-        }
+        // Eliminar archivos previos
+        deleteExistingApkFiles(downloadsDir)
+
+        val apkFile = File(downloadsDir, APK_FILE_NAME)
 
         return try {
             apkFile.outputStream().use { outputStream ->
@@ -143,7 +191,7 @@ class DownloadWorker(
                 }
             }
         } catch (e: Exception) {
-            Log.e("DownloadWorker", "Error en la descarga (Legacy): ${e.message}", e)
+            Log.e("DownloadWorker", "Error al manejar el archivo: ${e.message}", e)
             null
         }
     }
@@ -160,7 +208,7 @@ class DownloadWorker(
                 }
                 true
             } else {
-                Log.e("DownloadWorker", "Error en la descarga: ${response.code}")
+                Log.e("DownloadWorker", "Error en la descarga: Código HTTP ${response.code}")
                 false
             }
         } catch (e: Exception) {
@@ -169,7 +217,7 @@ class DownloadWorker(
         }
     }
 
-    private fun showInstallNotification(apkUri: Uri, versionInfo: VersionInfo) {
+    private fun showInstallNotification(versionInfo: VersionInfo) {
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "update_channel"
@@ -185,40 +233,64 @@ class DownloadWorker(
             notificationManager.createNotificationChannel(channel)
         }
 
-        val installIntent = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(apkUri, "application/vnd.android.package-archive")
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
-        }
-
-        val installPendingIntent = PendingIntent.getActivity(
-            context,
-            0,
-            installIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-
         val bigTextStyle = NotificationCompat.BigTextStyle()
             .bigText(
                 "Versión: ${versionInfo.versionName}\n" +
                         "Notas: ${versionInfo.releaseNotes}\n\n" +
-                        "Pulse 'Instalar' para completar la actualización."
+                        "La descarga de la actualización se ha completado."
             )
-            .setBigContentTitle("Actualización lista para instalar")
+            .setBigContentTitle("Descarga completada")
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_mini_logo)
+            .setSmallIcon(R.drawable.ic_mini_logo) // Usa un ícono apropiado
             .setContentTitle("Actualización descargada")
-            .setContentText("Pulse para instalar")
+            .setContentText("La descarga de la actualización se ha completado.")
             .setStyle(bigTextStyle)
-            .setContentIntent(installPendingIntent)
-            .addAction(
-                R.drawable.ic_update,
-                "Instalar",
-                installPendingIntent
-            )
-            .setAutoCancel(true)
+            .setAutoCancel(true) // La notificación se elimina al pulsarla
             .build()
 
         notificationManager.notify(2, notification)
     }
+
+    private fun isAppInForeground(): Boolean {
+        val app = context.applicationContext as? MyApplication
+        return app?.isAppInForeground == true
+    }
+
+    companion object {
+
+        private const val APK_FILE_NAME = "adminobr.apk"
+
+        fun installApk(context: Context, uri: Uri) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+                val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES).apply {
+                    data = Uri.parse("package:${context.packageName}")
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                context.startActivity(intent)
+                return
+            }
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/vnd.android.package-archive")
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
+            }
+            context.startActivity(intent)
+        }
+
+        fun clearPendingInstallation(context: Context) {
+            val prefs = context.getSharedPreferences("update_prefs", Context.MODE_PRIVATE)
+            with(prefs.edit()) {
+                remove("pending_installation_uri")
+                apply()
+            }
+        }
+
+        fun removeNotification(context: Context) {
+            val notificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.cancelAll()
+        }
+    }
+
 }

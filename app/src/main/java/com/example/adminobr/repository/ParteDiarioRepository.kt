@@ -2,9 +2,11 @@ package com.example.adminobr.repository
 
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import androidx.paging.PagingSource
 import com.example.adminobr.api.ApiResponse
 import com.example.adminobr.api.ApiService
 import com.example.adminobr.data.ParteDiario
+import com.example.adminobr.ui.partediario.ParteDiarioPagingSource
 import com.example.adminobr.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,7 +24,7 @@ class ParteDiarioRepository(
 
     suspend fun getUltimoPartePorEquipo(equipoId: Int): Result<ParteDiario?> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
                 ?: return@withContext Result.failure(Exception("Empresa DB no especificado."))
 
             val jsonObject = JSONObject().apply {
@@ -46,7 +48,7 @@ class ParteDiarioRepository(
 
     suspend fun getUltimosPartesPorUsuario(userId: Int): Result<List<ParteDiario>> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
                 ?: return@withContext Result.failure(Exception("Empresa DB no especificado."))
 
             val jsonObject = JSONObject().apply {
@@ -74,8 +76,9 @@ class ParteDiarioRepository(
     }
 
     suspend fun createParteDiario(parte: ParteDiario): Result<Pair<Boolean, Int?>> = withContext(Dispatchers.IO) {
+        Log.d("ParteDiarioRepository", "Enviando parte a la API: $parte")
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
                 ?: return@withContext Result.failure<Pair<Boolean, Int?>>(Exception("Empresa DB no especificado."))
 
             val response = apiService.crearParteDiario(
@@ -101,6 +104,7 @@ class ParteDiarioRepository(
                 empresaDbName = empresaDbName
             )
 
+            Log.d("ParteDiarioRepository", "Respuesta de la API: ${response.body()}")
             if (response.isSuccessful) {
                 val responseBody = response.body()
                 Log.d("ParteDiarioRepository", "Respuesta de creación: success=${responseBody?.success}, id=${responseBody?.id}")
@@ -125,7 +129,7 @@ class ParteDiarioRepository(
     // Actualizar parte diario
     suspend fun updateParteDiario(parte: ParteDiario): Result<ParteDiario> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
                 ?: return@withContext Result.failure<ParteDiario>(Exception("Empresa DB no especificado."))
 
             val jsonObject = JSONObject().apply {
@@ -164,7 +168,7 @@ class ParteDiarioRepository(
     // Eliminar parte diario
     suspend fun deleteParteDiario(idParteDiario: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
                 ?: return@withContext Result.failure<Unit>(Exception("Empresa DB no especificado."))
 
             val response = apiService.deleteParteDiario(idParteDiario, empresaDbName)
@@ -178,7 +182,7 @@ class ParteDiarioRepository(
     // Obtener todos los partes
     suspend fun fetchPartes(parteFiltro: String = ""): Result<List<ParteDiario>> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
                 ?: return@withContext Result.failure<List<ParteDiario>>(Exception("Empresa DB no especificado."))
 
             val jsonObject = JSONObject().apply {
@@ -234,8 +238,42 @@ class ParteDiarioRepository(
 
     // Crea un RequestBody para obtener parte por ID
     private fun createRequestBody(idParteDiario: Int): RequestBody {
-        val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
+        val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"] ?: ""
         val json = """{ "empresaDbName": "$empresaDbName", "id": $idParteDiario }"""
         return json.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
     }
+
+    // Fuente de datos paginada
+    fun getPagingSource(
+        equipoId: Int,
+        obraId: Int,
+        fechaInicio: String,
+        fechaFin: String
+    ): PagingSource<Int, ParteDiario> {
+        return ParteDiarioPagingSource(apiService, sessionManager, equipoId, obraId, fechaInicio, fechaFin)
+    }
+
+    // Método para construir el cuerpo de la solicitud JSON
+    suspend fun createFilterRequestBody(
+        equipoId: Int,
+        obraId: Int,
+        fechaInicio: String,
+        fechaFin: String
+    ): String {
+        return withContext(Dispatchers.Default) {
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"] ?: ""
+
+            val jsonObject = JSONObject().apply {
+                put("empresaDbName", empresaDbName)
+                put("equipoId", equipoId)
+                put("obraId", obraId)
+                put("fechaInicio", fechaInicio)
+                put("fechaFin", fechaFin)
+            }
+
+            Log.d("ParteDiarioRepository", "Cuerpo de la solicitud: $jsonObject")
+            jsonObject.toString()
+        }
+    }
+
 }

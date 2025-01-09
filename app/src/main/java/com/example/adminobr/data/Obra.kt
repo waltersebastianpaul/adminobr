@@ -5,9 +5,12 @@ import android.util.Log
 data class Obra(
     val id: Int,
     val centroCosto: String,
-    val nombre: String) {
+    val nombre: String,
+    val localidad: String?,
+    val estado: Boolean
+) {
     override fun toString(): String {
-        Log.d("Obra", "Obra: $centroCosto - $nombre")
+        Log.d("Obra", "Obra: $centroCosto")
         return "$centroCosto - $nombre"
     }
 }

@@ -16,10 +16,10 @@ android {
 
     defaultConfig {
         applicationId = "com.example.adminobr"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 35
-        versionCode = 18
-        versionName = "1.0.18"
+        versionCode = 34
+        versionName = "1.0.34"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -51,7 +51,7 @@ android {
 
 dependencies {
     // Import the BoM for the Firebase platform
-    implementation(platform("com.google.firebase:firebase-bom:33.6.0"))
+    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
 
     // Add the dependencies for the Crashlytics and Analytics libraries
     // When using the BoM, you don't specify versions in Firebase library dependencies
@@ -86,9 +86,10 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.kotlinx.coroutines.core)
+
     // Otros
     implementation(libs.androidx.paging.runtime.ktx)
-    implementation(libs.androidx.work.runtime.ktx) // Versión actual
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.jbcrypt)
     implementation(libs.androidx.gridlayout)
     implementation(libs.androidx.foundation.android)
@@ -98,6 +99,13 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    implementation (libs.flexbox)
+    implementation(libs.flexbox)
+
+    // Detecta fugas de memoria
+    // Eliminar en producción
+    //debugImplementation ("com.squareup.leakcanary:leakcanary-android:2.12")
+
+    implementation(libs.androidx.lifecycle.process)
+    implementation(libs.jbcrypt)
 }
 

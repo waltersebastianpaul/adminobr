@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.example.adminobr.api.ApiResponse
 import com.example.adminobr.api.ApiService
+import com.example.adminobr.data.CustomException
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.utils.SessionManager
 import kotlinx.coroutines.Dispatchers
@@ -21,11 +22,10 @@ class UsuarioRepository(
     val errorMessage = MutableLiveData<String>()
 
     // Crear usuario
-    // UsuarioRepository.kt
-    suspend fun createUser(usuario: Usuario): Result<Pair<Boolean, Int?>> = withContext(Dispatchers.IO) {
+    suspend fun createUser(usuario: Usuario): Result<Map<String, Any>> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
-                ?: return@withContext Result.failure<Pair<Boolean, Int?>>(Exception("Empresa DB no especificado."))
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
+                ?: return@withContext Result.failure(Exception("Empresa DB no especificado."))
 
             val response = apiService.crearUsuario(
                 usuario.legajo,
@@ -37,58 +37,41 @@ class UsuarioRepository(
                 usuario.telefono,
                 usuario.userCreated ?: 0,
                 usuario.estadoId,
+                usuario.roleId,
                 empresaDbName
             )
 
             if (response.isSuccessful) {
                 val responseBody = response.body()
-                Log.d("UsuarioRepository", "Respuesta de creación: success=${responseBody?.success}, id=${responseBody?.id}")
                 if (responseBody?.success == true) {
-                    val nuevoId = responseBody.id // Obtener el ID del usuario creado
-                    return@withContext Result.success(Pair(true, nuevoId))
+                    // Aseguramos que el ID sea siempre un valor no nulo
+                    return@withContext Result.success(mapOf("success" to true, "id" to (responseBody.id ?: -1)))
                 } else {
-                    // Log detallado si `success` es `false`
-                    Log.e("UsuarioRepository", "Error en la respuesta: ${responseBody?.message}")
-                    return@withContext Result.failure<Pair<Boolean, Int?>>(Exception("Error en la creación de usuario"))
+                    // Si no es un éxito, lanzamos una CustomException con el error
+                    val errorCode = responseBody?.errorCode ?: "unknown"
+                    return@withContext Result.failure(CustomException(errorCode, responseBody?.message))
                 }
             } else {
-                Log.e("UsuarioRepository", "Error en la respuesta HTTP: ${response.errorBody()?.string()}")
-                return@withContext Result.failure<Pair<Boolean, Int?>>(Exception("Error en la respuesta HTTP"))
+                val errorBody = response.errorBody()?.string()
+                val errorJson = JSONObject(errorBody ?: "{}")
+                // Retornamos un error con los detalles adecuados
+                return@withContext Result.failure(
+                    CustomException(
+                        errorJson.optString("error_code", "-1"), // Si no hay error_code, usamos "-1" como fallback
+                        errorJson.optString("message", "Error desconocido")
+                    )
+                )
             }
         } catch (e: Exception) {
-            Log.e("UsuarioRepository", "Error al crear usuario: ${e.localizedMessage}")
-            return@withContext Result.failure<Pair<Boolean, Int?>>(e)
+            return@withContext Result.failure(e)
         }
     }
 
-//    suspend fun createUser(usuario: Usuario): Result<Usuario> = withContext(Dispatchers.IO) {
-//        try {
-//            val empresaDbName = sessionManager.getEmpresaData()?.db_name
-//                ?: return@withContext Result.failure<Usuario>(Exception("Empresa DB no especificado."))
-//
-//            val response = apiService.crearUsuario(
-//                usuario.legajo,
-//                usuario.email,
-//                usuario.dni,
-//                usuario.password,
-//                usuario.nombre,
-//                usuario.apellido,
-//                usuario.telefono,
-//                usuario.userCreated ?: 0,
-//                usuario.estadoId,
-//                empresaDbName
-//            )
-//            handleResponse(response)
-//        } catch (e: Exception) {
-//            Result.failure(e)
-//        }
-//    }
-
     // Actualizar usuario
-    suspend fun updateUser(usuario: Usuario, newPassword: String?): Result<Usuario> = withContext(Dispatchers.IO) {
+    suspend fun updateUser(usuario: Usuario, currentPassword: String?, newPassword: String?): Result<Map<String, Any>> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
-                ?: return@withContext Result.failure<Usuario>(Exception("Empresa DB no especificado."))
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
+                ?: return@withContext Result.failure<Map<String, Any>>(Exception("Empresa DB no especificado."))
 
             val jsonObject = JSONObject().apply {
                 put("empresaDbName", empresaDbName)
@@ -100,23 +83,44 @@ class UsuarioRepository(
                 put("apellido", usuario.apellido)
                 put("telefono", usuario.telefono)
                 put("estado_id", usuario.estadoId)
-                if (!newPassword.isNullOrEmpty()) put("password", newPassword)
+                if (!newPassword.isNullOrEmpty()) {
+                    put("currentPassword", currentPassword)
+                    put("password", newPassword)
+                }
             }
 
             val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
             val response = apiService.editarUsuario(requestBody)
-            handleResponse(response)
+
+            // Manejamos la respuesta de la API
+            if (response.isSuccessful) {
+                val responseBody = response.body()
+                if (responseBody?.success == true) {
+                    return@withContext Result.success(mapOf("success" to true, "id" to (responseBody.id ?: -1)))
+                } else {
+                    val errorCode = responseBody?.errorCode
+                    return@withContext Result.failure(CustomException(errorCode.toString(), responseBody?.message))
+                }
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val errorJson = JSONObject(errorBody ?: "{}")
+                return@withContext Result.failure(
+                    CustomException(
+                        errorJson.optString("error_code", "-1"),
+                        errorJson.optString("message", "Error desconocido")
+                    )
+                )
+            }
         } catch (e: Exception) {
-            Log.e("UsuarioRepository", "Error al actualizar usuario: ${e.localizedMessage}")
-            Result.failure(e)
+            return@withContext Result.failure(e)
         }
     }
 
-    // Actualizar datos parciales del perfil
-    suspend fun updateProfile(usuario: Usuario, newPassword: String?): Result<Usuario> = withContext(Dispatchers.IO) {
+    // Actualizar solo datos del perfil
+    suspend fun updateProfile(usuario: Usuario, currentPassword: String?, newPassword: String?): Result<Map<String, Any>> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
-                ?: return@withContext Result.failure<Usuario>(Exception("Empresa DB no especificado."))
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
+                ?: return@withContext Result.failure<Map<String, Any>>(Exception("Empresa DB no especificado."))
 
             val jsonObject = JSONObject().apply {
                 put("empresaDbName", empresaDbName)
@@ -126,42 +130,82 @@ class UsuarioRepository(
                 put("nombre", usuario.nombre)
                 put("apellido", usuario.apellido)
                 put("telefono", usuario.telefono)
-                if (!newPassword.isNullOrEmpty()) put("password", newPassword)
+                if (!newPassword.isNullOrEmpty()) {
+                    put("currentPassword", currentPassword)
+                    put("password", newPassword)
+                }
             }
 
             val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
             val response = apiService.editarUsuario(requestBody)
-            handleResponse(response)
+
+            // Manejamos la respuesta de la API
+            if (response.isSuccessful) {
+                val responseBody = response.body()
+                if (responseBody?.success == true) {
+                    return@withContext Result.success(mapOf("success" to true, "id" to (responseBody.id ?: -1)))
+                } else {
+                    val errorCode = responseBody?.errorCode
+                    return@withContext Result.failure(CustomException(errorCode.toString(), responseBody?.message))
+                }
+            } else {
+                val errorBody = response.errorBody()?.string()
+                val errorJson = JSONObject(errorBody ?: "{}")
+                return@withContext Result.failure(
+                    CustomException(
+                        errorJson.optString("error_code", "-1"),
+                        errorJson.optString("message", "Error desconocido")
+                    )
+                )
+            }
         } catch (e: Exception) {
-            Result.failure(e)
+            return@withContext Result.failure(e)
         }
     }
 
     // Actualizar solo la contraseña
-    suspend fun updatePassword(usuario: Usuario, nuevaContrasena: String): Result<Usuario> = withContext(Dispatchers.IO) {
-        try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
-                ?: return@withContext Result.failure<Usuario>(Exception("Empresa DB no especificado."))
+    suspend fun updatePassword(usuario: Usuario, currentPassword: String, newPassword: String): Result<Usuario> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
+                    ?: return@withContext Result.failure<Usuario>(CustomException("missing_db", "Empresa DB no especificado."))
 
-            val jsonObject = JSONObject().apply {
-                put("empresaDbName", empresaDbName)
-                put("id_usuario", usuario.id)
-                put("password", nuevaContrasena)
+                val jsonObject = JSONObject().apply {
+                    put("empresaDbName", empresaDbName)
+                    put("id_usuario", usuario.id)
+                    put("currentPassword", currentPassword)
+                    put("password", newPassword)
+                }
+
+                val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+                val response = apiService.editarUsuario(requestBody)
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body()
+                    if (responseBody?.success == true) {
+                        val usuarioActualizado = responseBody.data ?: usuario
+                        Result.success(usuarioActualizado)
+                    } else {
+                        val errorCode = responseBody?.errorCode ?: "unknown_error"
+                        Result.failure(CustomException(errorCode, responseBody?.message ?: "Error desconocido"))
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    val errorJson = JSONObject(errorBody ?: "{}")
+                    val errorCode = errorJson.optString("error_code", "unknown_error")
+                    val errorMessage = errorJson.optString("message", "Error desconocido")
+                    Result.failure(CustomException(errorCode, errorMessage))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
             }
-
-            val requestBody = jsonObject.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
-            val response = apiService.editarUsuario(requestBody)
-            handleResponse(response)
-        } catch (e: Exception) {
-            Result.failure(e)
         }
     }
-
 
     // Eliminar usuario
     suspend fun deleteUser(idUsuario: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
                 ?: return@withContext Result.failure<Unit>(Exception("Empresa DB no especificado."))
 
             val response = apiService.eliminarUsuario(idUsuario, empresaDbName)
@@ -175,7 +219,7 @@ class UsuarioRepository(
     // Obtener todos los usuarios
     suspend fun fetchUsers(usuarioFiltro: String = ""): Result<List<Usuario>> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
                 ?: return@withContext Result.failure<List<Usuario>>(Exception("Empresa DB no especificado."))
 
             val jsonObject = JSONObject().apply {
@@ -205,7 +249,7 @@ class UsuarioRepository(
     // Asignar rol al usuario
     suspend fun assignRole(usuarioId: Int, rolId: Int): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val empresaDbName = sessionManager.getEmpresaData()?.db_name
+            val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"]
                 ?: return@withContext Result.failure<Unit>(Exception("Empresa DB no especificada."))
 
             // Crear el JSON para el cuerpo de la solicitud
@@ -263,8 +307,11 @@ class UsuarioRepository(
 
     // Crea un RequestBody para obtener usuario por ID
     private fun createRequestBody(idUsuario: Int): RequestBody {
-        val empresaDbName = sessionManager.getEmpresaData()?.db_name ?: ""
+        val empresaDbName = sessionManager.getEmpresaData()["empresaDbName"] ?: ""
         val json = """{ "empresaDbName": "$empresaDbName", "id": $idUsuario }"""
         return json.toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
     }
+
 }
+
+
