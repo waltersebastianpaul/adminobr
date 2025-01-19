@@ -1,7 +1,0 @@
-{
-     "versionCode":34,
-     "versionName": "1.0.34",
-     "apkUrl": "http://adminobr.site/updates/apk/app-release.apk",
-     "releaseNotes": "Corrección de errores y mejoras en la estabilidad de la app.",
-     "inherit": true
- }

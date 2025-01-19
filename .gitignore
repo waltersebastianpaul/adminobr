@@ -2,13 +2,9 @@
 *.php
 .gradle/
 .idea/
-.kotlin/
-.vscode/
+app/.gradle/
+app/.vscode/
 api/
-
-
-
-
 assets/
 auth/
 build/
@@ -27,7 +23,6 @@ pages/
 stats/
 updates/
 vendor/
-
 .htaccess
 .user.ini
 build.gradle.kts
