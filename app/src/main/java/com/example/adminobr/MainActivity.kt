@@ -60,7 +60,6 @@ class MainActivity : AppCompatActivity() {
 
     // Layout para mostrar errores de conexión de red
     private lateinit var networkErrorLayout: View
-    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
     private var isNetworkErrorLayoutEnabled = Constants.getNetworkErrorLayout()
 
     companion object {
@@ -145,17 +144,15 @@ class MainActivity : AppCompatActivity() {
                 NetworkStatusHelper.networkAvailable
 //                    .debounce(3000) // Evita fluctuaciones rápidas en la red
                     .collect { isConnected ->
-                        if (isNetworkCheckEnabled) {
-                            if (isConnected) {
-                                if (isNetworkErrorLayoutEnabled) hideNetworkErrorLayout()
-                                if (NetworkStatusHelper.isWifiConnected()) {
-                                    // Si la conexión es Wi-Fi, verifica descargas pendientes
-                                    val updateManager = UpdateManager(this@MainActivity)
-                                    updateManager.handlePendingDownload()
-                                }
-                            } else {
-                                if (isNetworkErrorLayoutEnabled) showNetworkErrorLayout()
+                        if (isConnected) {
+                            if (isNetworkErrorLayoutEnabled) hideNetworkErrorLayout()
+                            if (NetworkStatusHelper.isWifiConnected()) {
+                                // Si la conexión es Wi-Fi, verifica descargas pendientes
+                                val updateManager = UpdateManager(this@MainActivity)
+                                updateManager.handlePendingDownload()
                             }
+                        } else {
+                            if (isNetworkErrorLayoutEnabled) showNetworkErrorLayout()
                         }
                     }
             }
@@ -178,6 +175,7 @@ class MainActivity : AppCompatActivity() {
                 textViewError?.text = "Sigue sin conexión a internet :("
             }
         }
+
     }
 
     override fun onStart() {
@@ -234,27 +232,32 @@ class MainActivity : AppCompatActivity() {
                 val result = loginViewModel.logout(token) // Llama al método logout en LoginViewModel
                 when (result) {
                     is ResultData.Success -> {
-                        // Si el logout fue exitoso
-                        handleLogoutSuccess()
+                        // Si el logout fue exitoso, cierra la sesión localmente sin mensaje
+                        handleLogoutLocal()
                     }
                     is ResultData.Error -> {
-                        // Muestra el error al usuario
-//                        Toast.makeText(this@MainActivity, result.message, Toast.LENGTH_SHORT).show()
-                        Snackbar.make(binding.root, result.message?: "Error al cerrar sesión", Snackbar.LENGTH_LONG).show()
+                        // Si hubo un error, cierra la sesión y pasa el mensaje
+                        handleLogoutLocal(result.message ?: "Error al cerrar sesión")
                     }
                 }
             } else {
                 // Si no hay token, cierra la sesión localmente
-                handleLogoutSuccess()
+                handleLogoutLocal()
             }
         }
     }
 
-    // Maneja el cierre de sesión exitoso, sea con o sin token
-    private fun handleLogoutSuccess() {
+    // Modifica esta función para aceptar un mensaje opcional
+    private fun handleLogoutLocal(errorMessage: String? = null) {
         sessionManager.logout() // Limpia todos los datos de sesión
         val intent = Intent(this@MainActivity, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+        // Si hay un mensaje de error, lo agrega al intent
+        if (!errorMessage.isNullOrEmpty()) {
+            intent.putExtra("logout_error_message", errorMessage)
+        }
+
         startActivity(intent)
         finish() // Finaliza la actividad actual
     }
@@ -449,7 +452,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 .setBackgroundTint(ContextCompat.getColor(this, R.color.colorAccent))
                 .setTextColor(ContextCompat.getColor(this, R.color.colorWhite))
-                .setActionTextColor(ContextCompat.getColor(this, R.color.colorWhite))
                 .show()
         }
     }
@@ -538,4 +540,5 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
 }

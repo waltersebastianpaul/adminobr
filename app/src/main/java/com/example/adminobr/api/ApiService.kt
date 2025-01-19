@@ -29,7 +29,7 @@ interface ApiService {
 
     @POST(Constants.Auth.LOGOUT)
     suspend fun logout(
-        @Header("Authorization") authorization: String
+        @Header("Authorization") token: String
     ): Response<Unit>
 
     @POST(Constants.Empresas.VALIDATE)
@@ -149,6 +149,31 @@ interface ApiService {
     suspend fun asignarRolUsuario(
         @Body requestBody: RequestBody
     ): Response<ApiResponse<Unit>>
+
+
+    // Reset Password
+    @POST(Constants.ResetPassword.SEND_RECOVERY_CODE)
+    suspend fun sendRecoveryCode(
+        @Body body: Map<String, String>
+    ): Response<ApiResponse<Unit>>
+
+    @POST(Constants.ResetPassword.VERIFY_CODE)
+    suspend fun verifyCode(
+        @Body body: Map<String, String>
+    ): Response<ApiResponse<Unit>>
+
+    @POST(Constants.ResetPassword.RESET_PASSWORD)
+    suspend fun changePassword(
+        @Body body: Map<String, String>
+    ): Response<ApiResponse<Unit>>
+
+
+    // MODULO DE DEVICE
+    @POST(Constants.Device.DEVICE_INFO)
+    suspend fun sendDeviceInfo(
+        @Body body: Map<String, String?>
+    ): Response<ApiResponse<Unit>>
+
 
     companion object {
         fun create(): ApiService {

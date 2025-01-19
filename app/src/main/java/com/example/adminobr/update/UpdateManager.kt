@@ -44,27 +44,19 @@ class UpdateManager(private val context: Context) {
                 // Hay una nueva versión, muestra el diálogo al usuario
                 showUpdateDialog(latestVersion)
             } else if (showMessage) {
-//                Toast.makeText(context, "Tu aplicación está actualizada", Toast.LENGTH_SHORT).show()
                 rootView?.let {
                     Snackbar.make(it, "Tu aplicación está actualizada", Snackbar.LENGTH_LONG).apply {
-                        setTextColor(ContextCompat.getColor(context, R.color.colorWhite)) // Texto en verde
+                        setTextColor(ContextCompat.getColor(context, R.color.success_400)) // Texto en verde
                         show()
                     }
                 } ?: Log.e("UpdateManager", "No se pudo encontrar la vista raíz para mostrar el Snackbar")
 
             }
-//        } catch (e: Exception) {
-//            Log.e("UpdateManager", "Error al comprobar actualizaciones: ${e.message}")
-//            if (showToast) {
-//                Toast.makeText(context, "Error al comprobar actualizaciones", Toast.LENGTH_SHORT).show()
-//            }
-//        }
         } catch (e: Exception) {
             when (e) {
                 is java.net.SocketTimeoutException -> {
                     Log.e("UpdateManager", "Timeout al comprobar actualizaciones: ${e.message}")
                     if (showMessage) {
-//                        Toast.makeText(context, "Conexión lenta. Intente de nuevo más tarde.", Toast.LENGTH_SHORT).show()
                         rootView?.let {
                             Snackbar.make(it, "Conexión lenta. Intente de nuevo más tarde.", Snackbar.LENGTH_LONG).apply {
                                 setTextColor(ContextCompat.getColor(context, R.color.colorButtonWarning))
@@ -76,7 +68,6 @@ class UpdateManager(private val context: Context) {
                 is java.net.UnknownHostException -> {
                     Log.e("UpdateManager", "No se pudo conectar al servidor: ${e.message}")
                     if (showMessage) {
-//                        Toast.makeText(context, "No se puede conectar al servidor. Verifique su conexión.", Toast.LENGTH_SHORT).show()
                         rootView?.let {
                             Snackbar.make(it, "No se puede conectar al servidor. Verifique su conexión.", Snackbar.LENGTH_LONG).apply {
                                 setTextColor(ContextCompat.getColor(context, R.color.colorDanger))
@@ -88,7 +79,6 @@ class UpdateManager(private val context: Context) {
                 is retrofit2.HttpException -> {
                     Log.e("UpdateManager", "Error del servidor: ${e.code()} ${e.message}")
                     if (showMessage) {
-//                        Toast.makeText(context, "Error del servidor. Intente más tarde.", Toast.LENGTH_SHORT).show()
                         rootView?.let {
                             Snackbar.make(it, "Error del servidor: ${e.code()} ${e.message}", Snackbar.LENGTH_LONG).apply {
                                 setTextColor(ContextCompat.getColor(context, R.color.colorDanger))
@@ -100,7 +90,6 @@ class UpdateManager(private val context: Context) {
                 else -> {
                     Log.e("UpdateManager", "Error inesperado al comprobar actualizaciones: ${e.message}")
                     if (showMessage) {
-//                        Toast.makeText(context, "Error inesperado. Intente más tarde.", Toast.LENGTH_SHORT).show()
                         rootView?.let {
                             Snackbar.make(it, "Error inesperado. Intente más tarde.", Snackbar.LENGTH_LONG).apply {
                                 setTextColor(ContextCompat.getColor(context, R.color.colorDanger))
@@ -201,7 +190,6 @@ class UpdateManager(private val context: Context) {
         WorkManager.getInstance(context).enqueue(workRequest)
 
         // Informar al usuario que la descarga ha comenzado
-//        Toast.makeText(context, "Descargando actualización...", Toast.LENGTH_SHORT).show()
         rootView?.let {
             Snackbar.make(it, "Descargando actualización...", Snackbar.LENGTH_LONG).apply {
                 setTextColor(ContextCompat.getColor(context, R.color.colorButtonWarning))
@@ -223,7 +211,6 @@ class UpdateManager(private val context: Context) {
             apply()
         }
 
-//        Toast.makeText(context, "La descarga iniciará al conectarse a Wi-Fi", Toast.LENGTH_SHORT).show()
         Snackbar.make(rootView!!, "La descarga iniciará al conectarse a Wi-Fi", Snackbar.LENGTH_LONG).apply {
             setTextColor(ContextCompat.getColor(context, R.color.colorButtonPrimary))
             show()

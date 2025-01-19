@@ -25,8 +25,8 @@
             android:completionThreshold="1"
             android:hint="Equipo"
             android:inputType="text"
-            android:padding="16dp"
-            android:textSize="16sp" />
+            android:textSize="16sp"
+            style="@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Campo de Horas Actuales -->

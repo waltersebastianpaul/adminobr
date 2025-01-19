@@ -89,7 +89,6 @@ class ParteDiarioFormFragment : Fragment() {
 
     // Layout para mostrar errores de conexión de red
     private lateinit var networkErrorLayout: View
-    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
     private var isNetworkErrorLayoutEnabled = Constants.getNetworkErrorLayout()
 
     private var previousConnectionState: Boolean? = null
@@ -188,27 +187,25 @@ class ParteDiarioFormFragment : Fragment() {
                             }
                         }
 
-                        if (isNetworkCheckEnabled) {
-                            // Si la conexión se restauró
-                            if (isConnected && previousConnectionState == null) {
-                                // Cargar datos de Autocomplete
-                                loadAllAutocompleteData()
+                        // Si la conexión se restauró
+                        if (isConnected && previousConnectionState == null) {
+                            // Cargar datos de Autocomplete
+                            loadAllAutocompleteData()
 
-                                // Cargar últimos partes por usuario
-                                cargarUltimosPartesPorUsuario()
-                            } else if (isConnected && previousConnectionState == false) {
+                            // Cargar últimos partes por usuario
+                            cargarUltimosPartesPorUsuario()
+                        } else if (isConnected && previousConnectionState == false) {
 //                              // Recargar datos u otras acciones necesarias
-                                reloadData()
-                            }
-
-                            // Si está en modo edición y el formulario estaba deshabilitado
-//                            if (editMode && isConnected && !binding.guardarButton.isEnabled) {
-                            if (isConnected && !binding.guardarButton.isEnabled) {
-                                habilitarFormulario()
-                            }
-
-                            previousConnectionState = isConnected
+                            reloadData()
                         }
+
+                        // Si está en modo edición y el formulario estaba deshabilitado
+//                            if (editMode && isConnected && !binding.guardarButton.isEnabled) {
+                        if (isConnected && !binding.guardarButton.isEnabled) {
+                            habilitarFormulario()
+                        }
+
+                        previousConnectionState = isConnected
                     }
             }
         }
@@ -662,12 +659,15 @@ class ParteDiarioFormFragment : Fragment() {
         })
 
         binding.guardarButton.setOnClickListener {
-            if (isNetworkCheckEnabled && NetworkStatusHelper.isConnected()) {
+            if (NetworkStatusHelper.isConnected()) {
                 guardarParteDiario()
                 binding.ultimoParteLayout.visibility = View.GONE
             } else {
-//                Toast.makeText(requireContext(), "No hay conexión a internet, intenta mas tardes.", Toast.LENGTH_SHORT).show()
-                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG)
+//                    .setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.colorDanger))
+                    .setTextColor(ContextCompat.getColor(requireContext(), R.color.danger_400))
+                    .show()
+                return@setOnClickListener
             }
         }
 
@@ -1087,8 +1087,8 @@ class ParteDiarioFormFragment : Fragment() {
             event.getContentIfNotHandled()?.let { mensaje ->
 //                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
                 Snackbar.make(binding.root, mensaje, Snackbar.LENGTH_LONG)
-                    .setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.colorDanger))
-                    .setActionTextColor(ContextCompat.getColor(requireContext(), R.color.colorWhite))
+//                    .setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.colorDanger))
+                    .setTextColor(ContextCompat.getColor(requireContext(), R.color.danger_400))
                     .show()
             }
         }

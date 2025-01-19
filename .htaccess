@@ -1,4 +1,6 @@
 RewriteEngine On
+RewriteCond %{HTTP:Authorization} .
+RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
 # Ocultar la extensión .php en las URLs
 RewriteCond %{REQUEST_FILENAME} !-f

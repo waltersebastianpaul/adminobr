@@ -63,4 +63,8 @@
     </style>
 
 
+    <style name="NavigationMenuItemRed" parent="TextAppearance.AppCompat.Body1">
+        <item name="android:textColor">@color/colorDanger</item> <!-- Rojo -->
+    </style>
+
 </resources>

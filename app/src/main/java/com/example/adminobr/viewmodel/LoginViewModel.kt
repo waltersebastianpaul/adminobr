@@ -11,7 +11,6 @@ import com.example.adminobr.data.LoginResponse
 import com.example.adminobr.data.ResultData
 import com.example.adminobr.data.Usuario
 import com.example.adminobr.repository.LoginRepository
-import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.Event
 import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.utils.SingleLiveEvent
@@ -48,11 +47,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 //    val networkError = MutableLiveData<Boolean>()
     val empresaValidationResult = MutableLiveData<ResultData<Empresa>>()
 
-    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
-
     // Método de validación de empresa
     fun validateEmpresa(empresaCode: String, callback: (Boolean) -> Unit = {}) {
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             // Emite un error específico en el loginResult si no hay conexión
             loginResult.value = ResultData.Error("No hay conexión a internet, intenta nuevamente mas tarde")
             callback(false)
@@ -95,7 +92,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun login(usuario: String, password: String, empresaDbName: String, callback: (Boolean) -> Unit = {}) {
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             // Emite un error específico en el loginResult si no hay conexión
             loginResult.value = ResultData.Error("No hay conexión a internet, intenta nuevamente mas tarde")
             callback(false)
@@ -135,15 +132,14 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun logout(token: String): ResultData<Unit> {
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+    suspend fun logout(token: String): ResultData<Unit> {
+        // Verifica si hay conexión antes de hacer la solicitud
+        if (!NetworkStatusHelper.isConnected()) {
             // Retorna un error específico si no hay conexión
-            return ResultData.Error("No hay conexión a internet, intenta más tarde")
+            return ResultData.Error("Sesión cerrada localmente.")
         }
 
-        // Usa runBlocking para ejecutar una llamada síncrona al repositorio
-        return runBlocking {
-            loginRepository.logout(token) // Llama al método correspondiente en el repositorio
-        }
+        // Intenta cerrar sesión en el servidor
+        return loginRepository.logout(token)
     }
 }

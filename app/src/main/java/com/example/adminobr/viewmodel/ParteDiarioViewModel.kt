@@ -13,7 +13,6 @@ import androidx.lifecycle.*
 import com.example.adminobr.api.ApiService
 import com.example.adminobr.data.ParteDiario
 import com.example.adminobr.repository.ParteDiarioRepository
-import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.Event
 import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.utils.SessionManager
@@ -55,8 +54,6 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
 
     private val filterState = MutableStateFlow(ParteDiarioFilter())
 
-    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
-
     // Nuevo LiveData para el estado de la conexión a internet
     private var _isNetworkAvailable = MutableLiveData<Boolean>()
     val isNetworkAvailable: LiveData<Boolean> get() = _isNetworkAvailable
@@ -68,7 +65,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
 
     // Flujo que emite los datos paginados
     val partesDiarios: Flow<PagingData<ParteDiario>> = filterState.flatMapLatest { filter ->
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             // Emitir un flujo vacío y registrar un error si no hay conexión
             Log.e("ParteDiarioViewModel", "No hay conexión a internet. No se puede cargar datos paginados.")
             _errorMessage.postValue(Event("No hay conexión a internet, intenta más tarde"))
@@ -96,7 +93,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         fechaInicio: String,
         fechaFin: String
     ) {
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             // Emite un error específico en el errorMessage si no hay conexión
             _errorMessage.value = Event("No hay conexión a internet, intenta nuevamente mas tarde")
             return
@@ -122,7 +119,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
     fun obtenerUltimoPartePorEquipo(
         equipoId: Int
     ) {
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
             return
         }
@@ -144,7 +141,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         callback: (Boolean, Int?) -> Unit
     ) {
         Log.d("ParteDiarioViewModel", "Iniciando creación de parte: $parte")
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
             callback(false, null)
             return
@@ -180,7 +177,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         parte: ParteDiario,
         callback: (Boolean) -> Unit
     ) {
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
             _isNetworkAvailable.value = false
             callback(false)
@@ -211,7 +208,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
         idParteDiario: Int,
         origen: String
     ) {
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
             return
         }
@@ -237,7 +234,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun obtenerParteDiarioPorId(idParteDiario: Int) {
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
             _isLoading.value = false
             return
@@ -256,7 +253,7 @@ class ParteDiarioViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun cargarUltimosPartesPorUsuario(userId: Int) {
-        if (isNetworkCheckEnabled && !NetworkStatusHelper.isConnected()) {
+        if (!NetworkStatusHelper.isConnected()) {
             _errorMessage.value = Event("No hay conexión a internet, intenta más tarde")
 //            _isLoading.value = false
             return

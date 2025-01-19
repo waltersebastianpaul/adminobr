@@ -16,8 +16,8 @@ fun showNetworkErrorSnackbar(
         .setAction("Reintentar") {
             attemptConnection(view, onConnectionSuccess)
         }
-        .setBackgroundTint(ContextCompat.getColor(view.context, R.color.colorDanger))
-        .setActionTextColor(ContextCompat.getColor(view.context, R.color.colorWhite))
+//        .setBackgroundTint(ContextCompat.getColor(view.context, R.color.colorDanger))
+        .setTextColor(ContextCompat.getColor(view.context, R.color.danger_400))
     currentSnackbar?.show()
 }
 
@@ -31,7 +31,7 @@ private fun attemptConnection(
     } else {
         // Cerrar el Snackbar anterior antes de mostrar el nuevo
         dismissNetworkErrorSnackbar()
-        showNetworkErrorSnackbar(view, "No se pudo conectar, intenta más tarde", onConnectionSuccess)
+        showNetworkErrorSnackbar(view, "Sin conexión, intenta más tarde", onConnectionSuccess)
     }
 }
 

@@ -1,6 +1,10 @@
 package com.example.adminobr.ui.login
 
+import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.InputFilter
@@ -13,9 +17,9 @@ import android.widget.AutoCompleteTextView
 import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Lifecycle
@@ -24,10 +28,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.adminobr.BuildConfig
 import com.example.adminobr.MainActivity
 import com.example.adminobr.R
+import com.example.adminobr.api.ApiService
 import com.example.adminobr.data.Obra
 import com.example.adminobr.data.ResultData
 import com.example.adminobr.databinding.ActivityLoginBinding
 import com.example.adminobr.repository.LoginRepository
+import com.example.adminobr.ui.resetpassword.ResetPasswordActivity
 import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.utils.AutocompleteManager
 import com.example.adminobr.utils.Constants
@@ -39,6 +45,8 @@ import com.example.adminobr.viewmodel.LoginViewModel
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
@@ -51,7 +59,6 @@ class LoginActivity : AppCompatActivity() {
 
     // Layout para mostrar errores de conexión de red
     private lateinit var networkErrorLayout: View
-    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
     private var isNetworkErrorLayoutEnabled = Constants.getNetworkErrorLayout()
 
     // Administrador de autocompletado para cargar empresas
@@ -78,11 +85,21 @@ class LoginActivity : AppCompatActivity() {
 
     private var selectedObra: Obra? = null
 
+    @SuppressLint("SourceLockedOrientationActivity")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Bloquear en orientación vertical
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Mostrar mensaje de error si se pasa desde MainActivity
+        val errorMessage = intent.getStringExtra("logout_error_message")
+        if (!errorMessage.isNullOrEmpty()) {
+            Snackbar.make(binding.root, errorMessage, Snackbar.LENGTH_LONG).show()
+        }
 
         // Configurar el ícono del menú
         val menuIcon = findViewById<ImageView>(R.id.menuIcon)
@@ -114,7 +131,6 @@ class LoginActivity : AppCompatActivity() {
         passwordTextInputLayout = binding.passwordTextInputLayout
         tvNotMeLink = binding.tvNotMeLink
 
-
         // Versión actual de la app
         val currentVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: ""
 
@@ -124,6 +140,8 @@ class LoginActivity : AppCompatActivity() {
         if (lastVersion.isNullOrEmpty() || isVersionGreater(currentVersion, lastVersion)) {
             // Actualizamos la última versión almacenada
             sessionManager.saveLastVersion(currentVersion)
+
+            sendDeviceInfoToServer(this)
 
 // Ejecutar acción única para una versión específica
             if (currentVersion == "1.0.33") {
@@ -181,26 +199,27 @@ class LoginActivity : AppCompatActivity() {
         // Configurar la validación de empresa
         binding.validateEmpresaButton.setOnClickListener {
             AppUtils.closeKeyboard(this)
-            if (isNetworkCheckEnabled && NetworkStatusHelper.isConnected()) {
+            if (NetworkStatusHelper.isConnected()) {
                 validateEmpresa()
             } else {
-//                Toast.makeText(this, "No hay conexión a internet, intenta mas tardes.", Toast.LENGTH_SHORT).show()
-                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG)
+//                    .setBackgroundTint(ContextCompat.getColor(this, R.color.colorDanger))
+                    .setTextColor(ContextCompat.getColor(this, R.color.danger_400))
+                    .show()
+                return@setOnClickListener
             }
         }
 
         binding.loginButton.setOnClickListener {
             AppUtils.closeKeyboard(this)
-            if (isNetworkCheckEnabled) {
-                if (NetworkStatusHelper.isConnected()) {
-                    validateLogin()
-                } else {
-//                    Toast.makeText(this, "No hay conexión a internet, intenta mas tardes.", Toast.LENGTH_SHORT).show()
-                    Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG)
-                        .setBackgroundTint(ContextCompat.getColor(this, R.color.colorDanger))
-                        .setActionTextColor(ContextCompat.getColor(this, R.color.colorWhite))
-                        .show()
-                }
+            if (NetworkStatusHelper.isConnected()) {
+                validateLogin()
+            } else {
+                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG)
+//                    .setBackgroundTint(ContextCompat.getColor(this, R.color.colorDanger))
+                    .setTextColor(ContextCompat.getColor(this, R.color.danger_400))
+                    .show()
+                return@setOnClickListener
             }
         }
 
@@ -223,14 +242,12 @@ class LoginActivity : AppCompatActivity() {
                 NetworkStatusHelper.networkAvailable
 //                .debounce(3000) // Evita fluctuaciones rápidas en la red
                 .collect { isConnected ->
-                    if (isNetworkCheckEnabled) {
-                        if (isConnected) {
-                            if (!empresaData["empresaDbName"].isNullOrEmpty()) loadObrasData()
+                    if (isConnected) {
+                        if (!empresaData["empresaDbName"].isNullOrEmpty()) loadObrasData()
 
-                            if (isNetworkErrorLayoutEnabled) hideNetworkErrorLayout()
-                        } else {
-                            if (isNetworkErrorLayoutEnabled) showNetworkErrorLayout()
-                        }
+                        if (isNetworkErrorLayoutEnabled) hideNetworkErrorLayout()
+                    } else {
+                        if (isNetworkErrorLayoutEnabled) showNetworkErrorLayout()
                     }
                 }
             }
@@ -248,6 +265,41 @@ class LoginActivity : AppCompatActivity() {
             }
         }
 
+    }
+
+    private fun sendDeviceInfoToServer(context: Context) {
+        val userId = sessionManager.getUserId()
+        val empresaDbName = sessionManager.getEmpresaDbName()
+        //val empresaDbName = empresaData["empresaDbName"]
+
+        // Obtener información del dispositivo y la app
+        val deviceModel = Build.MODEL
+        val osVersion = Build.VERSION.RELEASE
+        val appVersion = context.packageManager.getPackageInfo(context.packageName, 0).versionName
+
+        // Preparar los datos para enviar al backend
+        val deviceInfo = mapOf(
+            "userId" to userId.toString(),
+            "deviceModel" to deviceModel,
+            "osVersion" to osVersion,
+            "appVersion" to appVersion,
+            "empresaDbName" to empresaDbName
+        )
+
+        // Enviar datos usando Retrofit
+        val apiService = ApiService.create()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val response = apiService.sendDeviceInfo(deviceInfo)
+                if (response.isSuccessful) {
+                    Log.d("DeviceInfo", "DeviceInfo enviado exitosamente")
+                } else {
+                    Log.e("DeviceInfo", "Error al enviar DeviceInfo: ${response.message()}")
+                }
+            } catch (e: Exception) {
+                Log.e("DeviceInfo", "Error: ${e.localizedMessage}")
+            }
+        }
     }
 
     private fun isVersionGreater(version1: String, version2: String): Boolean {
@@ -350,24 +402,15 @@ class LoginActivity : AppCompatActivity() {
             if (!empresaData["empresaDbName"].isNullOrEmpty()) {
                 if (NetworkStatusHelper.isNetworkAvailable()) {
                     if (message != null) {
-                        binding.loginButton.isEnabled = false
                         Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE)
                             .setAction("Reintentar") {
                                 loadObrasData() // Llamada a recargar las obras
                             }
                             .show()
-                    } else {
-                        // Si no hay error, habilita el botón
-                        binding.loginButton.isEnabled = true
                     }
-                } else {
-                    // Habilita el botón incluso sin conexión si no hay error
-                    binding.loginButton.isEnabled = true
                 }
             }
         }
-
-
 
         loginViewModel.successMessage.observe(this) { event ->
             event.getContentIfNotHandled()?.let { message ->
@@ -401,8 +444,8 @@ class LoginActivity : AppCompatActivity() {
             event.getContentIfNotHandled()?.let { message ->
 //                Toast.makeText(this,  message, Toast.LENGTH_SHORT).show()
                 Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                    .setBackgroundTint(ContextCompat.getColor(this, R.color.colorDanger))
-                    .setActionTextColor(ContextCompat.getColor(this, R.color.colorWhite))
+//                    .setBackgroundTint(ContextCompat.getColor(this, R.color.colorDanger))
+                    .setTextColor(ContextCompat.getColor(this, R.color.danger_400))
                     .show()
             }
         }
@@ -537,7 +580,11 @@ class LoginActivity : AppCompatActivity() {
         binding.passwordTextInputLayout.visibility = View.VISIBLE
         binding.loginButton.visibility = View.VISIBLE
 
-        if (obraData["obraNombre"].isNullOrEmpty() || binding.obraAutocomplete.text.isEmpty()) {
+        Log.d("LoginActivity", "Obra seleccionada: $obraData")
+        Log.d("LoginActivity", "Obra nombre: ${obraData["obraNombre"]}")
+        Log.d("LoginActivity", "Obra: ${obraData["obraNombre"]}")
+
+        if (obraData["obraNombre"].isNullOrEmpty()) {
             binding.obraAutocomplete.setText("")
             binding.obraTextInputLayout.visibility = View.VISIBLE
             binding.obraLayout.visibility = View.GONE
@@ -582,19 +629,13 @@ class LoginActivity : AppCompatActivity() {
                 sessionManager.clearUserDetails()
                 userDetails = sessionManager.getUserDetails()
                 binding.apply {
-                    // Oculta el texto del logo
                     logoTextImageView.visibility = View.VISIBLE
-                    usuarioTextInputLayout.visibility = View.VISIBLE
                     usuarioEditText.setText("")
                     passwordEditText.setText("")
+                    usuarioTextInputLayout.visibility = View.VISIBLE
                     tvWelcomeMessage.visibility = View.GONE
                     tvNotMeLink.visibility = View.GONE
                 }
-            }
-
-            // Asigna el OnClickListener al TextView de "Recuperar Contraseña"
-            binding.recuperarPasswordButton.setOnClickListener {
-                Snackbar.make(binding.root, "Comunicarse con el administrador de la app. \nNo disponible en esta versión.", Snackbar.LENGTH_LONG).show()
             }
 
             obraData.let { obra ->
@@ -607,14 +648,19 @@ class LoginActivity : AppCompatActivity() {
             }
 
         } else {
-            // Muestra el texto del logo
-            binding.logoTextImageView.visibility = View.VISIBLE
+            binding.apply {
+                logoTextImageView.visibility = View.VISIBLE
+                usuarioEditText.setText("")
+                passwordEditText.setText("")
+                usuarioTextInputLayout.visibility = View.VISIBLE
+                tvWelcomeMessage.visibility = View.GONE
+                tvNotMeLink.visibility = View.GONE
+            }
+        }
 
-            // Si no hay datos de usuario, mostrar el campo de usuario
-            binding.usuarioTextInputLayout.visibility = View.VISIBLE
-            binding.recuperarPasswordButton.visibility = View.GONE
-            binding.tvWelcomeMessage.visibility = View.GONE
-            binding.tvNotMeLink.visibility = View.GONE
+        binding.recuperarPasswordButton.setOnClickListener {
+            val intent = Intent(this, ResetPasswordActivity::class.java)
+            startActivity(intent)
         }
     }
 

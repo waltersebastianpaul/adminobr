@@ -31,7 +31,6 @@ import com.example.adminobr.data.Usuario
 import com.example.adminobr.databinding.FragmentUserFormBinding
 import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.utils.AutocompleteManager
-import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.FeedbackVisualUtil
 import com.example.adminobr.utils.LoadingDialogUtil
 import com.example.adminobr.utils.NetworkStatusHelper
@@ -73,7 +72,6 @@ class UsuarioFormFragment : Fragment() {
     private val sessionManager by lazy { SessionManager(requireContext()) }
 
     private var previousConnectionState: Boolean? = null
-    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
 
     // Job para cancelar las corrutinas
     private var networkJob: Job? = null
@@ -124,21 +122,19 @@ class UsuarioFormFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 NetworkStatusHelper.networkAvailable.collect { isConnected ->
-                    if (isNetworkCheckEnabled) {
-                        // Si la conexión se restauró
-                        if (previousConnectionState == false && isConnected) {
-                            // Recargar datos u otras acciones necesarias
-                            reloadData()
-                        }
-
-                        // Si está en modo edición y el formulario estaba deshabilitado
-                        if (editMode && isConnected && !binding.guardarButton.isEnabled) {
-                            habilitarFormulario()
-                        }
-
-                        // Actualizar el estado de conexión previo
-                        previousConnectionState = isConnected
+                    // Si la conexión se restauró
+                    if (previousConnectionState == false && isConnected) {
+                        // Recargar datos u otras acciones necesarias
+                        reloadData()
                     }
+
+                    // Si está en modo edición y el formulario estaba deshabilitado
+                    if (editMode && isConnected && !binding.guardarButton.isEnabled) {
+                        habilitarFormulario()
+                    }
+
+                    // Actualizar el estado de conexión previo
+                    previousConnectionState = isConnected
                 }
             }
         }
@@ -375,11 +371,14 @@ class UsuarioFormFragment : Fragment() {
 
     private fun setupListeners() {
         binding.guardarButton.setOnClickListener {
-            if (isNetworkCheckEnabled && NetworkStatusHelper.isConnected()) {
+            if (NetworkStatusHelper.isConnected()) {
                 guardarUsuario()
             } else {
-//                Toast.makeText(requireContext(), "No hay conexión a internet, intenta mas tardes.", Toast.LENGTH_SHORT).show()
-                Snackbar.make(requireView(), "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG)
+//                    .setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.colorDanger))
+                    .setTextColor(ContextCompat.getColor(requireContext(), R.color.danger_400))
+                    .show()
+                return@setOnClickListener
             }
         }
 
@@ -551,7 +550,7 @@ class UsuarioFormFragment : Fragment() {
         var isValid = true
 
         // Función auxiliar para validar un campo y establecer el error
-        fun validateField(text: String?, textInputLayout: com.google.android.material.textfield.TextInputLayout, errorMessage: String): Boolean {
+        fun validateField(text: String?, textInputLayout: TextInputLayout, errorMessage: String): Boolean {
             return if (text.isNullOrEmpty()) {
                 textInputLayout.error = errorMessage
                 false
@@ -820,8 +819,8 @@ class UsuarioFormFragment : Fragment() {
             event.getContentIfNotHandled()?.let { mensaje ->
 //                Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
                 Snackbar.make(binding.root, mensaje, Snackbar.LENGTH_LONG)
-                    .setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.colorDanger))
-                    .setActionTextColor(ContextCompat.getColor(requireContext(), R.color.colorWhite))
+//                    .setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.colorDanger))
+                    .setTextColor(ContextCompat.getColor(requireContext(), R.color.danger_400))
                     .show()
             }
         }

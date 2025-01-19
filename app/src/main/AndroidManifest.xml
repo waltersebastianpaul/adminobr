@@ -45,6 +45,17 @@
             android:exported="false"
             android:theme="@style/Theme.AdminObr.NoActionBar" />
 
+
+        <activity
+            android:name=".ui.resetpassword.ResetPasswordActivity"
+            android:theme="@style/Theme.AdminObr.NoActionBar"
+            android:exported="true" />
+
+        <activity
+            android:name=".ui.resetpassword.VerifyCodeActivity"
+            android:theme="@style/Theme.AdminObr.NoActionBar"
+            android:exported="true" />
+
         <service
             android:name=".update.DownloadForegroundService"
             android:foregroundServiceType="dataSync"

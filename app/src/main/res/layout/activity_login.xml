@@ -63,7 +63,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/empresaTextInputLayout"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="80dp"
@@ -80,6 +80,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Empresa CODE"
+                    android:textSize="16sp"
                     android:inputType="text"
                     android:imeOptions="actionDone" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -132,7 +133,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/usuarioTextInputLayout"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="12dp"
@@ -147,14 +148,15 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/usuarioEditText"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
                     android:hint="Usuario"
                     android:inputType="text|textEmailAddress" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/passwordTextInputLayout"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="4dp"
@@ -171,7 +173,8 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/passwordEditText"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
+                    android:layout_height="wrap_content"
+                    android:textSize="16sp"
                     android:hint="Contraseña"
                     android:inputType="textPassword"
                     android:imeOptions="actionDone"/>
@@ -238,11 +241,11 @@
                     android:id="@+id/obraAutocomplete"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:textSize="16sp"
                     android:hint="Obra"
                     android:completionThreshold="1"
-                    android:padding="16dp"
-                    android:textSize="16sp"
-                    android:inputType="textAutoComplete" />
+                    android:inputType="textAutoComplete"
+                    style="@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <Button
@@ -296,7 +299,6 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <include
-        android:id="@+id/networkErrorLayout"
         layout="@layout/network_error_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

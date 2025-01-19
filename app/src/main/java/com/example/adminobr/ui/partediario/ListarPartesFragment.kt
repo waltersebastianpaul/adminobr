@@ -10,6 +10,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AutoCompleteTextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -22,7 +23,6 @@ import com.example.adminobr.databinding.FragmentListarPartesBinding
 import com.example.adminobr.ui.adapter.ListarPartesAdapter
 import com.example.adminobr.utils.AppUtils
 import com.example.adminobr.utils.AutocompleteManager
-import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.utils.SessionManager
 import com.example.adminobr.viewmodel.AppDataViewModel
@@ -49,8 +49,6 @@ class ListarPartesFragment : Fragment(R.layout.fragment_listar_partes) {
 
     private var selectedEquipo: Equipo? = null
     private var selectedObra: Obra? = null
-
-    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -191,7 +189,7 @@ class ListarPartesFragment : Fragment(R.layout.fragment_listar_partes) {
             // Ocultar el teclado usando AppUtils
             AppUtils.closeKeyboard(requireActivity(), view)
 
-            if (isNetworkCheckEnabled && NetworkStatusHelper.isConnected()) {
+            if (NetworkStatusHelper.isConnected()) {
                 val equipoId = selectedEquipo?.id ?: 0
                 val obraId = selectedObra?.id ?: 0
                 val fechaInicio = binding.fechaInicioEditText.text.toString()
@@ -201,8 +199,11 @@ class ListarPartesFragment : Fragment(R.layout.fragment_listar_partes) {
                 // Empezamos a observar los datos de partes con los filtros actualizados
                 observePartesDiarios(true)  // Ahora sí, activamos la observación
             } else {
-//                Toast.makeText(requireContext(), "No hay conexión a internet, intenta mas tardes.", Toast.LENGTH_SHORT).show()
-                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG)
+//                    .setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.colorDanger))
+                    .setTextColor(ContextCompat.getColor(requireContext(), R.color.danger_400))
+                    .show()
+                return@setOnClickListener
             }
         }
 
@@ -210,7 +211,7 @@ class ListarPartesFragment : Fragment(R.layout.fragment_listar_partes) {
             // Ocultar el teclado usando AppUtils
             AppUtils.closeKeyboard(requireActivity(), view)
 
-            if (isNetworkCheckEnabled && NetworkStatusHelper.isConnected()) {
+            if (NetworkStatusHelper.isConnected()) {
                 binding.equipoAutocomplete.setText("")
                 binding.obraAutocomplete.setText("")
                 binding.fechaInicioEditText.setText("")
@@ -221,8 +222,11 @@ class ListarPartesFragment : Fragment(R.layout.fragment_listar_partes) {
                 Log.d("ListarPartesFragment", "Filtros limpiados")
                 viewModel.updateFilters(0, 0, "", "")
             } else {
-//                Toast.makeText(requireContext(), "No hay conexión a internet, intenta mas tardes.", Toast.LENGTH_SHORT).show()
-                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, "No hay conexión a internet, intenta mas tardes.", Snackbar.LENGTH_LONG)
+//                    .setBackgroundTint(ContextCompat.getColor(requireContext(), R.color.colorDanger))
+                    .setTextColor(ContextCompat.getColor(requireContext(), R.color.danger_400))
+                    .show()
+                return@setOnClickListener
             }
         }
     }

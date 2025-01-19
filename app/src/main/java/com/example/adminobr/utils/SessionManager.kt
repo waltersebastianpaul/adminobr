@@ -269,6 +269,11 @@ class SessionManager(context: Context) {
         }
     }
 
+    // Eliminar las claves específicas
+    /**
+     * Uso:
+     * sessionManager.removeKeys("last_version") // agregar una o varias key a eliminar
+     */
     fun removeKeys(vararg keys: String) {
         val editor = prefs.edit()
         for (key in keys) {

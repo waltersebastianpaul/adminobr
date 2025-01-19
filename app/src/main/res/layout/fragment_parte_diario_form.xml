@@ -91,11 +91,11 @@
                     android:layout_height="52dp"
                     android:hint="@string/hint_equipo"
                     android:completionThreshold="1"
-                    android:padding="16dp"
                     android:textSize="16sp"
                     android:inputType="text"
                     android:imeOptions="actionNext"
-                    android:nextFocusForward="@id/obraAutocomplete" />
+                    android:nextFocusForward="@id/obraAutocomplete"
+                    style="@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -116,11 +116,11 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/hint_obra"
                     android:completionThreshold="1"
-                    android:padding="16dp"
                     android:textSize="16sp"
                     android:inputType="text"
                     android:imeOptions="actionNext"
-                    android:nextFocusForward="@id/horasInicioEditText" />
+                    android:nextFocusForward="@id/horasInicioEditText"
+                    style="@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
@@ -257,9 +257,9 @@
                                     android:layout_width="match_parent"
                                     android:layout_height="52dp"
                                     android:hint="Combustible"
-
                                     android:focusable="true"
-                                    android:clickable="true" />
+                                    android:clickable="true"
+                                    style="@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox" />
 
                             </com.google.android.material.textfield.TextInputLayout>
 
@@ -491,7 +491,8 @@
                     android:hint="Estado"
                     android:inputType="none"
                     android:focusable="true"
-                    android:clickable="true" />
+                    android:clickable="true"
+                    style="@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -636,7 +637,7 @@
                     android:gravity="bottom"
                     android:textSize="15sp"
                     android:text="Histrorial de Partes por Usuario"
-                    android:textColor="@color/colorPrimary"
+                    android:textColor="@color/button_primary_background"
                     android:textAllCaps="true"
                     android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
@@ -680,7 +681,6 @@
     </ScrollView>
 
     <include
-        android:id="@+id/networkErrorLayout"
         layout="@layout/network_error_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

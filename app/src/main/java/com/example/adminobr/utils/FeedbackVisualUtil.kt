@@ -47,7 +47,7 @@ object FeedbackVisualUtil {
         lifecycleOwner.lifecycleScope.launch {
             kotlinx.coroutines.delay(delay)
             if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                //restaurarColorOriginal(activity, *buttons)
+                restaurarColorOriginal(activity, *buttons)
                 onFinished()
             }
         }
@@ -65,7 +65,7 @@ object FeedbackVisualUtil {
         lifecycleOwner.lifecycleScope.launch {
             kotlinx.coroutines.delay(delay)
             if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                //restaurarColorOriginal(activity, *buttons)
+                restaurarColorOriginal(activity, *buttons)
                 onFinished()
             }
         }

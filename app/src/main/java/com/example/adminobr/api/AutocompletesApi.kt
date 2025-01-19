@@ -21,13 +21,12 @@ import retrofit2.http.POST
 interface AutocompletesApi {
 
     @POST(Constants.Equipos.GET_LISTA)
-    suspend fun getEquipos(@Body requestBody: RequestBody): List<Equipo>
+    suspend fun getEquipos(@Body requestBody: RequestBody
+    ): List<Equipo>
 
     @POST(Constants.Obras.GET_LISTA)
-    suspend fun getObras(@Body requestBody: RequestBody): List<Obra>
-
-    @GET(Constants.Empresas.GET_LISTA) // Ruta corregida
-    suspend fun getEmpresas(): List<Empresa>
+    suspend fun getObras(@Body requestBody: RequestBody
+    ): List<Obra>
 
     companion object {
         private val BASE_URL = Constants.getBaseUrl()

@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.adminobr.R
 import com.example.adminobr.databinding.FragmentListarUsuariosBinding
 import com.example.adminobr.ui.adapter.UsuarioAdapter
-import com.example.adminobr.utils.Constants
 import com.example.adminobr.utils.NetworkStatusHelper
 import com.example.adminobr.viewmodel.UsuarioViewModel
 import com.example.adminobr.viewmodel.UsuarioViewModelFactory
@@ -31,7 +30,6 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
     private lateinit var userAdapter: UsuarioAdapter
 
     private var previousConnectionState: Boolean? = null
-    private var isNetworkCheckEnabled = Constants.getNetworkStatusHelper()
 
     private val usuarioViewModel: UsuarioViewModel by viewModels {
         UsuarioViewModelFactory(requireActivity().application)
@@ -107,18 +105,16 @@ class ListarUsuariosFragment : Fragment(R.layout.fragment_listar_usuarios) {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 NetworkStatusHelper.networkAvailable
                     .collect { isConnected ->
-                        if (isNetworkCheckEnabled) {
-                            if (isConnected && previousConnectionState == null) {
-                                cargarUsuarios()
-                            } else if (isConnected && previousConnectionState == false) {
+                        if (isConnected && previousConnectionState == null) {
+                            cargarUsuarios()
+                        } else if (isConnected && previousConnectionState == false) {
 //                                Log.d("ParteDiarioFormFragment", "Conexión restaurada, recargando datos...")
-                                // Realiza una acción específica al recuperar conexión
+                            // Realiza una acción específica al recuperar conexión
 
-                                reloadData()
-                            }
-
-                            previousConnectionState = isConnected
+                            reloadData()
                         }
+
+                        previousConnectionState = isConnected
                     }
             }
         }

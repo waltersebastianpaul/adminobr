@@ -1,254 +1,278 @@
-[22-Oct-2024 23:04:16 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "password" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 36
-[22-Oct-2024 23:04:16 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 36
-[22-Oct-2024 23:04:16 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:36) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 70
-[22-Oct-2024 23:04:25 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "password" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 36
-[22-Oct-2024 23:04:25 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 36
-[22-Oct-2024 23:04:25 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:36) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 70
-[22-Oct-2024 23:10:20 America/Argentina/Buenos_Aires] Valores recibidos en la solicitud de actualización: array (
-  'id' => 'null',
-  'legajo' => '0033',
-  'email' => 'aaaa@ggg',
-  'dni' => '77777777',
-  'nombre' => '44AAAAAAAAA',
-  'apellido' => '44AAAA',
-  'telefono' => '32131131',
-  'estado_id' => '0',
-  'empresaDbName' => 'c2650924_PITO002',
-  'password' => '123',
-)
-[22-Oct-2024 23:10:20 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "userCreated" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 30
-[22-Oct-2024 23:10:20 America/Argentina/Buenos_Aires] userCreated: 
-[22-Oct-2024 23:10:20 America/Argentina/Buenos_Aires] estado_id: 0
-[22-Oct-2024 23:10:20 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "id_usuario" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 32
-[22-Oct-2024 23:10:20 America/Argentina/Buenos_Aires] id_usuario: 
-[22-Oct-2024 23:10:20 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:30) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 74
-[22-Oct-2024 23:10:41 America/Argentina/Buenos_Aires] Valores recibidos en la solicitud de actualización: array (
-  'id' => 'null',
-  'legajo' => '0033',
-  'email' => 'aaaa@ggg',
-  'dni' => '77777777',
-  'nombre' => '44AAAAAAAAA',
-  'apellido' => '44AAAA',
-  'telefono' => '32131131',
-  'estado_id' => '0',
-  'empresaDbName' => 'c2650924_PITO002',
-  'password' => '123456',
-)
-[22-Oct-2024 23:10:41 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "userCreated" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 30
-[22-Oct-2024 23:10:41 America/Argentina/Buenos_Aires] userCreated: 
-[22-Oct-2024 23:10:41 America/Argentina/Buenos_Aires] estado_id: 0
-[22-Oct-2024 23:10:41 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "id_usuario" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 32
-[22-Oct-2024 23:10:41 America/Argentina/Buenos_Aires] id_usuario: 
-[22-Oct-2024 23:10:41 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:30) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 74
-[22-Oct-2024 23:11:54 America/Argentina/Buenos_Aires] Valores recibidos en la solicitud de actualización: array (
-  'id' => 'null',
-  'legajo' => '0033',
-  'email' => 'aaaa@ggg',
-  'dni' => '77777777',
-  'nombre' => '44AAAAAAAAA',
-  'apellido' => '44AAAA',
-  'telefono' => '32131131',
-  'estado_id' => '0',
-  'empresaDbName' => 'c2650924_PITO002',
-  'password' => '123456',
-)
-[22-Oct-2024 23:11:54 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "userCreated" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 30
-[22-Oct-2024 23:11:54 America/Argentina/Buenos_Aires] userCreated: 
-[22-Oct-2024 23:11:54 America/Argentina/Buenos_Aires] estado_id: 0
-[22-Oct-2024 23:11:54 America/Argentina/Buenos_Aires] id_usuario: null
-[22-Oct-2024 23:11:54 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:30) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 74
-[22-Oct-2024 23:12:40 America/Argentina/Buenos_Aires] Valores recibidos en la solicitud de actualización: array (
-  'id' => 'null',
-  'legajo' => '0033',
-  'email' => 'aaaa@ggg',
-  'dni' => '77777777',
-  'nombre' => 'AAAAAAAAA',
-  'apellido' => 'AAAA',
-  'telefono' => '32131131',
-  'estado_id' => '0',
-  'empresaDbName' => 'c2650924_PITO002',
-  'password' => '123456',
-)
-[22-Oct-2024 23:12:40 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "userCreated" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 30
-[22-Oct-2024 23:12:40 America/Argentina/Buenos_Aires] userCreated: 
-[22-Oct-2024 23:12:40 America/Argentina/Buenos_Aires] estado_id: 0
-[22-Oct-2024 23:12:40 America/Argentina/Buenos_Aires] id_usuario: null
-[22-Oct-2024 23:12:40 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:30) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 74
-[22-Oct-2024 23:16:24 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "password" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 38
-[22-Oct-2024 23:16:24 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 38
-[22-Oct-2024 23:16:24 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET 
-            legajo = '0033', 
-            email = 'aaaa@ggg', 
-            dni = '77777777', 
-            nombre = 'AAAAAAAAA', 
-            apellido = 'AAAA', 
-            telefono = '32131131'
-             
-            WHERE id_usuario = 'null'
-[22-Oct-2024 23:16:24 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:1) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 77
-[22-Oct-2024 23:16:43 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET 
-            legajo = '0033', 
-            email = 'aaaa@ggg', 
-            dni = '77777777', 
-            nombre = 'AAAAAAAAA', 
-            apellido = 'AAAA', 
-            telefono = '32131131'
-             
-            WHERE id_usuario = 'null'
-[22-Oct-2024 23:16:43 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:1) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 77
-[22-Oct-2024 23:17:39 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET 
-            legajo = '0033', 
-            email = 'aaaa@ggg', 
-            dni = '77777777', 
-            nombre = '44AAAAAAAAA', 
-            apellido = '44AAAA', 
-            telefono = '32131131'
-             
-            WHERE id_usuario = 'null'
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "empresaDbName" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 13
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "legajo" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 26
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 26
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "email" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 27
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 27
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "dni" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 28
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 28
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "nombre" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 32
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 32
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "apellido" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 33
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 33
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "telefono" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 34
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 34
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "estado_id" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 37
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 37
-[22-Oct-2024 23:32:12 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: No database selected in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php:45
+[09-Jan-2025 20:34:11 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Class "PHPMailer\PHPMailer" not found in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php:62
 Stack trace:
-#0 /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php(45): mysqli->query('SELECT * FROM u...')
-#1 {main}
-  thrown in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 45
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "empresaDbName" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 13
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "legajo" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 26
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 26
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "email" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 27
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 27
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "dni" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 28
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 28
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "nombre" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 32
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 32
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "apellido" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 33
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 33
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "telefono" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 34
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 34
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "estado_id" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 37
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 37
-[22-Oct-2024 23:33:14 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: No database selected in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php:45
+#0 {main}
+  thrown in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 62
+[09-Jan-2025 20:35:33 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Class "PHPMailer\PHPMailer" not found in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php:62
 Stack trace:
-#0 /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php(45): mysqli->query('SELECT * FROM u...')
-#1 {main}
-  thrown in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 45
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "empresaDbName" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 14
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "id" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 36
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 36
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "legajo" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 39
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 39
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "email" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 40
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 40
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "dni" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 41
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 41
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "password" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 42
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 42
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "nombre" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 43
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 43
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "apellido" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 44
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 44
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "telefono" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 45
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 45
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "estado_id" in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 47
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 47
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET 
-            legajo = '', 
-            email = '', 
-            dni = '', 
-            nombre = '', 
-            apellido = '', 
-            telefono = ''
-             
-            WHERE id_usuario = ''
-[22-Oct-2024 23:34:07 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: No database selected in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:72
+#0 {main}
+  thrown in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 62
+[09-Jan-2025 20:37:09 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Class "PHPMailer\PHPMailer" not found in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php:62
 Stack trace:
-#0 /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php(72): mysqli->query('UPDATE usuarios...')
-#1 {main}
-  thrown in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 72
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "empresaDbName" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 13
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "legajo" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 26
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 26
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "email" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 27
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 27
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "dni" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 28
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 28
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "nombre" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 32
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 32
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "apellido" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 33
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 33
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "telefono" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 34
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 34
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "estado_id" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 37
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 37
-[22-Oct-2024 23:35:37 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: No database selected in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php:45
+#0 {main}
+  thrown in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 62
+[09-Jan-2025 20:49:05 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log] It seems that you are filtering on a parameter 'additional_parameters' of the function 'mail', but the parameter does not exists. in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 63
+[09-Jan-2025 20:49:05 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 0 parameter's name: 'to' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 63
+[09-Jan-2025 20:49:05 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 1 parameter's name: 'subject' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 63
+[09-Jan-2025 20:49:05 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 2 parameter's name: 'message' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 63
+[09-Jan-2025 20:49:05 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 3 parameter's name: 'additional_headers' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 63
+[09-Jan-2025 20:49:05 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 4 parameter's name: 'additional_params' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 63
+[09-Jan-2025 20:49:05 America/Argentina/Buenos_Aires] PHP Warning:  http_response_code(): Cannot set response code - headers already sent (output started at /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php:63) in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 64
+[09-Jan-2025 20:54:53 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log] It seems that you are filtering on a parameter 'additional_parameters' of the function 'mail', but the parameter does not exists. in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 65
+[09-Jan-2025 20:54:53 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 0 parameter's name: 'to' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 65
+[09-Jan-2025 20:54:53 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 1 parameter's name: 'subject' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 65
+[09-Jan-2025 20:54:53 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 2 parameter's name: 'message' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 65
+[09-Jan-2025 20:54:53 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 3 parameter's name: 'additional_headers' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 65
+[09-Jan-2025 20:54:53 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 4 parameter's name: 'additional_params' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 65
+[09-Jan-2025 20:54:53 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[09-Jan-2025 20:58:49 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log] It seems that you are filtering on a parameter 'additional_parameters' of the function 'mail', but the parameter does not exists. in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 20:58:49 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 0 parameter's name: 'to' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 20:58:49 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 1 parameter's name: 'subject' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 20:58:49 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 2 parameter's name: 'message' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 20:58:49 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 3 parameter's name: 'additional_headers' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 20:58:49 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 4 parameter's name: 'additional_params' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 20:58:49 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[09-Jan-2025 21:52:51 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log] It seems that you are filtering on a parameter 'additional_parameters' of the function 'mail', but the parameter does not exists. in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 21:52:51 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 0 parameter's name: 'to' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 21:52:51 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 1 parameter's name: 'subject' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 21:52:51 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 2 parameter's name: 'message' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 21:52:51 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 3 parameter's name: 'additional_headers' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 21:52:51 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 4 parameter's name: 'additional_params' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 67
+[09-Jan-2025 21:52:51 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[09-Jan-2025 21:59:57 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[09-Jan-2025 22:06:59 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[09-Jan-2025 22:15:57 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Undefined constant "JWT_SECRET" in /home/c2650924/public_html/api/auth/logoutApp.php:23
 Stack trace:
-#0 /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php(45): mysqli->query('SELECT * FROM u...')
-#1 {main}
-  thrown in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 45
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "empresaDbName" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 13
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "legajo" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 26
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 26
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "email" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 27
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 27
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "dni" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 28
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 28
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "nombre" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 32
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 32
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "apellido" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 33
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 33
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "telefono" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 34
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 34
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Warning:  Undefined array key "estado_id" in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 37
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Deprecated:  mysqli_real_escape_string(): Passing null to parameter #2 ($string) of type string is deprecated in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 37
-[22-Oct-2024 23:36:51 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught mysqli_sql_exception: No database selected in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php:45
+#0 {main}
+  thrown in /home/c2650924/public_html/api/auth/logoutApp.php on line 23
+[09-Jan-2025 22:22:42 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Undefined constant "JWT_SECRET" in /home/c2650924/public_html/api/auth/logoutApp.php:23
 Stack trace:
-#0 /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php(45): mysqli->query('SELECT * FROM u...')
-#1 {main}
-  thrown in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 45
-[22-Oct-2024 23:45:35 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET 
-            legajo = '0202', 
-            email = 'updated_email@example.com', 
-            dni = '22222222', 
-            nombre = 'UpdatedName', 
-            apellido = 'UpdatedLastName', 
-            telefono = 'update12312312',
-            estado_id = '1'
-             
-            WHERE id_usuario = '15'
-[22-Oct-2024 23:51:43 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET 
-            legajo = '0202', 
-            email = 'updated_email@example.com', 
-            dni = '22222222', 
-            nombre = 'UpdatedName', 
-            apellido = 'UpdatedLastName', 
-            telefono = 'update12312312',
-            estado_id = '1'
-             
-            WHERE id_usuario = '15'
-[23-Oct-2024 00:01:08 America/Argentina/Buenos_Aires] PHP Parse error:  syntax error, unexpected token "<", expecting end of file in /home/c2650924/public_html/debug/api/usuarios/guardar_usuario.php on line 2
-[23-Oct-2024 00:10:23 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET 
-            legajo = '0202', 
-            email = 'updated_email@example.com', 
-            dni = '22222222', 
-            nombre = 'UpdatedName', 
-            apellido = 'UpdatedLastName', 
-            telefono = 'update12312312',
-            estado_id = '1'
-             
-            WHERE id_usuario = '15'
-[23-Oct-2024 00:14:18 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET legajo = '0202', email = 'updated_email@example.com', dni = '22222222', nombre = 'UpdatedName', apellido = 'UpdatedLastName', telefono = 'update12312312', estado_id = '1' WHERE id_usuario = '15'
-[23-Oct-2024 00:14:18 America/Argentina/Buenos_Aires] PHP Warning:  Cannot modify header information - headers already sent by (output started at /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php:1) in /home/c2650924/public_html/debug/api/usuarios/actualizar_usuario.php on line 79
-[23-Oct-2024 00:14:33 America/Argentina/Buenos_Aires] Consulta SQL: UPDATE usuarios SET legajo = '0202', email = 'updated_email@example.com', dni = '22222222', nombre = 'UpdatedName', apellido = 'UpdatedLastName', telefono = 'update12312312', estado_id = '1' WHERE id_usuario = '15'
+#0 {main}
+  thrown in /home/c2650924/public_html/api/auth/logoutApp.php on line 23
+[09-Jan-2025 22:24:35 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log] It seems that you are filtering on a parameter 'additional_parameters' of the function 'mail', but the parameter does not exists. in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 69
+[09-Jan-2025 22:24:35 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 0 parameter's name: 'to' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 69
+[09-Jan-2025 22:24:35 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 1 parameter's name: 'subject' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 69
+[09-Jan-2025 22:24:35 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 2 parameter's name: 'message' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 69
+[09-Jan-2025 22:24:35 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 3 parameter's name: 'additional_headers' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 69
+[09-Jan-2025 22:24:35 America/Argentina/Buenos_Aires] PHP Warning:  [snuffleupagus][0.0.0.0][config][log]   - 4 parameter's name: 'additional_params' in /home/c2650924/public_html/debug/api/auth/sendRecoveryCode.php on line 69
+[09-Jan-2025 22:24:35 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[09-Jan-2025 22:42:32 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[10-Jan-2025 00:48:28 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[10-Jan-2025 00:48:47 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[10-Jan-2025 00:53:59 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[10-Jan-2025 01:05:45 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[10-Jan-2025 07:04:07 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Undefined constant "JWT_SECRET" in /home/c2650924/public_html/api/auth/logoutApp.php:23
+Stack trace:
+#0 {main}
+  thrown in /home/c2650924/public_html/api/auth/logoutApp.php on line 23
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 09:34:15 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 09:34:29 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 09:34:29 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 09:34:29 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 09:34:29 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 10:05:39 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 10:05:39 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 10:05:39 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 10:05:39 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 10:08:06 America/Argentina/Buenos_Aires] Token válido: {"iss":"http:\/\/adminobr.site","aud":"http:\/\/adminobr.site","iat":1736514324,"exp":1736600724,"userId":8}
+[10-Jan-2025 10:08:24 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 10:08:24 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 10:08:24 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 10:08:24 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 10:08:24 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 10:08:24 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 10:08:24 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 10:08:24 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 12:21:54 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Undefined constant "JWT_SECRET" in /home/c2650924/public_html/api/auth/logoutApp.php:23
+Stack trace:
+#0 {main}
+  thrown in /home/c2650924/public_html/api/auth/logoutApp.php on line 23
+[10-Jan-2025 13:04:51 America/Argentina/Buenos_Aires] Token válido: {"iss":"http:\/\/adminobr.site","aud":"http:\/\/adminobr.site","iat":1736514324,"exp":1736600724,"userId":8}
+[10-Jan-2025 13:05:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:05:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:05:11 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:05:11 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:05:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:05:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:05:11 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:05:11 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:22:15 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[10-Jan-2025 13:29:18 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:18 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:18 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:29:18 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:29:18 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:18 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:18 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:29:18 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:29:22 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:22 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:22 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:29:22 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:29:29 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:30:12 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:12 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:12 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:30:12 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:30:14 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:14 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:14 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:30:14 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 13:30:22 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 14:29:08 America/Argentina/Buenos_Aires] Token válido: {"iss":"http:\/\/adminobr.site","aud":"http:\/\/adminobr.site","iat":1736527703,"exp":1736614103,"userId":1}
+[10-Jan-2025 14:29:15 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Undefined constant "JWT_SECRET" in /home/c2650924/public_html/debug/api/auth/logoutApp.php:23
+Stack trace:
+#0 {main}
+  thrown in /home/c2650924/public_html/debug/api/auth/logoutApp.php on line 23
+[10-Jan-2025 14:29:34 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[10-Jan-2025 16:36:37 America/Argentina/Buenos_Aires] Token válido: {"iss":"http:\/\/adminobr.site","aud":"http:\/\/adminobr.site","iat":1736530192,"exp":1736616592,"userId":1}
+[10-Jan-2025 16:36:43 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Undefined constant "JWT_SECRET" in /home/c2650924/public_html/debug/api/auth/logoutApp.php:23
+Stack trace:
+#0 {main}
+  thrown in /home/c2650924/public_html/debug/api/auth/logoutApp.php on line 23
+[10-Jan-2025 17:09:45 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[10-Jan-2025 18:06:19 America/Argentina/Buenos_Aires] Correo enviado exitosamente a: wpaul@jepitonsa.com.ar
+[10-Jan-2025 19:59:19 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 19:59:19 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 19:59:19 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 19:59:19 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 19:59:38 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 19:59:38 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 19:59:38 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 19:59:38 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 19:59:42 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 19:59:42 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 19:59:42 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 19:59:42 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:11 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:12 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:12 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:12 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:12 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:20 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:20 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:20 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:20 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:20 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:20 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:20 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:20 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:25 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:28 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:28 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:28 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:28 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:28 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:28 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:28 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:28 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:32 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:32 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:32 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:32 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:32 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:32 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:32 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:32 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:35 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:35 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:35 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:35 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:35 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:35 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:35 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:35 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:38 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:38 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:38 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:38 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:38 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:38 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:38 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:38 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:41 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:41 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:41 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:41 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:41 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:41 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:41 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:41 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:44 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:44 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:44 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:44 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:44 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:44 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:44 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:44 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:47 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:47 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:47 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:47 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:00:47 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:47 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:00:47 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:00:47 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:01:04 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:01:04 America/Argentina/Buenos_Aires] 
+[10-Jan-2025 20:01:04 America/Argentina/Buenos_Aires] fechaInicio está vacío
+[10-Jan-2025 20:01:04 America/Argentina/Buenos_Aires] fechaFin está vacío
+[10-Jan-2025 20:01:14 America/Argentina/Buenos_Aires] PHP Fatal error:  Uncaught Error: Undefined constant "JWT_SECRET" in /home/c2650924/public_html/debug/api/auth/logoutApp.php:23
+Stack trace:
+#0 {main}
+  thrown in /home/c2650924/public_html/debug/api/auth/logoutApp.php on line 23

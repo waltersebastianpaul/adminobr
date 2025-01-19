@@ -24,9 +24,9 @@
             android:layout_height="52dp"
             android:hint="@string/hint_equipo"
             android:completionThreshold="1"
-            android:padding="16dp"
             android:textSize="16sp"
-            android:inputType="text" />
+            android:inputType="text"
+            style="@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -47,9 +47,9 @@
             android:layout_height="52dp"
             android:hint="@string/hint_obra"
             android:completionThreshold="1"
-            android:padding="16dp"
             android:textSize="16sp"
-            android:inputType="text" />
+            android:inputType="text"
+            style="@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <LinearLayout

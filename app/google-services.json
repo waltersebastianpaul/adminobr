@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "230311975256",
+    "project_id": "adminobr",
+    "storage_bucket": "adminobr.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:230311975256:android:89e662734696d37375ad2d",
+        "android_client_info": {
+          "package_name": "com.example.adminobr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAW4lO7fp5NlL7ZafsOzNZIssT1LIsduyU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
